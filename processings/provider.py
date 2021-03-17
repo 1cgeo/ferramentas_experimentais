@@ -1,0 +1,30 @@
+from qgis.core import QgsProcessingProvider
+from processing.core.ProcessingConfig import ProcessingConfig, Setting
+from qgis.PyQt.QtGui import QIcon
+from .atribuirsrc import AtribuirSRC
+from .exportarparashapefile import ExportarParaShapefile
+from .removercamadavazia import RemoveEmptyLayers
+from Ferramentas_Experimentais import resources
+class Provider(QgsProcessingProvider):
+
+    def loadAlgorithms(self, *args, **kwargs):
+        self.addAlgorithm(AtribuirSRC())
+        self.addAlgorithm(ExportarParaShapefile())
+        self.addAlgorithm(RemoveEmptyLayers())
+
+    def load(self):
+        ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
+        ProcessingConfig.addSetting(Setting(self.name(), 'ACTIVATE_FerramentasExperimentais',
+                                            'Activate', True))
+        ProcessingConfig.readSettings()
+        self.refreshAlgorithms()
+        return True
+ 
+    def id(self, *args, **kwargs):
+        return 'FerramentaExperimentaisProvider'
+
+    def name(self, *args, **kwargs):
+        return self.tr('Ferramentas Experimentais')
+
+    def icon(self):
+        return QIcon(':/plugins/Ferramentas_Experimentais/icons/lab.png')

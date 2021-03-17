@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/plugins/Ferramentas_Experimentais">
+        <file>icons/azim.png</file>
+        <file>icons/copywkt.png</file>
+        <file>icons/copygeom.png</file>
+        <file>icons/pastegeom.png</file>
+        <file>icons/lab.png</file>
+    </qresource>
+</RCC>
