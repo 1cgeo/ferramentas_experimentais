@@ -38,7 +38,7 @@ class WktButton():
 
     def __init__(self, iface):
         self.iface = iface
-        #self.b="teste123"
+        
     def copywkt(self):
         layer=iface.activeLayer()
         wktcoord=[]
@@ -46,7 +46,7 @@ class WktButton():
         for feature in features:
             geom=feature.geometry()
             wktcoord.append(geom.asWkt())
-            wktcoord.append("\n")
-            wktcoord.append("\n")
-        QApplication.clipboard().setText([''.join(wktcoord[:-2])][0])
+        QApplication.clipboard().setText(
+            '\n'.join(wktcoord)
+        )
         iface.messageBar().pushMessage("Executado", u" As coordenadas das feições selecionadas foram copiadas em WKT", level=Qgis.Success, duration=5)

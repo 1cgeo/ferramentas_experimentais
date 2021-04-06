@@ -28,10 +28,9 @@ class RemoveEmptyLayers(QgsProcessingAlgorithm):
         for key, layer in QgsProject.instance().mapLayers().items():
             if feedback.isCanceled():
                 return {self.OUTPUT: outputLayers}
-            if layer.type() == QgsMapLayer.VectorLayer:
-                if layer.featureCount() == 0:
-                    outputLayers.append(layer.name())
-                    toBeRemoved.append(layer.id())
+            if layer.type() == QgsMapLayer.VectorLayer and layer.featureCount() == 0:
+                outputLayers.append(layer.name())
+                toBeRemoved.append(layer.id())
             step+=1
             feedback.setProgress(step*progressStep)
         if toBeRemoved:

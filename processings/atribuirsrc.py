@@ -20,10 +20,12 @@ from qgis.core import (QgsProcessing,
                        )
 from qgis import processing
 
-class AtribuirSRC(QgsProcessingAlgorithm):
+class AtribuirSRC(QgsProcessingAlgorithm): 
+
     INPUT_LAYERS = 'InpLayers'
     INPUT_SRC = 'INPUT'
     OUTPUT = 'OUTPUT'
+
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterCrs(
@@ -47,9 +49,7 @@ class AtribuirSRC(QgsProcessingAlgorithm):
             )
         )
         
-    def processAlgorithm(self, parameters, context, feedback):
-
-      
+    def processAlgorithm(self, parameters, context, feedback):      
         source = self.parameterAsSource(
             parameters,
             'INPUT',
@@ -57,15 +57,14 @@ class AtribuirSRC(QgsProcessingAlgorithm):
         )
         feedback.setProgressText('Atruibuindo SRC...')
         SRCInput = parameters['INPUT']
-        Layers=self.parameterAsLayerList(parameters,'InpLayers', context)
-        SRCInvalido=self.parameterAsBool(parameters,'checkBox', context)
+        Layers = self.parameterAsLayerList(parameters,'InpLayers', context)
+        SRCInvalido = self.parameterAsBool(parameters,'checkBox', context)
         outputLayers = []
-        step=0
-        step2=0
+        step = 0
+        step2 = 0
         listSize = len(Layers)
         if SRCInvalido:
-            listSize = len(Layers)+len(QgsProject.instance().mapLayers())
-        
+            listSize = len(Layers) + len(QgsProject.instance().mapLayers())
         progressStep = 100/listSize if listSize else 0
 
 
@@ -74,22 +73,21 @@ class AtribuirSRC(QgsProcessingAlgorithm):
                 return {self.OUTPUT: outputLayers}
             layer.setCrs(SRCInput)
             outputLayers.append(layer.name())
-            feedback.setProgress(step*progressStep)
-        if SRCInvalido:
-            for step2,layer in enumerate(QgsProject.instance().mapLayers().values()):
-                crs=layer.crs()
-                if feedback.isCanceled():
-                    return {self.OUTPUT: outputLayers}
-                if not crs.isValid():
-                    layer.setCrs(SRCInput)
-                    outputLayers.append(layer.name())
-                steps=step+step2
-                feedback.setProgress(steps*progressStep)
+            feedback.setProgress( step * progressStep )
+        if not SRCInvalido:
+             return { self.OUTPUT: outputLayers }
+        for step2,layer in enumerate(QgsProject.instance().mapLayers().values()):
+            crs=layer.crs()
+            if feedback.isCanceled():
+                return {self.OUTPUT: outputLayers}
+            if not crs.isValid():
+                layer.setCrs(SRCInput)
+                outputLayers.append(layer.name())
+            steps=step+step2
+            feedback.setProgress(steps*progressStep)
         return{self.OUTPUT: outputLayers}
   
-
     def tr(self, string):
-
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):

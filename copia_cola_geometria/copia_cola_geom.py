@@ -43,40 +43,55 @@ class CCGButton():
     def __init__(self, iface):
         self.iface = iface
 
-    def copygeom(self):
-        layer=iface.activeLayer()
-        featcount=layer.selectedFeatureCount()
-        if featcount>1:
-            iface.messageBar().pushMessage("Erro", u" Selecione apenas uma feição", level=Qgis.Critical, duration=5)
-        elif featcount<1:
-            iface.messageBar().pushMessage("Erro", u" Selecione pelo menos uma feição", level=Qgis.Critical, duration=5)
-        else:
+    def startCopyButton(self, b):
+        try:
+            layer=iface.activeLayer()
+            self.validLayer(layer)
             features=layer.getSelectedFeatures()
-            geom=QgsSettings()
-            geom.setValue("Ferramentas_Experimentais/geometriatipo", layer.geometryType())
-            for feature in features:
-                geom.setValue("Ferramentas_Experimentais/geometria", feature.geometry())
-            iface.messageBar().pushMessage("Executado", u" A geometria da feição selecionada foi copiada", level=Qgis.Success, duration=5)
-            
+            self.copygeom(layer, features)
+            iface.messageBar().pushMessage( 'Executado', 'A geometria da feição foi copiada', level=Qgis.Success, duration=5)
+        except Exception as e:
+            iface.messageBar().pushMessage( 'Erro', str(e), level=Qgis.Critical, duration=5)
 
-    def pastegeom(self):
-        layer=iface.activeLayer()
-        featcount=layer.selectedFeatureCount()
-        geom=QgsSettings()
-        geometria=geom.value("Ferramentas_Experimentais/geometria", False)
-        if featcount>1:
-             iface.messageBar().pushMessage("Erro", u" Selecione apenas uma feição", level=Qgis.Critical, duration=5)
-        elif featcount<1:
-            iface.messageBar().pushMessage("Erro", u" Selecione pelo menos uma feição", level=Qgis.Critical, duration=5)
-        elif not geometria:
-            iface.messageBar().pushMessage("Erro", u"Sem geometria copiada", level=Qgis.Critical, duration=5)
-        elif not layer.geometryType()==geom.value("Ferramentas_Experimentais/geometriatipo", False):
-            iface.messageBar().pushMessage("Erro", u"Camada destino tem tipo de geometria diferente de camada origem", level=Qgis.Critical, duration=5)
-        else:
-            features=layer.getSelectedFeatures()
-            for feature in features:
-                layer.dataProvider().changeGeometryValues({ feature.id() : geometria })
-                layer.reload()
-            iface.messageBar().pushMessage("Executado", u" A geometria da feição foi modificada", level=Qgis.Success, duration=5)
+    def copygeom(self, layer, features):
+        geom = QgsSettings()
+        geom.setValue("Ferramentas_Experimentais/geometriatipo", layer.geometryType())
+        for feature in features:
+            geom.setValue("Ferramentas_Experimentais/geometria", feature.geometry())
+
+    def validLayer(self, layer):
+        if not layer:
+            raise Exception('Selecione uma camada')
+        featcount = layer.selectedFeatureCount()
+        if featcount > 1 or featcount < 1:
+            raise Exception('Selecione uma e apenas uma feição')
+
+    def startPasteButton(self, b):
+        try:
+            layer = iface.activeLayer()
+            self.validLayer(layer)
+            geom = QgsSettings()
+            geometria = geom.value("Ferramentas_Experimentais/geometria", False)
+            features = layer.getSelectedFeatures()
+            self.validGeometry(layer, geometria)
+            self.pastegeom(layer, geometria, features)
+            iface.messageBar().pushMessage( 'Executado', 'A geometria da feição foi modificada', level=Qgis.Success, duration=5)
+        except Exception as e:
+            iface.messageBar().pushMessage( 'Erro', str(e), level=Qgis.Critical, duration=5)
+
+    def pastegeom(self, layer, geometria, features):
+        for feature in features:
+            layer.dataProvider().changeGeometryValues({ feature.id() : geometria })
+        layer.reload()
+
+    def validGeometry(self, layer, geometria):
+        geometryType = QgsSettings().value("Ferramentas_Experimentais/geometriatipo", False)
+        if not geometria:
+            raise Exception('Sem geometria copiada')
+        elif not (layer.geometryType() == int(geometryType)):
+            raise Exception('Camada destino tem tipo de geometria diferente de camada origem')
+
+
+        
             
 

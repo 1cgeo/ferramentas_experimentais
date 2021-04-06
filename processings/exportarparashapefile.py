@@ -27,7 +27,8 @@ import datetime
 import subprocess
 import shutil
 
-class ExportarParaShapefile (QgsProcessingAlgorithm):
+class ExportarParaShapefile (QgsProcessingAlgorithm): 
+
     INPUT_LAYERS = 'INPUT_LAYERS'
     INPUT_FOLDER = 'INPUT_FOLDER'
     OUTPUT_FOLDER = 'OUTPUT_FOLDER'
@@ -59,7 +60,6 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
             )
         )
         
-        
     def processAlgorithm(self, parameters, context, feedback):
         inputLyrList = self.parameterAsLayerList(
             parameters,
@@ -83,8 +83,7 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
         
         outputLayers = []
 
-        listSize = len(inputLyrList)
-        progressStep = 100/listSize if listSize else 0
+        progressStep = self.getProgressSteps(inputLyrList)
 
         extension = 'shp'
 
@@ -105,7 +104,11 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
             feedback.setProgress(step*progressStep)
 
         return {self.OUTPUT: outputLayers}
-        
+
+    def getProgressSteps(self, inputLyrList):
+        listSize = len(inputLyrList)
+        return 100/listSize if listSize else 0
+
     def createFolderDestination(self, outputFolder):
         folderDestinationPath = os.path.join( outputFolder, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") )
         os.makedirs(folderDestinationPath)

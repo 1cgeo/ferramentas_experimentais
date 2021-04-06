@@ -39,7 +39,7 @@ class AzimButton:
 
     def __init__(self, iface):
         self.iface = iface
-
+        
     def calazim(self):
         layer=iface.activeLayer()
         if not (layer.geometryType()==QgsWkbTypes.LineGeometry or layer.geometryType()==QgsWkbTypes.PolygonGeometry):
@@ -50,11 +50,13 @@ class AzimButton:
         auxlyr=cal.createAuxiliaryLayer(field,layer)
         layer.setAuxiliaryLayer(auxlyr)
         auxLayer = layer.auxiliaryLayer()
-        vdef=QgsPropertyDefinition("azim", 
-        2, 
-        "azimute", 
-        "calcula angulo azimute",
-        "angulo") 
+        vdef=QgsPropertyDefinition(
+            "azim", 
+            2, 
+            "azimute", 
+            "calcula angulo azimute",
+            "angulo"
+        ) 
         auxLayer.addAuxiliaryField(vdef)
         auxFields = auxLayer.fields()
         features=layer.getFeatures()

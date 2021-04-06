@@ -45,9 +45,11 @@ from processing.core.ProcessingConfig import ProcessingConfig, Setting
 
 class InitPlugin:
 
-    def __init__(self, iface):
+    def __init__(self, iface, buttons=CCGButton(iface)):
         self.iface = iface
         self.provider = None
+        self.buttons = buttons
+
     def initGui(self):
         #Carregar icones
         #   Calcula Azimute
@@ -70,8 +72,8 @@ class InitPlugin:
         self.popupMenu.addAction( self.actioncopy )
         self.popupMenu.addAction( self.actionpaste )
 
-        self.actioncopy.triggered.connect( CCGButton.copygeom)
-        self.actionpaste.triggered.connect(CCGButton.pastegeom)
+        self.actioncopy.triggered.connect( self.buttons.startCopyButton)
+        self.actionpaste.triggered.connect( self.buttons.startPasteButton)
         self.toolButton = QToolButton()
         self.toolButton.setMenu( self.popupMenu )
         self.toolButton.setDefaultAction( self.actioncopy )
@@ -79,6 +81,7 @@ class InitPlugin:
         self.tbaction=self.iface.addToolBarWidget( self.toolButton )
         #Addprovider
         PluginAlg.initProcessing(self)
+
     def initSignals(self):
         pass
     def unload(self):
