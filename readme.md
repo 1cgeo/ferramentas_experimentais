@@ -19,6 +19,9 @@ A ferramenta permite que o usuário insira camadas e atribua um SRC, também esc
 ### 3- Exportar para *Shapefile*
 O *processing*, ao ser executado, exporta camadas de um projeto para o formato *shapefile* seguindo as especificações de um shapefile modelo.
 
+### 4- Ordenar Fluxo
+Tem como parâmetro de entrada uma camada vetorial com geometria do tipo linha, com linhas já direcionadas e retorna uma cópia da camada com o campo "ordem" na tabela de atributos. A ordem é calculada da seguinte maneira: atribui-se 1 às linhas com conexão a apenas uma outra linha e para as outras linhas desconhecidas atribui-se a maior "ordem + 1" de outra linha conectada ao primeiro ponto dessa.
+
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
