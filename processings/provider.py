@@ -4,6 +4,7 @@ from qgis.PyQt.QtGui import QIcon
 from .atribuirsrc import AtribuirSRC
 from .exportarparashapefile import ExportarParaShapefile
 from .removercamadavazia import RemoveEmptyLayers
+from .streamOrder import StreamOrder
 from Ferramentas_Experimentais import resources
 class Provider(QgsProcessingProvider):
 
@@ -11,11 +12,18 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(AtribuirSRC())
         self.addAlgorithm(ExportarParaShapefile())
         self.addAlgorithm(RemoveEmptyLayers())
+        self.addAlgorithm(StreamOrder())
 
     def load(self):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
-        ProcessingConfig.addSetting(Setting(self.name(), 'ACTIVATE_FerramentasExperimentais',
-                                            'Activate', True))
+        ProcessingConfig.addSetting(
+            Setting(
+                self.name(), 
+                'ACTIVATE_FerramentasExperimentais',
+                'Activate', 
+                True
+            )
+        )
         ProcessingConfig.readSettings()
         self.refreshAlgorithms()
         return True
