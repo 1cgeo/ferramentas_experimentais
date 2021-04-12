@@ -22,6 +22,11 @@ O *processing*, ao ser executado, exporta camadas de um projeto para o formato *
 ### 4- Ordenar Fluxo
 Tem como parâmetro de entrada uma camada vetorial com geometria do tipo linha, com linhas já direcionadas e retorna uma cópia da camada com o campo "ordem" na tabela de atributos. A ordem é calculada da seguinte maneira: atribui-se 1 às linhas com conexão a apenas uma outra linha e para as outras linhas desconhecidas atribui-se a maior "ordem + 1" de outra linha conectada ao primeiro ponto dessa.
 
+### 5 - Consistência entre Fluxo e Curva de Nível
+Os parâmetros são: uma camada vetorial com geometria do tipo linha (camada de fluxo ou drenagem), o campo da tabela de atributos dessa camada correspondente a uma chave primaria (campo que identifica a linha), camada vetorial com geometria do tipo linha contendo as curvas de nível (camada de curva de nível), o campo da tabela de atributos dessa camada correspondente ao valor das cotas, o valor da equidistância entre as cotas. 
+
+O *processing* detecta inconsistências na camada de drenagem em relação a camada contendo as curvas de nível. Se alguma inconsistência for detectada é gerada uma camada de pontos como saída apontando o local das inconsistências. Essa camada é gerada de "ordem" em "ordem" (de acordo com o calculado pelo *processing* **Ordenar Fluxo**), se, numa determinada ordem, for detectada inconsistência, o programa para, deixando de seguir para a procura na ordem seguinte e gera a camada de saída. Se não houver nenhuma inconsistência, retorna-se a mensagem "nenhuma inconsistência verificada" na janela de execução do *processing* como *feedback*.
+
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
