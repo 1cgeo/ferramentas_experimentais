@@ -152,7 +152,7 @@ class StreamOrder(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return streamOrder()
+        return StreamOrder()
 
     def name(self):
         return 'ordenafluxo'

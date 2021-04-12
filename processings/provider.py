@@ -5,6 +5,7 @@ from .atribuirsrc import AtribuirSRC
 from .exportarparashapefile import ExportarParaShapefile
 from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
+from .streamCountourConsistency import StreamCountourConsistency
 from Ferramentas_Experimentais import resources
 class Provider(QgsProcessingProvider):
 
@@ -13,6 +14,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(ExportarParaShapefile())
         self.addAlgorithm(RemoveEmptyLayers())
         self.addAlgorithm(StreamOrder())
+        self.addAlgorithm(StreamCountourConsistency())
 
     def load(self):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
@@ -29,7 +31,7 @@ class Provider(QgsProcessingProvider):
         return True
  
     def id(self, *args, **kwargs):
-        return 'FerramentaExperimentaisProvider'
+        return 'FerramentasExperimentaisProvider'
 
     def name(self, *args, **kwargs):
         return self.tr('Ferramentas Experimentais')
