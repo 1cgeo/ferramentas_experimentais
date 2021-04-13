@@ -6,8 +6,7 @@ from .exportarparashapefile import ExportarParaShapefile
 from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
-from Ferramentas_Experimentais import resources
-
+from .verifyValleyBottom import VerifyValleyBottom
 
 class Provider(QgsProcessingProvider):
 
@@ -17,6 +16,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(RemoveEmptyLayers())
         self.addAlgorithm(StreamOrder())
         self.addAlgorithm(StreamCountourConsistency())
+        self.addAlgorithm(VerifyValleyBottom())
 
     def load(self):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
