@@ -2,7 +2,7 @@ import os
 import sys
 import inspect
 
-from qgis.core import(QgsProcessing,
+from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
@@ -28,14 +28,12 @@ from qgis.core import(QgsProcessing,
                        QgsSettings
                        )
 
-from PyQt5.QtWidgets import * 
-from PyQt5 import QtCore, QtGui 
-from PyQt5.QtGui import * 
-from PyQt5.QtCore import * 
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 from PyQt5.Qt import QApplication, QClipboard
 
 from qgis.utils import iface
-from CopiarWkt import resources
 
 
 class CCGButton():
@@ -45,13 +43,13 @@ class CCGButton():
 
     def startCopyButton(self, b):
         try:
-            layer=iface.activeLayer()
+            layer = iface.activeLayer()
             self.validLayer(layer)
-            features=layer.getSelectedFeatures()
+            features = layer.getSelectedFeatures()
             self.copygeom(layer, features)
-            iface.messageBar().pushMessage( 'Executado', 'A geometria da feição foi copiada', level=Qgis.Success, duration=5)
+            iface.messageBar().pushMessage('Executado', 'A geometria da feição foi copiada', level=Qgis.Success, duration=5)
         except Exception as e:
-            iface.messageBar().pushMessage( 'Erro', str(e), level=Qgis.Critical, duration=5)
+            iface.messageBar().pushMessage('Erro', str(e), level=Qgis.Critical, duration=5)
 
     def copygeom(self, layer, features):
         geom = QgsSettings()
@@ -75,13 +73,14 @@ class CCGButton():
             features = layer.getSelectedFeatures()
             self.validGeometry(layer, geometria)
             self.pastegeom(layer, geometria, features)
-            iface.messageBar().pushMessage( 'Executado', 'A geometria da feição foi modificada', level=Qgis.Success, duration=5)
+            iface.messageBar().pushMessage('Executado', 'A geometria da feição foi modificada',
+                                           level=Qgis.Success, duration=5)
         except Exception as e:
-            iface.messageBar().pushMessage( 'Erro', str(e), level=Qgis.Critical, duration=5)
+            iface.messageBar().pushMessage('Erro', str(e), level=Qgis.Critical, duration=5)
 
     def pastegeom(self, layer, geometria, features):
         for feature in features:
-            layer.dataProvider().changeGeometryValues({ feature.id() : geometria })
+            layer.dataProvider().changeGeometryValues({feature.id(): geometria})
         layer.reload()
 
     def validGeometry(self, layer, geometria):
@@ -90,8 +89,3 @@ class CCGButton():
             raise Exception('Sem geometria copiada')
         elif not (layer.geometryType() == int(geometryType)):
             raise Exception('Camada destino tem tipo de geometria diferente de camada origem')
-
-
-        
-            
-

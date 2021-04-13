@@ -2,7 +2,7 @@ import os
 import sys
 import inspect
 
-from qgis.core import(QgsProcessing,
+from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
@@ -26,27 +26,27 @@ from qgis.core import(QgsProcessing,
                        Qgis,
                        QgsWkbTypes
                        )
-from PyQt5.QtWidgets import * 
-from PyQt5 import QtCore, QtGui 
-from PyQt5.QtGui import * 
-from PyQt5.QtCore import * 
-from PyQt5.Qt import QApplication, QClipboard
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.Qt import QApplication
 from qgis.utils import iface
-from CopiarWkt import resources
+
 
 class WktButton():
 
     def __init__(self, iface):
         self.iface = iface
-        
+
     def copywkt(self):
-        layer=iface.activeLayer()
-        wktcoord=[]
-        features=layer.getSelectedFeatures()
+        layer = iface.activeLayer()
+        wktcoord = []
+        features = layer.getSelectedFeatures()
         for feature in features:
-            geom=feature.geometry()
+            geom = feature.geometry()
             wktcoord.append(geom.asWkt())
         QApplication.clipboard().setText(
             '\n'.join(wktcoord)
         )
-        iface.messageBar().pushMessage("Executado", u" As coordenadas das feições selecionadas foram copiadas em WKT", level=Qgis.Success, duration=5)
+        iface.messageBar().pushMessage("Executado",
+                                       u" As coordenadas das feições selecionadas foram copiadas em WKT", level=Qgis.Success, duration=5)

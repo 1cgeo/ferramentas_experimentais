@@ -7,6 +7,8 @@ from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
 from Ferramentas_Experimentais import resources
+
+
 class Provider(QgsProcessingProvider):
 
     def loadAlgorithms(self, *args, **kwargs):
@@ -20,16 +22,16 @@ class Provider(QgsProcessingProvider):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
         ProcessingConfig.addSetting(
             Setting(
-                self.name(), 
+                self.name(),
                 'ACTIVATE_FerramentasExperimentais',
-                'Activate', 
+                'Activate',
                 True
             )
         )
         ProcessingConfig.readSettings()
         self.refreshAlgorithms()
         return True
- 
+
     def id(self, *args, **kwargs):
         return 'FerramentasExperimentaisProvider'
 

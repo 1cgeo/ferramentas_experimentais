@@ -28,7 +28,7 @@ __copyright__ = '(C) 2021 by Pedro Martins'
 
 
 def classFactory(iface):  # pylint: disable=invalid-name
-    """Load PluginTeste class from file PluginTeste.
+    """Load InitPlugin class.
 
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
