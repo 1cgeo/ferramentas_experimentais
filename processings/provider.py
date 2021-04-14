@@ -7,6 +7,7 @@ from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
 from .verifyValleyBottom import VerifyValleyBottom
+from .identifyEmptyGeometry import IdentifyEmptyGeometry
 
 class Provider(QgsProcessingProvider):
 
@@ -17,6 +18,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(StreamOrder())
         self.addAlgorithm(StreamCountourConsistency())
         self.addAlgorithm(VerifyValleyBottom())
+        self.addAlgorithm(IdentifyEmptyGeometry())
 
     def load(self):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
