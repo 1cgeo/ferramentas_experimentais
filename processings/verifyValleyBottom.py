@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from qgis import processing
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink, QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSource,
@@ -18,6 +18,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterField,
+                       QgsProcessingParameterNumber,
                        QgsFeature,
                        QgsVectorLayer,
                        QgsPoint,
@@ -51,7 +52,20 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
                 types=[QgsProcessing.TypeVectorLine]
             )
         )
-
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.P1,
+                self.tr('Segment size along line from intersection points'),
+                type=QgsProcessingParameterNumber.Double
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.P2,
+                self.tr('Tolerance from point projection on line'),
+                type=QgsProcessingParameterNumber.Double
+            )
+        )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
@@ -60,41 +74,54 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-
         drainageLayer = self.parameterAsVectorLayer(parameters, 'INPUT_DRAINAGE', context)
         contourLayer = self.parameterAsVectorLayer(parameters, 'INPUT_CONTOUR', context)
+        p1 = self.parameterAsDouble(parameters, 'P1 ', context)
+        p2 = self.parameterAsDouble(parameters, 'P2', context)
 
+        # Get intersection points
         intersections = self.intersectionsPoints(context, feedback, drainageLayer, contourLayer)
 
-        drainageIDsIntersections = self.joinByLocation(self, context, feedback, intersections, drainageLayer)
-        contourIDsIntersections = self.joinByLocation(self, context, feedback, intersections, contourLayer)
+        # Generate IDs
+        self.generateIntersectionIds(context, feedback, intersections)
 
-        featuresArray = self.createFeaturesArray(originalLayer)
+        # Get "buffer" from point
+        drainagePointSegment, drainageSegment = self.getSegmentFromPoint(
+            context, feedback, intersections, drainageLayer, p1)
+        contourPointSegment, contourSegment = self.getSegmentFromPoint(
+            context, feedback, intersections, contourLayer, p1)
 
-        feedback.setProgressText('Verificando inconsistencias ')
-        streamStartPoints = self.getLinesStartPoints(featuresArray)
-        orderedFeatures = self.orderLines(featuresArray, streamStartPoints, 0)
-        newLayer = self.orderedLayer(parameters, context, originalLayer, orderedFeatures)
 
-        return {self.OUTPUT: newLayer}
+        # Convert to single parts
+        # contourSegment = self.multiPartToSingleParts(context, feedback, contourSegment)
+        # drainageSegment = self.multiPartToSingleParts(context, feedback, drainageSegment)
 
-    def joinByLocation(self, context, feedback, baseLayer, joinLayer):
-        resultLayer = processing.run(
-            'qgis:joinattributesbylocation',
-            {
-                'INPUT': baseLayer,
-                'JOIN': joinLayer,
-                'PREDICATE': [0],  # intersects
-                'JOIN_FIELDS': ['id'],
-                'PREFIX': 'join',
-                'DISCARD_NONMATCHING': True,
-                'OUTPUT': 'memory:'
-            },
-            is_child_algorithm=True,
-            context=context,
-            feedback=feedback)['OUTPUT']
-        resultLayer = context.takeResultLayer(resultLayer)
-        return resultLayer
+        # Get segment created from contourSegment bounds
+        countourExtentPoints = self.getLineFromExtents(context, feedback, contourSegment)
+
+        # drainageIntersectExtentSegment = 
+
+        # self.segmentIntersection(context, feedback, countourExtentPoints, drainageSegment)
+
+
+        # Get line from contourSegment extents
+
+        # feedback.setProgressText('')
+        # self.sinkOutput(parameters, context, feedback, contourSegment)
+        return {self.OUTPUT: contourSegment}
+
+    def sinkOutput(self, parameters, context, feedback, source):
+        sink, _ = self.parameterAsSink(
+        parameters,
+        self.OUTPUT,
+        context,
+        source.fields(),
+        source.wkbType(),
+        source.sourceCrs()
+        )
+
+        for f in source.getFeatures():
+            sink.addFeature(f)
 
     def intersectionsPoints(self, context, feedback, drainageLayer, countourLayer):
         intersectionLayer = processing.run(
@@ -108,8 +135,75 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
             context=context,
             feedback=feedback)['OUTPUT']
         intersectionLayer = context.takeResultLayer(intersectionLayer)
-        # intersectionPoints = [x for x in intersectionLayer.getFeatures()]
         return intersectionLayer
+
+    def getSegmentFromPoint(self, context, feedback, pointLayer, vectorLayer, ):
+        _segmentLayer = processing.run(
+            'qgis:serviceareafromlayer',
+            {
+                'INPUT': vectorLayer,
+                'STATEGY': 0,
+                'START_POINTS': pointLayer,
+                'TRAVEL_COST2': p1,
+                'DEFAULT_DIRECTION' : 2,
+                'DEFAULT_SPEED' : 50,
+                'DIRECTION_FIELD' : '',
+                'TOLERANCE' : 0,
+                'VALUE_BACKWARD' : '',
+                'VALUE_BOTH' : '',
+                'VALUE_FORWARD' : '',
+                'SPEED_FIELD' : '',
+                'INCLUDE_BOUNDS' : True,
+                'OUTPUT': 'memory:',
+                'OUTPUT_LINES': 'memory:',
+            },
+            is_child_algorithm=True,
+            context=context,
+            feedback=feedback)
+        segmentLayer = context.takeResultLayer(_segmentLayer['OUTPUT_LINES'])
+        pointSegmentLayer = context.takeResultLayer(_segmentLayer['OUTPUT'])
+        return pointSegmentLayer, segmentLayer
+
+    def generateIntersectionIds(self, context, feedback, pointLayer):
+        pointLayer.startEditing()
+        pointLayer.addAttribute(QgsField(name='id_v', type=QVariant.Int, typeName='int'))
+        for i, feat in enumerate(pointLayer.getFeatures()):
+            pointLayer.changeAttributeValue(
+                fid=feat.id(), field=feat.fieldNameIndex('id_v'), newValue=i)
+        pointLayer.commitChanges()
+
+    def multiPartToSingleParts(self, context, feedback, layer):
+        singlePartLayer = processing.run(
+            'qgis:multiparttosingleparts',
+            {
+                'INPUT': layer,
+                'OUTPUT': 'memory:'
+            },
+            is_child_algorithm=True,
+            context=context,
+            feedback=feedback)['OUTPUT']
+        singlePartLayer = context.takeResultLayer(singlePartLayer)
+        return singlePartLayer
+
+    def getLineFromExtents(self, context, feedback, vectorLayer):
+        for x in vectorLayer.getFeatures():
+            print(x.geometry())
+        return {
+            x.attribute('id_v'):(
+                x.geometry().asPoint()[0],
+                x.geometry().asPoint()[-1]
+            ) for x in vectorLayer.getFeatures()
+        }
+
+    def segmentIntersection(self, context, feedback, points, drainage):
+        for x in drainage.getFeatures():
+            id_v = x.attribute('id_v')
+            print(points[id_v])
+            line_from_points = QgsGeometry.fromPolylineXY(points[id_v])
+            print(line_from_points)
+            # print(x.geometry(), x.geometry().asWkt())
+            # intersection = x.geometry().intersection(line_from_points)
+            # print(intersection)
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
