@@ -85,24 +85,24 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         contourDict = {
             x.attribute('id'): x.geometry() for x in contourLayer.getFeatures()
         }
-        
+
         # Get intersection points
         intersections = self.intersectionsPoints(context, feedback, drainageLayer, contourLayer)
 
         # Generate IDs for intersections
-        self.generateIntersectionIds(context, feedback, intersections)
+        self.generateIntersectionIds(intersections)
 
         # Locate point on line
-        contourIntersections = self.locatePointOnLine(context, feedback, intersections, contourDict, 'contour', p1)
+        contourIntersections = self.locatePointOnLine(intersections, contourDict, 'contour', p1)
 
         # Verify intersection from contourIntersections and drainage
         output = self.getIntersectionOnDrainage(intersections, contourIntersections, drainageDict, p2)
 
         # Insert output in sink
-        sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, output[0].fields(), output[0].geometry().wkbType(),intersections.sourceCrs())
+        sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, output[0].fields(), output[0].geometry().wkbType(), intersections.sourceCrs())
         for feat in output:
             sink.addFeature(feat)
-        
+
         return {self.OUTPUT: sink}
 
     def intersectionsPoints(self, context, feedback, drainageLayer, countourLayer):
@@ -122,7 +122,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         intersectionLayer = context.takeResultLayer(intersectionLayer)
         return intersectionLayer
 
-    def locatePointOnLine(self, context, feedback, pointLayer, contourDict, layerType, p1):
+    def locatePointOnLine(self, pointLayer, contourDict, layerType, p1):
         interpolatedPoints = {}
         for point in pointLayer.getFeatures():
             searchId = point.attribute('id') if layerType == 'contour' else point.attribute('vid')
@@ -133,7 +133,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
                 continue
             interpolated1 = interpolated1.asPoint()
             interpolated2 = interpolated2.asPoint()
-            interpolatedPoints.update({point.attribute('vid'):(interpolated1,interpolated2)})
+            interpolatedPoints.update({point.attribute('vid'): (interpolated1, interpolated2)})
         return interpolatedPoints
 
     def getIntersectionOnDrainage(self, intersections, contourIntersections, drainageDict, p2):
@@ -145,12 +145,15 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
                 continue
             lineFromContourIntersection = QgsGeometry.fromPolylineXY(contourIntersections[vid])
             intersection = lineFromContourIntersection.intersection(drainageDict[did])
-            distance = p.geometry().distance(intersection)
-            if distance < p2:
+            d1 = drainageDict[did].lineLocatePoint(intersection)
+            d2 = drainageDict[did].lineLocatePoint(p.geometry())
+            # distance = p.geometry().distance(intersection)
+            if d1-d2 < p2:
+                # if distance < p2:
                 errors.append(p)
         return errors
 
-    def generateIntersectionIds(self, context, feedback, pointLayer):
+    def generateIntersectionIds(self, pointLayer):
         pointLayer.startEditing()
         pointLayer.addAttribute(QgsField(name='vid', type=QVariant.Int, typeName='int'))
         for i, feat in enumerate(pointLayer.getFeatures()):
