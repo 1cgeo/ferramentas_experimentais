@@ -79,56 +79,41 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         p1 = self.parameterAsDouble(parameters, 'P1', context)
         p2 = self.parameterAsDouble(parameters, 'P2', context)
 
+        drainageDict = {
+            x.attribute('id'): x.geometry() for x in drainageLayer.getFeatures()
+        }
+        contourDict = {
+            x.attribute('id'): x.geometry() for x in contourLayer.getFeatures()
+        }
+        
         # Get intersection points
         intersections = self.intersectionsPoints(context, feedback, drainageLayer, contourLayer)
 
-        # Generate IDs
+        # Generate IDs for intersections
         self.generateIntersectionIds(context, feedback, intersections)
 
-        # Get "buffer" from point
-        drainagePointSegment, drainageSegment = self.getSegmentFromPoint(
-            context, feedback, intersections, drainageLayer, p1)
-        contourPointSegment, contourSegment = self.getSegmentFromPoint(
-            context, feedback, intersections, contourLayer, p1)
+        # Locate point on line
+        contourIntersections = self.locatePointOnLine(context, feedback, intersections, contourDict, 'contour', p1)
 
-        self.orderMultiPartLine(context, feedback, contourSegment)
-        # Convert to single parts
-        # contourSegment = self.multiPartToSingleParts(context, feedback, contourSegment)
-        # drainageSegment = self.multiPartToSingleParts(context, feedback, drainageSegment)
+        # Verify intersection from contourIntersections and drainage
+        output = self.getIntersectionOnDrainage(intersections, contourIntersections, drainageDict, p2)
 
-        # Get segment created from contourSegment bounds
-        countourExtentPoints = self.getLineFromExtents(context, feedback, contourSegment)
-
-        # drainageIntersectExtentSegment = 
-
-        # self.segmentIntersection(context, feedback, countourExtentPoints, drainageSegment)
-
-
-        # Get line from contourSegment extents
-
-        # feedback.setProgressText('')
-        self.sinkOutput(parameters, context, feedback, contourSegment)
-        return {self.OUTPUT: contourSegment}
-
-    def sinkOutput(self, parameters, context, feedback, source):
-        sink, _ = self.parameterAsSink(
-        parameters,
-        self.OUTPUT,
-        context,
-        source.fields(),
-        source.wkbType(),
-        source.sourceCrs()
-        )
-
-        for f in source.getFeatures():
-            sink.addFeature(f)
+        # Insert output in sink
+        sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, output[0].fields(), output[0].geometry().wkbType(),intersections.sourceCrs())
+        for feat in output:
+            sink.addFeature(feat)
+        
+        return {self.OUTPUT: sink}
 
     def intersectionsPoints(self, context, feedback, drainageLayer, countourLayer):
         intersectionLayer = processing.run(
             'qgis:lineintersections',
             {
-                'INPUT': drainageLayer,
-                'INTERSECT': countourLayer,
+                'INPUT': countourLayer,
+                'INTERSECT': drainageLayer,
+                'INPUT_FIELDS': ['id'],
+                'INTERSECT_FIELDS': ['id'],
+                'INTERSECT_FIELDS_PREFIX': 'd',
                 'OUTPUT': 'memory:'
             },
             is_child_algorithm=True,
@@ -137,112 +122,35 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         intersectionLayer = context.takeResultLayer(intersectionLayer)
         return intersectionLayer
 
-    def getSegmentFromPoint(self, context, feedback, pointLayer, vectorLayer, p1):
-        _segmentLayer = processing.run(
-            'qgis:serviceareafromlayer',
-            {
-                'INPUT': vectorLayer,
-                'STATEGY': 0,
-                'START_POINTS': pointLayer,
-                'TRAVEL_COST2': p1,
-                'DEFAULT_DIRECTION' : 2,
-                'DEFAULT_SPEED' : 50,
-                'DIRECTION_FIELD' : '',
-                'TOLERANCE' : 0,
-                'VALUE_BACKWARD' : '',
-                'VALUE_BOTH' : '',
-                'VALUE_FORWARD' : '',
-                'SPEED_FIELD' : '',
-                'INCLUDE_BOUNDS' : False,
-                'OUTPUT': 'memory:',
-                'OUTPUT_LINES': 'memory:',
-            },
-            is_child_algorithm=True,
-            context=context,
-            feedback=feedback)
-        segmentLayer = context.takeResultLayer(_segmentLayer['OUTPUT_LINES'])
-        pointSegmentLayer = context.takeResultLayer(_segmentLayer['OUTPUT'])
-        return pointSegmentLayer, segmentLayer
+    def locatePointOnLine(self, context, feedback, pointLayer, contourDict, layerType, p1):
+        interpolatedPoints = {}
+        for point in pointLayer.getFeatures():
+            searchId = point.attribute('id') if layerType == 'contour' else point.attribute('vid')
+            locatedPoint = contourDict[searchId].lineLocatePoint(point.geometry())
+            interpolated1 = contourDict[searchId].interpolate(locatedPoint + p1).asPoint()
+            interpolated2 = contourDict[searchId].interpolate(locatedPoint - p1).asPoint()
+            interpolatedPoints.update({point.attribute('vid'):(interpolated1,interpolated2)})
+        return interpolatedPoints
+
+    def getIntersectionOnDrainage(self, intersections, contourIntersections, drainageDict, p2):
+        errors = []
+        for p in intersections.getFeatures():
+            did = p.attribute('did')
+            vid = p.attribute('vid')
+            lineFromContourIntersection = QgsGeometry.fromPolylineXY(contourIntersections[vid])
+            intersection = lineFromContourIntersection.intersection(drainageDict[did])
+            distance = p.geometry().distance(intersection)
+            if distance < p2:
+                errors.append(p)
+        return errors
 
     def generateIntersectionIds(self, context, feedback, pointLayer):
         pointLayer.startEditing()
-        pointLayer.addAttribute(QgsField(name='id_v', type=QVariant.Int, typeName='int'))
+        pointLayer.addAttribute(QgsField(name='vid', type=QVariant.Int, typeName='int'))
         for i, feat in enumerate(pointLayer.getFeatures()):
             pointLayer.changeAttributeValue(
-                fid=feat.id(), field=feat.fieldNameIndex('id_v'), newValue=i)
+                fid=feat.id(), field=feat.fieldNameIndex('vid'), newValue=i)
         pointLayer.commitChanges()
-
-    def multiPartToSingleParts(self, context, feedback, layer):
-        singlePartLayer = processing.run(
-            'qgis:multiparttosingleparts',
-            {
-                'INPUT': layer,
-                'OUTPUT': 'memory:'
-            },
-            is_child_algorithm=True,
-            context=context,
-            feedback=feedback)['OUTPUT']
-        singlePartLayer = context.takeResultLayer(singlePartLayer)
-        return singlePartLayer
-
-    def getLineFromExtents(self, context, feedback, vectorLayer):
-        count = 0
-        for x in vectorLayer.getFeatures():
-            print(x.geometry().asMultiPolyline())
-            count += 1
-            if count == 5:
-                break
-        return {
-            x.attribute('id_v'):(
-                x.geometry().asMultiPolyline()[0][0],
-                x.geometry().asMultiPolyline()[-1][0]
-            ) for x in vectorLayer.getFeatures()
-        }
-
-    def orderMultiPartLine(self, context, feedback, multiPartLayer):
-        to_order = ((
-            x.attribute('start'),
-            x.geometry().asMultiPolyline(),
-            x.id()
-            ) for x in multiPartLayer.getFeatures())
-        multiPartLayer.startEditing()
-        count = 0
-        for entry in to_order:
-            x_start, y_start = entry[0].replace(' ', '').split(',')
-            multiPointsList = entry[1]
-            feat_id = entry[2]
-            for i, p in enumerate(multiPointsList):
-                p0, p1 = p[0], p[1]
-                # Try polilyne
-                # Try Qgis Boundary
-                if (abs(p0.x() - float(x_start)) < 1e-4) and (abs(p0.y() - float(y_start)) < 1e-4) and i > 0:
-                    print(f'VÉRTICE:{x_start} {y_start}')
-                    print(f'ANTES: {multiPointsList}')
-                    toDoInternReverse = multiPointsList[:i]
-                    internReversed = map(lambda x: list(reversed(x)), toDoInternReverse)
-                    correct_order = [*internReversed,*multiPointsList[i:]]
-                    print(f'DEPOIS: {correct_order}')
-                    count += 1
-                if count == 5:
-                    break
-                    correct_geom = QgsGeometry.fromMultiPolylineXY(correct_order)
-                    multiPartLayer.changeGeometry(fid=feat_id, geometry=correct_geom)
-        multiPartLayer.commitChanges()
-
-    def segmentIntersection(self, context, feedback, points, drainage):
-        count = 0
-        for x in drainage.getFeatures():
-            id_v = x.attribute('id_v')
-            # print(points[id_v])
-            line_from_points = QgsGeometry.fromPolylineXY(points[id_v])
-            # line_from_drainage = QgsGeometry.fromPolylineXY(x.geometry().asMultiPolyline())
-            # print(x.geometry().asMultiPolyline())
-            # print(x.geometry().constGet())
-            count += 1
-            if count == 5:
-                break
-            # intersection = x.geometry().intersection(line_from_points)
-            # print(intersection)
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
