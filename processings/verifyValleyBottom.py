@@ -76,7 +76,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         drainageLayer = self.parameterAsVectorLayer(parameters, 'INPUT_DRAINAGE', context)
         contourLayer = self.parameterAsVectorLayer(parameters, 'INPUT_CONTOUR', context)
-        p1 = self.parameterAsDouble(parameters, 'P1 ', context)
+        p1 = self.parameterAsDouble(parameters, 'P1', context)
         p2 = self.parameterAsDouble(parameters, 'P2', context)
 
         # Get intersection points
@@ -91,7 +91,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         contourPointSegment, contourSegment = self.getSegmentFromPoint(
             context, feedback, intersections, contourLayer, p1)
 
-
+        self.orderMultiPartLine(context, feedback, contourSegment)
         # Convert to single parts
         # contourSegment = self.multiPartToSingleParts(context, feedback, contourSegment)
         # drainageSegment = self.multiPartToSingleParts(context, feedback, drainageSegment)
@@ -107,7 +107,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         # Get line from contourSegment extents
 
         # feedback.setProgressText('')
-        # self.sinkOutput(parameters, context, feedback, contourSegment)
+        self.sinkOutput(parameters, context, feedback, contourSegment)
         return {self.OUTPUT: contourSegment}
 
     def sinkOutput(self, parameters, context, feedback, source):
@@ -137,7 +137,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         intersectionLayer = context.takeResultLayer(intersectionLayer)
         return intersectionLayer
 
-    def getSegmentFromPoint(self, context, feedback, pointLayer, vectorLayer, ):
+    def getSegmentFromPoint(self, context, feedback, pointLayer, vectorLayer, p1):
         _segmentLayer = processing.run(
             'qgis:serviceareafromlayer',
             {
@@ -153,7 +153,7 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
                 'VALUE_BOTH' : '',
                 'VALUE_FORWARD' : '',
                 'SPEED_FIELD' : '',
-                'INCLUDE_BOUNDS' : True,
+                'INCLUDE_BOUNDS' : False,
                 'OUTPUT': 'memory:',
                 'OUTPUT_LINES': 'memory:',
             },
@@ -186,22 +186,61 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         return singlePartLayer
 
     def getLineFromExtents(self, context, feedback, vectorLayer):
+        count = 0
         for x in vectorLayer.getFeatures():
-            print(x.geometry())
+            print(x.geometry().asMultiPolyline())
+            count += 1
+            if count == 5:
+                break
         return {
             x.attribute('id_v'):(
-                x.geometry().asPoint()[0],
-                x.geometry().asPoint()[-1]
+                x.geometry().asMultiPolyline()[0][0],
+                x.geometry().asMultiPolyline()[-1][0]
             ) for x in vectorLayer.getFeatures()
         }
 
+    def orderMultiPartLine(self, context, feedback, multiPartLayer):
+        to_order = ((
+            x.attribute('start'),
+            x.geometry().asMultiPolyline(),
+            x.id()
+            ) for x in multiPartLayer.getFeatures())
+        multiPartLayer.startEditing()
+        count = 0
+        for entry in to_order:
+            x_start, y_start = entry[0].replace(' ', '').split(',')
+            multiPointsList = entry[1]
+            feat_id = entry[2]
+            for i, p in enumerate(multiPointsList):
+                p0, p1 = p[0], p[1]
+                # Try polilyne
+                # Try Qgis Boundary
+                if (abs(p0.x() - float(x_start)) < 1e-4) and (abs(p0.y() - float(y_start)) < 1e-4) and i > 0:
+                    print(f'VÉRTICE:{x_start} {y_start}')
+                    print(f'ANTES: {multiPointsList}')
+                    toDoInternReverse = multiPointsList[:i]
+                    internReversed = map(lambda x: list(reversed(x)), toDoInternReverse)
+                    correct_order = [*internReversed,*multiPointsList[i:]]
+                    print(f'DEPOIS: {correct_order}')
+                    count += 1
+                if count == 5:
+                    break
+                    correct_geom = QgsGeometry.fromMultiPolylineXY(correct_order)
+                    multiPartLayer.changeGeometry(fid=feat_id, geometry=correct_geom)
+        multiPartLayer.commitChanges()
+
     def segmentIntersection(self, context, feedback, points, drainage):
+        count = 0
         for x in drainage.getFeatures():
             id_v = x.attribute('id_v')
-            print(points[id_v])
+            # print(points[id_v])
             line_from_points = QgsGeometry.fromPolylineXY(points[id_v])
-            print(line_from_points)
-            # print(x.geometry(), x.geometry().asWkt())
+            # line_from_drainage = QgsGeometry.fromPolylineXY(x.geometry().asMultiPolyline())
+            # print(x.geometry().asMultiPolyline())
+            # print(x.geometry().constGet())
+            count += 1
+            if count == 5:
+                break
             # intersection = x.geometry().intersection(line_from_points)
             # print(intersection)
 
