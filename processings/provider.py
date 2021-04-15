@@ -8,6 +8,7 @@ from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
 from .verifyValleyBottom import VerifyValleyBottom
 from .identifyEmptyGeometry import IdentifyEmptyGeometry
+from .identifyMultipleParts import IdentifyMultipleParts
 
 class Provider(QgsProcessingProvider):
 
@@ -19,6 +20,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(StreamCountourConsistency())
         self.addAlgorithm(VerifyValleyBottom())
         self.addAlgorithm(IdentifyEmptyGeometry())
+        self.addAlgorithm(IdentifyMultipleParts())
 
     def load(self):
         ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
