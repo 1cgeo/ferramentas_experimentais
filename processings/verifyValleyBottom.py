@@ -127,8 +127,12 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         for point in pointLayer.getFeatures():
             searchId = point.attribute('id') if layerType == 'contour' else point.attribute('vid')
             locatedPoint = contourDict[searchId].lineLocatePoint(point.geometry())
-            interpolated1 = contourDict[searchId].interpolate(locatedPoint + p1).asPoint()
-            interpolated2 = contourDict[searchId].interpolate(locatedPoint - p1).asPoint()
+            interpolated1 = contourDict[searchId].interpolate(locatedPoint + p1)
+            interpolated2 = contourDict[searchId].interpolate(locatedPoint - p1)
+            if interpolated1.isNull() or interpolated2.isNull():
+                continue
+            interpolated1 = interpolated1.asPoint()
+            interpolated2 = interpolated2.asPoint()
             interpolatedPoints.update({point.attribute('vid'):(interpolated1,interpolated2)})
         return interpolatedPoints
 
@@ -137,6 +141,8 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         for p in intersections.getFeatures():
             did = p.attribute('did')
             vid = p.attribute('vid')
+            if vid not in contourIntersections.keys():
+                continue
             lineFromContourIntersection = QgsGeometry.fromPolylineXY(contourIntersections[vid])
             intersection = lineFromContourIntersection.intersection(drainageDict[did])
             distance = p.geometry().distance(intersection)
