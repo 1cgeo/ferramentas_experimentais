@@ -49,6 +49,7 @@ class Provider(QgsProcessingProvider):
         doc.setContent(xmlData)
         model = QgsProcessingModelAlgorithm('modelo', "Missoes", 'missoes')
         model.loadVariant(QgsXmlUtils.readVariant( doc.firstChildElement() ))
+        model.setGroup('Missoes')
         return model
     
     def getXmlData(self, pathfile):
