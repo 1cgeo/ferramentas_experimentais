@@ -66,6 +66,8 @@ class IdentifyEmptyGeometry(QgsProcessingAlgorithm):
             for feature in layer.getFeatures():
                 if not feature.hasGeometry():
                     outputLog[layer.sourceName()].append(feature[idField])
+                if not (len(feature.geometry().validateGeometry()) == 0):
+                    outputLog[layer.sourceName()].append(feature[idField])
             if len(outputLog[layer.sourceName()]) == 0:
                 del outputLog[layer.sourceName()]
             feedback.setProgress( step * progressStep )
