@@ -1,0 +1,775 @@
+<Option type="Map">
+  <Option name="children" type="Map">
+    <Option name="native:extractbyattribute_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:extractbyattribute" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1532.5" />
+        <Option name="component_pos_y" type="double" value="618.75" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Extract by attribute" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="1332.5" />
+      <Option name="component_pos_y" type="double" value="663.75" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:extractbyattribute_1" />
+      <Option name="outputs" type="Map">
+        <Option name="sem_centroide" type="Map">
+          <Option name="child_id" type="QString" value="native:extractbyattribute_1" />
+          <Option name="color" type="QString" value="" />
+          <Option name="comment" type="Map">
+            <Option name="color" type="QString" value="" />
+            <Option name="component_description" type="QString" value="" />
+            <Option name="component_height" type="double" value="60" />
+            <Option name="component_pos_x" type="double" value="0" />
+            <Option name="component_pos_y" type="double" value="0" />
+            <Option name="component_width" type="double" value="100" />
+            <Option name="outputs_collapsed" type="bool" value="true" />
+            <Option name="parameters_collapsed" type="bool" value="true" />
+          </Option>
+          <Option name="component_description" type="QString" value="sem_centroide" />
+          <Option name="component_height" type="double" value="32.5" />
+          <Option name="component_pos_x" type="double" value="1533.75" />
+          <Option name="component_pos_y" type="double" value="731.25" />
+          <Option name="component_width" type="double" value="200" />
+          <Option name="default_value" type="invalid" />
+          <Option name="mandatory" type="bool" value="false" />
+          <Option name="name" type="QString" value="sem_centroide" />
+          <Option name="output_name" type="QString" value="OUTPUT" />
+          <Option name="outputs_collapsed" type="bool" value="true" />
+          <Option name="parameters_collapsed" type="bool" value="true" />
+        </Option>
+      </Option>
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="FIELD" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="id_count" />
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="qgis:joinbylocationsummary_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="OPERATOR" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="int" value="8" />
+          </Option>
+        </Option>
+        <Option name="VALUE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:extractbyattribute_2" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:extractbyattribute" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1893.75" />
+        <Option name="component_pos_y" type="double" value="718.75" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Extract by attribute" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="1818.75" />
+      <Option name="component_pos_y" type="double" value="558.75" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:extractbyattribute_2" />
+      <Option name="outputs" type="Map">
+        <Option name="centroides_distintos" type="Map">
+          <Option name="child_id" type="QString" value="native:extractbyattribute_2" />
+          <Option name="color" type="QString" value="" />
+          <Option name="comment" type="Map">
+            <Option name="color" type="QString" value="" />
+            <Option name="component_description" type="QString" value="" />
+            <Option name="component_height" type="double" value="60" />
+            <Option name="component_pos_x" type="double" value="0" />
+            <Option name="component_pos_y" type="double" value="0" />
+            <Option name="component_width" type="double" value="100" />
+            <Option name="outputs_collapsed" type="bool" value="true" />
+            <Option name="parameters_collapsed" type="bool" value="true" />
+          </Option>
+          <Option name="component_description" type="QString" value="centroides_distintos" />
+          <Option name="component_height" type="double" value="30" />
+          <Option name="component_pos_x" type="double" value="2018.75" />
+          <Option name="component_pos_y" type="double" value="603.75" />
+          <Option name="component_width" type="double" value="200" />
+          <Option name="default_value" type="invalid" />
+          <Option name="mandatory" type="bool" value="false" />
+          <Option name="name" type="QString" value="centroides_distintos" />
+          <Option name="output_name" type="QString" value="OUTPUT" />
+          <Option name="outputs_collapsed" type="bool" value="true" />
+          <Option name="parameters_collapsed" type="bool" value="true" />
+        </Option>
+      </Option>
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="FIELD" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="attrs" />
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:fieldcalculator_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="OPERATOR" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="int" value="0" />
+          </Option>
+        </Option>
+        <Option name="VALUE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="true" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:extractbylocation_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:extractbylocation" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="823" />
+        <Option name="component_pos_y" type="double" value="284" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Extract by location input" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="637.75" />
+      <Option name="component_pos_y" type="double" value="245.5" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:extractbylocation_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:mergevectorlayers_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="INTERSECT" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Moldura" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+        <Option name="PREDICATE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="List">
+              <Option type="int" value="0" />
+            </Option>
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:extractbylocation_2" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:extractbylocation" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1141" />
+        <Option name="component_pos_y" type="double" value="315" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Extract by location centroids" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="647" />
+      <Option name="component_pos_y" type="double" value="481" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:extractbylocation_2" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:mergevectorlayers_2" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="INTERSECT" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Moldura" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+        <Option name="PREDICATE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="List">
+              <Option type="int" value="0" />
+            </Option>
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:fieldcalculator_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:fieldcalculator" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1212.5" />
+        <Option name="component_pos_y" type="double" value="565" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Field calculator" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="1473.75" />
+      <Option name="component_pos_y" type="double" value="521.25" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:fieldcalculator_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="FIELD_LENGTH" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="int" value="0" />
+          </Option>
+        </Option>
+        <Option name="FIELD_NAME" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="attrs" />
+          </Option>
+        </Option>
+        <Option name="FIELD_PRECISION" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="int" value="0" />
+          </Option>
+        </Option>
+        <Option name="FIELD_TYPE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="int" value="2" />
+          </Option>
+        </Option>
+        <Option name="FORMULA" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="QString" value="get_values() " />
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="qgis:joinbylocationsummary_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:mergevectorlayers_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:mergevectorlayers" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="649" />
+        <Option name="component_pos_y" type="double" value="483" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Merge vector layers input lines" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="212" />
+      <Option name="component_pos_y" type="double" value="227" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:mergevectorlayers_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="CRS" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="invalid" />
+          </Option>
+        </Option>
+        <Option name="LAYERS" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Inputlines" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:mergevectorlayers_2" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:mergevectorlayers" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="557" />
+        <Option name="component_pos_y" type="double" value="629" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Merge vector layers centroids" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="197" />
+      <Option name="component_pos_y" type="double" value="457" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:mergevectorlayers_2" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="CRS" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="invalid" />
+          </Option>
+        </Option>
+        <Option name="LAYERS" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Centroids" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:mergevectorlayers_3" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:mergevectorlayers" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1537.5" />
+        <Option name="component_pos_y" type="double" value="162.5" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Merge vector layers total" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="936.25" />
+      <Option name="component_pos_y" type="double" value="257.5" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:mergevectorlayers_3" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="CRS" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="invalid" />
+          </Option>
+        </Option>
+        <Option name="LAYERS" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:polygonstolines_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:extractbylocation_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:polygonize_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:polygonize" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="735" />
+        <Option name="component_pos_y" type="double" value="439" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Polygonize" />
+      <Option name="component_height" type="double" value="31.250000000000004" />
+      <Option name="component_pos_x" type="double" value="1008" />
+      <Option name="component_pos_y" type="double" value="357.375" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:polygonize_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:mergevectorlayers_3" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="KEEP_FIELDS" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="bool" value="false" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:polygonstolines_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:polygonstolines" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1200" />
+        <Option name="component_pos_y" type="double" value="180" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Polygons to lines" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="948.75" />
+      <Option name="component_pos_y" type="double" value="125" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:polygonstolines_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Moldura" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="qgis:joinbylocationsummary_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="qgis:joinbylocationsummary" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="1480" />
+        <Option name="component_pos_y" type="double" value="606" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Join attributes by location (summary)" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="1223.75" />
+      <Option name="component_pos_y" type="double" value="483.75" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="qgis:joinbylocationsummary_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="DISCARD_NONMATCHING" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="bool" value="false" />
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:polygonize_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="JOIN" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:extractbylocation_2" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="JOIN_FIELDS" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="StringList">
+              <Option type="QString" value="" />
+            </Option>
+          </Option>
+        </Option>
+        <Option name="PREDICATE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="List">
+              <Option type="int" value="0" />
+              <Option type="int" value="1" />
+              <Option type="int" value="5" />
+            </Option>
+          </Option>
+        </Option>
+        <Option name="SUMMARIES" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="List">
+              <Option type="int" value="0" />
+              <Option type="int" value="1" />
+              <Option type="int" value="14" />
+            </Option>
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+  </Option>
+  <Option name="designerParameterValues" type="Map">
+    <Option name="Centroids" type="List">
+      <Option type="QString" value="dbname='sisfron_uraricoera_50k_31974_edgv30pro' host=10.25.163.12 port=5432 user='postgres' password='Patolino@@' key='id' selectatid=false checkPrimaryKeyUnicity='1' table=&quot;edgv&quot;.&quot;aquisicao_centroide_area_construida_p&quot; (geom) sql=id in (SELECT id FROM ONLY &quot;edgv&quot;.&quot;aquisicao_centroide_area_construida_p&quot;)" />
+    </Option>
+    <Option name="Inputlines" type="List">
+      <Option type="QString" value="dbname='sisfron_uraricoera_50k_31974_edgv30pro' host=10.25.163.12 port=5432 user='postgres' password='Patolino@@' key='id' selectatid=false checkPrimaryKeyUnicity='1' table=&quot;edgv&quot;.&quot;aquisicao_limite_area_construida_l&quot; (geom) sql=id in (SELECT id FROM ONLY &quot;edgv&quot;.&quot;aquisicao_limite_area_construida_l&quot;)" />
+      <Option type="QString" value="dbname='sisfron_uraricoera_50k_31974_edgv30pro' host=10.25.163.12 port=5432 user='postgres' password='Patolino@@' key='id' selectatid=false checkPrimaryKeyUnicity='1' table=&quot;edgv&quot;.&quot;infra_via_deslocamento_l&quot; (geom) sql=id in (SELECT id FROM ONLY &quot;edgv&quot;.&quot;infra_via_deslocamento_l&quot;)" />
+    </Option>
+    <Option name="Moldura" type="QString" value="aux_moldura_a_95baa98b_86d5_4900_bb08_560c6da50edc" />
+    <Option name="VERBOSE_LOG" type="bool" value="true" />
+    <Option name="native:extractbyattribute_1:sem_centroide" type="QgsProcessingOutputLayerDefinition">
+      <Option type="Map">
+        <Option name="create_options" type="Map">
+          <Option name="fileEncoding" type="QString" value="System" />
+        </Option>
+        <Option name="sink" type="Map">
+          <Option name="active" type="bool" value="true" />
+          <Option name="type" type="int" value="1" />
+          <Option name="val" type="QString" value="TEMPORARY_OUTPUT" />
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:extractbyattribute_2:centroides_distintos" type="QgsProcessingOutputLayerDefinition">
+      <Option type="Map">
+        <Option name="create_options" type="Map">
+          <Option name="fileEncoding" type="QString" value="System" />
+        </Option>
+        <Option name="sink" type="Map">
+          <Option name="active" type="bool" value="true" />
+          <Option name="type" type="int" value="1" />
+          <Option name="val" type="QString" value="TEMPORARY_OUTPUT" />
+        </Option>
+      </Option>
+    </Option>
+  </Option>
+  <Option name="groupBoxes" />
+  <Option name="help" />
+  <Option name="modelVariables" />
+  <Option name="model_group" type="QString" value="missoes" />
+  <Option name="model_name" type="QString" value="model2" />
+  <Option name="parameterDefinitions" type="Map">
+    <Option name="Centroids" type="Map">
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="Centroids" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="layer_type" type="int" value="0" />
+      <Option name="metadata" />
+      <Option name="min_inputs" type="int" value="0" />
+      <Option name="name" type="QString" value="Centroids" />
+      <Option name="parameter_type" type="QString" value="multilayer" />
+    </Option>
+    <Option name="Inputlines" type="Map">
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="Input lines" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="layer_type" type="int" value="1" />
+      <Option name="metadata" />
+      <Option name="min_inputs" type="int" value="0" />
+      <Option name="name" type="QString" value="Inputlines" />
+      <Option name="parameter_type" type="QString" value="multilayer" />
+    </Option>
+    <Option name="Moldura" type="Map">
+      <Option name="data_types" type="List">
+        <Option type="int" value="2" />
+      </Option>
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="Moldura" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="metadata" />
+      <Option name="name" type="QString" value="Moldura" />
+      <Option name="parameter_type" type="QString" value="vector" />
+    </Option>
+    <Option name="native:extractbyattribute_1:sem_centroide" type="Map">
+      <Option name="create_by_default" type="bool" value="true" />
+      <Option name="data_type" type="int" value="-1" />
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="sem_centroide" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="metadata" />
+      <Option name="name" type="QString" value="native:extractbyattribute_1:sem_centroide" />
+      <Option name="parameter_type" type="QString" value="sink" />
+      <Option name="supports_append" type="bool" value="false" />
+      <Option name="supports_non_file_outputs" type="bool" value="true" />
+    </Option>
+    <Option name="native:extractbyattribute_2:centroides_distintos" type="Map">
+      <Option name="create_by_default" type="bool" value="true" />
+      <Option name="data_type" type="int" value="-1" />
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="centroides_distintos" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="metadata" />
+      <Option name="name" type="QString" value="native:extractbyattribute_2:centroides_distintos" />
+      <Option name="parameter_type" type="QString" value="sink" />
+      <Option name="supports_append" type="bool" value="false" />
+      <Option name="supports_non_file_outputs" type="bool" value="true" />
+    </Option>
+  </Option>
+  <Option name="parameterOrder" />
+  <Option name="parameters" type="Map">
+    <Option name="Centroids" type="Map">
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="374" />
+        <Option name="component_pos_y" type="double" value="183" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Centroids" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="209" />
+      <Option name="component_pos_y" type="double" value="350" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="name" type="QString" value="Centroids" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+    </Option>
+    <Option name="Inputlines" type="Map">
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="667" />
+        <Option name="component_pos_y" type="double" value="176" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Inputlines" />
+      <Option name="component_height" type="double" value="34.00000000000003" />
+      <Option name="component_pos_x" type="double" value="216" />
+      <Option name="component_pos_y" type="double" value="141" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="name" type="QString" value="Inputlines" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+    </Option>
+    <Option name="Moldura" type="Map">
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="644" />
+        <Option name="component_pos_y" type="double" value="142" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Moldura" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="501" />
+      <Option name="component_pos_y" type="double" value="146" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="name" type="QString" value="Moldura" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+    </Option>
+  </Option>
+</Option>
