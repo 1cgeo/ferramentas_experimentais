@@ -39,7 +39,9 @@ Parâmetros necessários:
 - Tamanho do segmento sobre a linha (D1): Distância partir do ponto de interseçào entre uma curva e uma drenagem, sobre a curva de nível
 - Tolerância para a projeçã0 do ponto (D2): Distância máxima entre a interseção (curva de nível vs trecho de drenagem) e o segmento gerado pelos extremos do arco do item anterior
 A figura a seguir descreve as medidas D1 e D2 tomadas como parâmetro no algoritmo.
-![Descrição de D1 em vermelho) e D2(em verde)](icons/exp7.png)
+<p align="center">
+  <img src="icons/exp7.png">
+</p>
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
