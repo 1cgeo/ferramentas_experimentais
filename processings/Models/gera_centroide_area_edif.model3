@@ -435,7 +435,7 @@
   <Option name="help" />
   <Option name="modelVariables" />
   <Option name="model_group" type="QString" value="missoes" />
-  <Option name="model_name" type="QString" value="Model" />
+  <Option name="model_name" type="QString" value="Gerar centroide de &#225;rea edificada" />
   <Option name="parameterDefinitions" type="Map">
     <Option name="Delimitadordereaconstruda" type="Map">
       <Option name="data_types" type="List">

@@ -638,7 +638,7 @@
   <Option name="help" />
   <Option name="modelVariables" />
   <Option name="model_group" type="QString" value="missoes" />
-  <Option name="model_name" type="QString" value="model2" />
+  <Option name="model_name" type="QString" value="Valida centroides" />
   <Option name="parameterDefinitions" type="Map">
     <Option name="Centroids" type="Map">
       <Option name="default" type="invalid" />
