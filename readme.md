@@ -32,6 +32,14 @@ No QGIS 3.16.4 no caso de uma curva de nível cujo vértice toca (usando *snap*)
 ### 6 - Identificar Geometria Vazia
 Tem como parâmetro camadas vetorias e *string* contendo o nome do campo contendo chave primária (padrão = id), ao ser executado retorna, no log, o campo primário das feições que possuem geoemtria vazia ou nula e suas respectivas camadas
 
+### 7 - Identificar inconsistências entre curvas de nível e hidrografia (VerifyValleyBottom)
+Parâmetros necessários:
+- Layer de curva de nível
+- Layer de hidrografia (trecho de drenagem)
+- Tamanho do segmento sobre a linha (D1): Distância partir do ponto de interseçào entre uma curva e uma drenagem, sobre a curva de nível
+- Tolerância para a projeçã0 do ponto (D2): Distância máxima entre a interseção (curva de nível vs trecho de drenagem) e o segmento gerado pelos extremos do arco do item anterior
+A figura a seguir descreve as medidas D1 e D2 tomadas como parâmetro no algoritmo.
+![Descrição de D1 em vermelho) e D2(em verde)](icons/exp7.png)
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
