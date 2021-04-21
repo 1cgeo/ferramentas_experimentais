@@ -30,7 +30,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyValleyBottom())
         self.addAlgorithm(IdentifyEmptyGeometry())
         self.addAlgorithm(IdentifyMultipleParts())
-        #self.addAlgorithm(VerifyLayersConnection())
+        self.addAlgorithm(VerifyLayersConnection())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 

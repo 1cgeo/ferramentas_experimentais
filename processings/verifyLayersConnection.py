@@ -35,34 +35,35 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
     LAYERS = 'LAYERS'
     TOLERANCE = 'TOLERANCE'
     IGNORE_LIST = 'IGNORE_LIST'
+    OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
                 self.INPUT_FRAMES,
                 self.tr('Select (two) frames'),
-                layerType=[QgsProcessing.TypeVectorLine]
+                layerType=QgsProcessing.TypeVectorLine
             )
         )
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
                 self.LAYERS,
                 self.tr('Layers to be verified'),
-                types=[QgsProcessing.TypeVectorLine, QgsProcessing.TypeVectorPolygon]
+                layerType=QgsProcessing.TypeVectorAnyGeometry 
             )
         )
         self.addParameter(
             QgsProcessingParameterField(
-                self.TOLERANCE,
-                self.tr('Tolerance'),
-                type=QgsProcessingParameterNumber.Double
+                self.IGNORE_LIST,
+                self.tr('Fields to be ignored'),
+                parentLayerParameterName=self.LAYERS,
+                allowMultiple=True
             )
         )
         self.addParameter(
-            QgsProcessingParameterNumber(
-                self.IGNORE_LIST,
-                self.tr('Fields to be ignored'),
-                allowMultiple=True,
+                QgsProcessingParameterNumber(
+                self.TOLERANCE,
+                self.tr('Tolerance')
             )
         )
         self.addParameter(
