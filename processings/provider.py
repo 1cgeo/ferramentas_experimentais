@@ -15,7 +15,7 @@ from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
 from .verifyValleyBottom import VerifyValleyBottom
-from .identifyEmptyGeometry import IdentifyEmptyGeometry
+from .identifyInvalidGeometry import IdentifyInvalidGeometry
 from .identifyMultipleParts import IdentifyMultipleParts
 from .verifyLayersConnection import VerifyLayersConnection
 
@@ -28,7 +28,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(StreamOrder())
         self.addAlgorithm(StreamCountourConsistency())
         self.addAlgorithm(VerifyValleyBottom())
-        self.addAlgorithm(IdentifyEmptyGeometry())
+        self.addAlgorithm(IdentifyInvalidGeometry())
         self.addAlgorithm(IdentifyMultipleParts())
         self.addAlgorithm(VerifyLayersConnection())
         for model in self.modelsAlg():

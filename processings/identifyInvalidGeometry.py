@@ -21,11 +21,14 @@ from qgis.core import (QgsProcessing,
                        )
 from qgis import processing
 
-class IdentifyEmptyGeometry(QgsProcessingAlgorithm): 
+class IdentifyInvalidGeometry(QgsProcessingAlgorithm): 
 
     INPUT_LAYERS = 'INPUT_LAYER_LIST'
     INPUT_FIELD_STRING = 'INPUT_FIELD_STRING'
     OUTPUT = 'OUTPUT'
+    OUTPUT_TYPE = "Feições com geometria diferente de MultiPoint, MultiLineString ou MultiPolygon"
+    OUTPUT_NULL = 'Feições com geometria nula ou vazia'
+    OUTPUT_INVALID = 'Feições com geometria invalida'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -45,11 +48,15 @@ class IdentifyEmptyGeometry(QgsProcessingAlgorithm):
         )
         
     def processAlgorithm(self, parameters, context, feedback):      
-        feedback.setProgressText('Procurando geometria vazia...')
+        feedback.setProgressText('Procurando geometria invalida...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
         idField = self.parameterAsString(parameters,'INPUT_FIELD_STRING', context)
 
+        geomType = [4, 5, 6]
         outputLog = {}
+        outputLogType = {}
+        outputLogNull = {}
+        outputLogInvalid = {}
         step = 0
         listSize = len(layerList)
         progressStep = 100/listSize if listSize else 0
@@ -59,33 +66,50 @@ class IdentifyEmptyGeometry(QgsProcessingAlgorithm):
             if feedback.isCanceled():
                 return {self.OUTPUT: outputLog}
             outputLog[layer.sourceName()] = []
+            outputLogType[layer.sourceName()] = []
+            outputLogNull[layer.sourceName()] = []
+            outputLogInvalid[layer.sourceName()] = []
             fieldIndex = layer.fields().indexFromName(idField)
             if fieldIndex == -1:
                 outputLog = 'campo {} não existe em {}'.format(idField, layer.sourceName())
-                break
+                return{self.OUTPUT: outputLog}
             for feature in layer.getFeatures():
+                if feature.geometry().wkbType() not in geomType:
+                    outputLog[layer.sourceName()].append(feature[idField])
+                    outputLogType[layer.sourceName()].append(feature[idField])
                 if not feature.hasGeometry():
-                    outputLog[layer.sourceName()].append(feature[idField])
+                    if not (feature[idField] in outputLog[layer.sourceName()]):
+                        outputLogNull[layer.sourceName()].append(feature[idField])
+                        outputLog[layer.sourceName()].append(feature[idField])
                 if not (len(feature.geometry().validateGeometry()) == 0):
-                    outputLog[layer.sourceName()].append(feature[idField])
+                    if feature[idField] not in outputLog[layer.sourceName()]:
+                        outputLogInvalid[layer.sourceName()].append(feature[idField])
+                        outputLog[layer.sourceName()].append(feature[idField])
             if len(outputLog[layer.sourceName()]) == 0:
                 del outputLog[layer.sourceName()]
+            if len(outputLogType[layer.sourceName()]) == 0:
+                del outputLogType[layer.sourceName()]
+            if len(outputLogNull[layer.sourceName()]) == 0:
+                del outputLogNull[layer.sourceName()]
+            if len(outputLogInvalid[layer.sourceName()]) == 0:
+                del outputLogInvalid[layer.sourceName()]
             feedback.setProgress( step * progressStep )
         if len(outputLog) == 0:
-            outputLog = 'nenhuma feição nula encontrada'
-        return{self.OUTPUT: outputLog}
+            outputLog = 'nenhuma feição com geometria invalida encontrada'
+            return{self.OUTPUT: outputLog}
+        return{self.OUTPUT_TYPE: outputLogType, self.OUTPUT_NULL: outputLogNull, self.OUTPUT_INVALID: outputLogInvalid}
   
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return IdentifyEmptyGeometry()
+        return IdentifyInvalidGeometry()
 
     def name(self):
-        return 'identifyemptygeometry'
+        return 'identifyinvalidgeometry'
 
     def displayName(self):
-        return self.tr('Identifica Geometria Vazia ou Nula')
+        return self.tr('Identifica Geometria Invalida')
 
     def group(self):
         return self.tr('Missoes')
@@ -94,5 +118,5 @@ class IdentifyEmptyGeometry(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo identifica geometrias vazias ou nulas")
+        return self.tr("O algoritmo identifica geometrias invalidas")
     

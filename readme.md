@@ -29,8 +29,11 @@ O *processing* detecta inconsistências na camada de drenagem em relação a cam
 
 No QGIS 3.16.4 no caso de uma curva de nível cujo vértice toca (usando *snap*) em apenas um vértice de uma drenagem, o *processing* nativo de interseção (que é o método usado para identificar as interseções entre a curva de nível e a drenagem) retorna 2 pontos com a mesma cota (cota da curva de nível que tocou a drenagem em um vértice), fazendo com o que o *processing* gere a camada de saída incluindo esses pontos como inconsistência (2 pontos com mesma cota em uma mesma linha de drenagem).
 
-### 6 - Identificar Geometria Vazia
-Tem como parâmetro camadas vetorias e *string* contendo o nome do campo contendo chave primária (padrão = id), ao ser executado retorna, no log, o campo primário das feições que possuem geoemtria vazia ou nula e suas respectivas camadas
+### 6 - Identificar Geometria Invalida
+Tem como parâmetro camadas vetorias e *string* contendo o nome do campo contendo chave primária (padrão = id), ao ser executado retorna, no log, o campo primário das feições que possuem geometria invalida e suas respectivas camadas. Verifica-se se a feição apresenta:
+- Geoemtria diferente de MultiPoint, MultiLineString ou MultiPolygon
+- Geometria nula ou vazia
+- Outro caso de geometria invalida, poligonos que não fecham, linhas com apenas 1 ponto, polígonos com menos de 3 pontos, etc
 
 ### 7 - Identificar inconsistências entre curvas de nível e hidrografia (VerifyValleyBottom)
 Parâmetros necessários:
@@ -42,6 +45,10 @@ A figura a seguir descreve as medidas D1 e D2 tomadas como parâmetro no algorit
 <p align="center">
   <img src="icons/exp7.png">
 </p>
+
+### 8 - Identificar Geometria com Multiplas Partes
+Recebe uma lista de camadas e verifica se alguma feição tem geometria contendo mais de uma parte, por exemplo, uma camada de pontos com uma feição cuja geoemtria é mais de um ponto. Retorna camadas de inconsistência para cada tipo de geometria, se não for encontrada nenhuma inconsistência de um determinado tipo de geometria, não haverá retorno daquele tipo de geometria
+
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
