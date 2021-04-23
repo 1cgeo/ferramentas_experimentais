@@ -43,7 +43,7 @@ Parâmetros necessários:
 - Tolerância para a projeçã0 do ponto (D2): Distância máxima entre a interseção (curva de nível vs trecho de drenagem) e o segmento gerado pelos extremos do arco do item anterior
 A figura a seguir descreve as medidas D1 e D2 tomadas como parâmetro no algoritmo.
 <p align="center">
-  <img src="icons/exp7.png">
+  <img src="icons/exp7.PNG">
 </p>
 
 ### 8 - Identificar Geometria com Multiplas Partes
