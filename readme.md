@@ -31,7 +31,7 @@ No QGIS 3.16.4 no caso de uma curva de nível cujo vértice toca (usando *snap*)
 
 ### 6 - Identificar Geometria Invalida
 Tem como parâmetro camadas vetorias e *string* contendo o nome do campo contendo chave primária (padrão = id), ao ser executado retorna, no log, o campo primário das feições que possuem geometria invalida e suas respectivas camadas. Verifica-se se a feição apresenta:
-- Geoemtria diferente de MultiPoint, MultiLineString ou MultiPolygon
+- Geometria diferente de MultiPoint, MultiLineString ou MultiPolygon
 - Geometria nula ou vazia
 - Outro caso de geometria invalida, poligonos que não fecham, linhas com apenas 1 ponto, polígonos com menos de 3 pontos, etc
 
