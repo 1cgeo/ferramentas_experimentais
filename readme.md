@@ -52,6 +52,10 @@ Recebe uma lista de camadas e verifica se alguma feição tem geometria contendo
 ### 9 - Identificar *Holes* Menores que Tolerância
 Recebe camada de poligonos e um valor para tolerância, retorna camada de polígonos dos *holes* com área menor que a tolerância determinada 
 
+### 10 - Identificar Feições Menores que Tolerância
+Recebe uma lista de camadas vetoriais, uma tabela CSV contendo duas colunas: nome, tamanho (nessa ordem, necessariamente) e uma camada do tipo polígono contendo a moldura. Verifica-se então quais feições são menores que o tamanho determinado para cada camada e retorna-se aquelas que estão completamente dentro da moldura.
+
+
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.

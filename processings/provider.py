@@ -19,6 +19,7 @@ from .identifyInvalidGeometry import IdentifyInvalidGeometry
 from .identifyMultipleParts import IdentifyMultipleParts
 from .verifyLayersConnection import VerifyLayersConnection
 from .identifySmallHoles import identifySmallHoles
+from .identifySmallFeatures import IdentifySmallFeatures
 
 class Provider(QgsProcessingProvider):
 
@@ -33,6 +34,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifyMultipleParts())
         self.addAlgorithm(VerifyLayersConnection())
         self.addAlgorithm(identifySmallHoles())
+        self.addAlgorithm(IdentifySmallFeatures())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
