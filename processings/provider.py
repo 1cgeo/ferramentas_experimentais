@@ -18,6 +18,7 @@ from .verifyValleyBottom import VerifyValleyBottom
 from .identifyInvalidGeometry import IdentifyInvalidGeometry
 from .identifyMultipleParts import IdentifyMultipleParts
 from .verifyLayersConnection import VerifyLayersConnection
+from .identifySmallHoles import identifySmallHoles
 
 class Provider(QgsProcessingProvider):
 
@@ -31,6 +32,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifyInvalidGeometry())
         self.addAlgorithm(IdentifyMultipleParts())
         self.addAlgorithm(VerifyLayersConnection())
+        self.addAlgorithm(identifySmallHoles())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
