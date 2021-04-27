@@ -15,6 +15,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterMultipleLayers,
                        QgsProcessingParameterRasterLayer,
                        QgsProcessingParameterBoolean,
+                       QgsProcessingParameterString,
                        QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterField,
@@ -25,7 +26,8 @@ from qgis.core import (QgsProcessing,
                        QgsGeometry,
                        QgsProcessingParameterVectorDestination,
                        QgsField,
-                       QgsFields
+                       QgsFields,
+                       QgsFeatureRequest
                        )
 
 
@@ -52,11 +54,9 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterField(
+            QgsProcessingParameterString(
                 self.IGNORE_LIST,
-                self.tr('Fields to be ignored'),
-                parentLayerParameterName=self.LAYERS,
-                allowMultiple=True,
+                self.tr('Fields to be ignored (separeted by ;)'),
                 optional=True
             )
         )
@@ -83,15 +83,19 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         extents = self.parameterAsSource(parameters, self.INPUT_FRAMES, context)
         layers = self.parameterAsLayerList(parameters, self.LAYERS, context)
-        ignored_fields = self.parameterAsFields(parameters, self.IGNORE_LIST, context)
+        ignored_fields = self.parameterAsString(parameters, self.IGNORE_LIST, context)
+        ignored_fields = ignored_fields.split(';')
         tol = self.parameterAsDouble(parameters, self.TOLERANCE, context)
 
         extents = [x for x in extents.getFeatures()]
+
         bbox = self.getExtentsIntersection(extents, tol)
 
-        feats_bbox = self.getFeatsFromIntersection(bbox, layers[0])
+        feats_inside = self.getPointsInsideIntersection(bbox, layers[0])
 
-        no_touch, attr_error = self.checkFeatureIntersection(feats_bbox, ignored_fields)
+        # feats_bbox = self.getFeatsFromIntersection(bbox, layers[0])
+
+        no_touch, attr_error = self.checkIntersection(feats_inside, ignored_fields)
 
         print(no_touch,attr_error)
         if no_touch:
@@ -108,7 +112,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             self.NO_TOUCH: no_touch,
             self.ATTR_ERROR: attr_error
         }
-
+    # TODO: verify buffer type
     def getExtentsIntersection(self, extents, tol):
         flyr1, flyr2 = extents[0], extents[1]
         gflyr1, gflyr2 = flyr1.geometry(), flyr2.geometry()
@@ -119,8 +123,39 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             return bbox
         return None
 
+    def getPointsInsideIntersection(self, bbox, layer):
+        v_to_analyse = []
+        feats = layer.getFeatures(QgsFeatureRequest().setFilterRect(bbox.boundingBox()))
+        for feat in feats:
+            vertices = list(feat.geometry().vertices())
+            vi = vertices[0].asWkt()
+            vi = QgsGeometry.fromWkt(vi)
+            vf = vertices[-1].asWkt()
+            vf = QgsGeometry.fromWkt(vf)
+            if any((vi.intersection(bbox), vf.intersection(bbox))):
+                v_to_analyse.append((feat, vi, vf))
+        return v_to_analyse
+    
+    def checkIntersection(self, bbox, feats):
+        no_touch = []
+        attr_error = []
+        for feat1 in feats:
+            ft1, vi1, vf1 = feat1
+            touches = False
+            for feat2 in feats:
+                ft2, vi2, vf2 = feat2
+                if ft1.geometry().touches(ft2.geometry()):
+                    touches = True
+                    if not self.checkFieldsOnFeatureIntersection(ft1, ft2, self.ignored_fields):
+                        attr_error.append(feat1)
+            if not touches:
+                no_touch.append(feat1)
+        return no_touch, attr_error
+
+                    
+
     def getFeatsFromIntersection(self, intersection, layer):
-        return (x for x in layer.getFeatures() if intersection.intersects(x.geometry()))
+        return [x for x in layer.getFeatures() if intersection.intersects(x.geometry())]
 
     def checkFeatureIntersection(self, feats, ignore_list):
         no_touch = []
