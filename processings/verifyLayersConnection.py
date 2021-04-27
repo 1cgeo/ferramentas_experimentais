@@ -80,7 +80,6 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             )
         )
 
-    # Better to clip
     def processAlgorithm(self, parameters, context, feedback):
         extents = self.parameterAsSource(parameters, self.INPUT_FRAMES, context)
         layers = self.parameterAsLayerList(parameters, self.LAYERS, context)
@@ -88,12 +87,12 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         tol = self.parameterAsDouble(parameters, self.TOLERANCE, context)
 
         extents = [x for x in extents.getFeatures()]
-        extents_intersection = self.getExtentsIntersection(extents, tol)
+        bbox = self.getExtentsIntersection(extents, tol)
 
-        feats_lyr1 = self.getFeatsFromIntersection(extents_intersection, layers[0])
-        # feats_lyr2 = self.getFeatsFromIntersection(extents_intersection, layers[1])
+        feats_bbox = self.getFeatsFromIntersection(bbox, layers[0])
 
-        no_touch, attr_error = self.checkFeatureIntersection(feats_lyr1, ignored_fields)
+        no_touch, attr_error = self.checkFeatureIntersection(feats_bbox, ignored_fields)
+
         print(no_touch,attr_error)
         if no_touch:
             sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, no_touch[0].fields(),
@@ -114,13 +113,14 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         flyr1, flyr2 = extents[0], extents[1]
         gflyr1, gflyr2 = flyr1.geometry(), flyr2.geometry()
         if gflyr1.intersects(gflyr2):
-            gflyr1, gflyr2 = gflyr1.buffer(tol, 10), gflyr2.buffer(tol, 10)
             intersection = gflyr1.intersection(gflyr2)
-            return intersection if intersection else None
+            bbox = intersection.boundingBox().buffered(tol).asWktPolygon()
+            bbox = QgsGeometry.fromWkt(bbox)
+            return bbox
         return None
 
     def getFeatsFromIntersection(self, intersection, layer):
-        return filter(lambda x: x.geometry().intersects(intersection), layer.getFeatures())
+        return (x for x in layer.getFeatures() if intersection.intersects(x.geometry()))
 
     def checkFeatureIntersection(self, feats, ignore_list):
         no_touch = []
@@ -130,7 +130,9 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             for feat2 in feats:
                 if feat1.geometry().touches(feat2.geometry()):
                     touches = True
+                    print(f"{feat1} touches {feat2}!")
                     if not self.checkFieldsOnFeatureIntersection(feat1, feat2, ignore_list):
+                        print("diff attrs!")
                         attr_error.append(feat1)
                     break
             if not touches:
@@ -138,14 +140,11 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         return no_touch, attr_error
 
         # Verificar se a interseção está contida no polígono para ver caso do snap
-
         # Trabalhar a ideia do dissolve
-
         # Há casos de layers área em cima de outro layer? (não fazendo um hole)
 
     def checkFieldsOnFeatureIntersection(self, feat1, feat2, ignore_list):
-        assert feat1.attributes() == feat2.attributes()
-        attrs_to_loop = (x for x in feat1.attributes() if x not in ignore_list)
+        attrs_to_loop = (x for x in feat1.fields().names() if x not in ignore_list)
         return all(feat1.attribute(x) == feat2.attribute(x) for x in attrs_to_loop)
 
     def tr(self, string):
@@ -170,8 +169,6 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         return self.tr("Verifica a conexão de layers entre molduras distintas")
 
 # TODO: check if 2 layers were selected
-
-
 class ValidateQgsProcessingParameterFeatureSource(QgsProcessingParameterFeatureSource):
     '''
     Auxiliary class for validationg the number of layers
