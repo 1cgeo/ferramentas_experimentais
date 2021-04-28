@@ -107,8 +107,6 @@ class IdentifySmallLines(QgsProcessingAlgorithm):
                         continue
                     if not featgeom.within(frame.geometry()):
                         continue
-                    AreaOfInterest = featgeom.boundingBox()
-                    request2 = QgsFeatureRequest().setFilterRect(AreaOfInterest)
                     for geometry in featgeom.constGet():
                         touches = False
                         ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
