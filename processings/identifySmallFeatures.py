@@ -88,30 +88,32 @@ class IdentifySmallFeatures(QgsProcessingAlgorithm):
         returnMessage = 'nenhuma inconsistência encontrada'
         for frames in frameLayer.getFeatures():
             frame = frames
-        for step,layer in enumerate(layerList):
-            if layer.geometryType() == 0:
-                continue
-            if feedback.isCanceled():
-                return {self.OUTPUT: outputLog}
-            if len(NameAndSize) == 0:
-                returnMessage = "tabela vazia"
-                break
-            for row in NameAndSize:
-                if layer.sourceName() == row[0]:
-                    size = row[1]
-                    break
-            for feature in layer.getFeatures():
-                geom = feature.geometry()
-                if not geom.within(frame.geometry()):
+            FrameArea = frame.geometry().boundingBox()
+            request = QgsFeatureRequest().setFilterRect(FrameArea)
+            for step,layer in enumerate(layerList):
+                if layer.geometryType() == 0:
                     continue
-                if geom.wkbType() == 4:
+                if feedback.isCanceled():
+                    return {self.OUTPUT: outputLog}
+                if len(NameAndSize) == 0:
+                    returnMessage = "tabela vazia"
                     break
-                if geom.wkbType() == 5:
-                    if geom.length()<size:
-                        lines.append([feature, layer.sourceName()])
-                if geom.wkbType() == 6:
-                    if geom.area()<size:
-                        polygons.append([feature, layer.sourceName()])
+                for row in NameAndSize:
+                    if layer.sourceName() == row[0]:
+                        size = row[1]
+                        break
+                for feature in layer.getFeatures(request):
+                    geom = feature.geometry()
+                    if not geom.within(frame.geometry()):
+                        continue
+                    if geom.wkbType() == 4:
+                        break
+                    if geom.wkbType() == 5:
+                        if geom.length()<size:
+                            lines.append([feature, layer.sourceName()])
+                    if geom.wkbType() == 6:
+                        if geom.area()<size:
+                            polygons.append([feature, layer.sourceName()])
             
             feedback.setProgress( step * progressStep )
         if not len(lines)==0:
