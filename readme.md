@@ -53,10 +53,14 @@ Recebe uma lista de camadas e verifica se alguma feição tem geometria contendo
 Recebe camada de poligonos e um valor para tolerância, retorna camada de polígonos dos *holes* com área menor que a tolerância determinada 
 
 ### 10 - Identificar Feições Menores que Tolerância
-Recebe uma lista de camadas vetoriais, uma tabela CSV contendo duas colunas: nome, (da camada), tamanho (máximo das feições), nessa ordem, necessariamente, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais feições são menores que o tamanho determinado para cada camada e retorna-se aquelas que estão completamente dentro da moldura.
+Recebe uma lista de camadas vetoriais, uma tabela CSV contendo duas colunas: nome, (da camada), tamanho (máximo das feições), nessa ordem, necessariamente, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais feições são menores que o tamanho determinado para cada camada e retorna-se aquelas que estão completamente dentro das molduras.
 
 ### 11 - Identificar Linhas Soltas Menores que Tolerância
-Recebe uma lista de camadas vetoriais, uma tabela CSV contendo duas colunas: nome (da camada), tamanho (máximo das feições), nessa ordem, necessariamente, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais linhas soltas são menores que o tamanho determinado para cada camada e retorna-se aquelas que estão completamente dentro da moldura.
+Recebe uma lista de camadas vetoriais (linhas), uma tabela CSV contendo duas colunas: nome (da camada), tamanho (máximo das feições), nessa ordem, necessariamente, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais linhas soltas são menores que o tamanho determinado para cada camada e retorna-se aquelas que estão completamente dentro das molduras.
+
+### 12 - Identificar Linhas Próximas à Moldura
+Recebe uma lista de camadas vetoriais (linhas), um número indicando o valor máximo para a distância da linha à borda, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais linhas soltas estão a uma distância menor do que a especificada da borda e retorna-se aquelas que estão completamente dentro das molduras.
+
 
 ## Botões
 ### 1- Calcula Azimute

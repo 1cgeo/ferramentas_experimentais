@@ -21,6 +21,7 @@ from .verifyLayersConnection import VerifyLayersConnection
 from .identifySmallHoles import identifySmallHoles
 from .identifySmallFeatures import IdentifySmallFeatures
 from .identifySmallLines import IdentifySmallLines
+from .identifyUndershootLines import IdentifyUndershootLines
 
 class Provider(QgsProcessingProvider):
 
@@ -37,6 +38,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(identifySmallHoles())
         self.addAlgorithm(IdentifySmallFeatures())
         self.addAlgorithm(IdentifySmallLines())
+        self.addAlgorithm(IdentifyUndershootLines())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
