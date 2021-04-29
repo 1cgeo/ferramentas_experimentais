@@ -5,16 +5,13 @@
 [general]
 name=Ferramentas Experimentais
 qgisMinimumVersion=3.0
-description=Plugin para carregar ferramentas experimentais
+description=Ferramentas experimentais para teste em produção
 version=0.1
-author=Pedro Martins
+author=1º Centro de Geoinformação
 email=pedromartins.souza@eb.mil.br
 
 about=
-    Plugin com ferramentas experimentais:
-    -Provider com processings
-    -Botao para calcular azimute
-    -Botao para copiar coordenadas de feições selecionadas em WKT
+    Ferramentas experimentais para teste em produção
 
 tracker=http://bugs
 repository=http://repo
