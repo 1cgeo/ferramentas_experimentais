@@ -74,5 +74,5 @@ Copia, para a área de transferência, a geometria das feições selecionadas em
 ### 3- Copia-Cola Geometria
 Botão Copiar Geometria: copia, para uma variável interna do QGIS, a geometria da feição selecionada. Botão Colar Geometria:  substitui a geometria da feição selecionada de acordo com a geometria armazenada na variável interna. A geometria só é substituída se a camada da geometria de origem for do mesmo tipo geométrico da camada de destino. Copia e substitui apenas uma feição por vez.
 
-### 4- Corta fundo de vale
-Dado um ou mais trechos de drenagem selecionados, a ferramenta corta o ínicio do trecho e atributa como fundo de vale (tipo = 'Trecho Pluvial' e regime = 'Seco'). A ferramenta segue a modelagem da EDGV 3.0 Pro.
+### 4- Corta início da linha
+Dado um ou mais linhas selecionadas, a ferramenta corta o ínicio do linha em uma distância configurável.
