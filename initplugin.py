@@ -1,88 +1,67 @@
 # -*- coding: utf-8 -*-
-
 import os
-import sys
-import inspect
+from PyQt5.QtWidgets import QAction, QMenu
+from PyQt5.QtGui import QIcon
 
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsAbstractFeatureSource,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsField,
-                       QgsExpressionContext,
-                       QgsExpressionContextScope,
-                       QgsAuxiliaryStorage,
-                       QgsPropertyDefinition,
-                       QgsFeature,
-                       Qgis,
-                       QgsWkbTypes,
-                       QgsApplication,
-                       QgsGeometry
-                       )
-from qgis.utils import iface
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
 from .processings.plugin_alg import PluginAlg
-from .calcula_azimute.calcazimute import AzimButton
-from .copia_wkt.copiarwkt import WktButton
-from .copia_cola_geom.copia_cola_geom import CCGButton
+from .calcula_azimute.calcazimute import calazim
+from .copia_wkt.copiarwkt import copywkt
+from .copia_cola_geom.copia_cola_geom import startCopyButton, startPasteButton
+from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
+from .corta_fundo_vale.widgets.corta_tool import CortaTool
+
 from .processings.provider import Provider
 from . import resources
 
-
 class InitPlugin:
 
-    def __init__(self, iface, buttons=CCGButton(iface)):
+    def __init__(self, iface):
         self.iface = iface
+        self.cortaWidget = CortaTool( callback=cortaFundoVale )
         self.provider = None
-        self.buttons = buttons
+        self.toolBar = None
 
     def initGui(self):
-        # Carregar icones
-        #   Calcula Azimute
-        self.actionazm = QAction(QIcon(
-            ":/plugins/Ferramentas_Experimentais/icons/azim.png"), "Calcula Azimute", self.iface.mainWindow())
-        self.actionazm.setWhatsThis(
-            "Calcula o angulo, no sentido horário, entre o norte e a direção da feicao(ombb)")
-        self.actionazm.setStatusTip("Calcula azimute")
-        self.actionazm.triggered.connect(AzimButton.calazim)
-        self.iface.addToolBarIcon(self.actionazm)
-        #   Copiar Wkt
-        self.actionwkt = QAction(
-            QIcon(":/plugins/Ferramentas_Experimentais/icons/copywkt.png"), "CopiaWkt", self.iface.mainWindow())
-        self.actionwkt.setWhatsThis(u"Copia as coordenadas das feições selecionadas em WKT")
-        self.actionwkt.setStatusTip("Copiar em WKT")
-        self.actionwkt.triggered.connect(WktButton.copywkt)
-        self.iface.addToolBarIcon(self.actionwkt)
-        #   Copiar Colar Geometria
-        self.actioncopy = QAction(QIcon(
-            ":/plugins/Ferramentas_Experimentais/icons/copygeom.png"), u"Copiar Geometria", self.iface.mainWindow())
-        self.actionpaste = QAction(QIcon(
-            ":/plugins/Ferramentas_Experimentais/icons/pastegeom.png"), u"Colar Geometria", self.iface.mainWindow())
+        self.toolBar = self.iface.addToolBar('Ferramentas_Experimentais')
+        
+        self.toolBar.addWidget(self.cortaWidget)
 
-        self.popupMenu = QMenu(self.iface.mainWindow())
-        self.popupMenu.addAction(self.actioncopy)
-        self.popupMenu.addAction(self.actionpaste)
+        self.actionazm = self.createAction(
+            "Calcula Azimute", 
+            "azim.png", 
+            calazim, 
+            "Calcula o angulo, no sentido horário, entre o norte e a direção da feicao(ombb)",
+            "Calcula azimute"
+        )
+        self.toolBar.addAction(self.actionazm)
 
-        self.actioncopy.triggered.connect(self.buttons.startCopyButton)
-        self.actionpaste.triggered.connect(self.buttons.startPasteButton)
-        self.toolButton = QToolButton()
-        self.toolButton.setMenu(self.popupMenu)
-        self.toolButton.setDefaultAction(self.actioncopy)
-        self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
-        self.tbaction = self.iface.addToolBarWidget(self.toolButton)
+        self.actionwkt = self.createAction(
+            "Copia WKT", 
+            "copywkt.png", 
+            copywkt, 
+            "Copia as coordenadas das feições selecionadas em WKT",
+            "Copiar em WKT"
+        )
+        self.toolBar.addAction(self.actionwkt)
+
+        self.actioncolageom = self.createAction(
+            "Copiar Geometria", 
+            "copygeom.png", 
+            startCopyButton, 
+            "Copia a geometria",
+            "Copia geometria"
+        )
+        self.toolBar.addAction(self.actioncolageom)
+
+        self.actioncopiageom = self.createAction(
+            "Colar Geometria", 
+            "pastegeom.png", 
+            startPasteButton, 
+            "Cola a geometria",
+            "Cola a geometria"
+        )
+        self.toolBar.addAction(self.actioncopiageom)
+        
         # Addprovider
         PluginAlg.initProcessing(self)
 
@@ -91,6 +70,26 @@ class InitPlugin:
 
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
-        self.iface.removeToolBarIcon(self.actionazm)
-        self.iface.removeToolBarIcon(self.actionwkt)
-        self.iface.removeToolBarIcon(self.tbaction)
+        self.iface.mainWindow().removeToolBar(self.toolBar)
+
+
+    def createAction(self, text, icon, callback, whatisthis, tip):
+        iconPath = self.getPluginIconPath(icon)
+        action = QAction(
+            QIcon(iconPath),
+            text,
+            self.iface.mainWindow()
+        )
+        action.triggered.connect(callback)
+        action.setWhatsThis(whatisthis)
+        action.setStatusTip(tip)
+        return action
+
+    def getPluginIconPath(self, name):
+        return os.path.join(
+            os.path.abspath(os.path.join(
+                os.path.dirname(__file__)
+            )),
+            'icons',
+            name
+        )
