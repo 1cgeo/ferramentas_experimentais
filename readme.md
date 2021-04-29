@@ -61,6 +61,9 @@ Recebe uma lista de camadas vetoriais (linhas), uma tabela CSV contendo duas col
 ### 12 - Identificar Linhas Próximas à Moldura
 Recebe uma lista de camadas vetoriais (linhas), um número indicando o valor máximo para a distância da linha à borda, e uma camada do tipo polígono contendo a moldura. Verifica-se então quais linhas soltas estão a uma distância menor do que a especificada da borda e retorna-se aquelas que estão completamente dentro das molduras.
 
+### 13 - Identificar Descontinuidade em Linhas
+Recebe uma camada vetorial do tipo linha, os campos a serem verificados e um valor de tolerância para desvio da linha. Verifica-se se houve mudança no valor dos campos a serem verificados entre duas linhas cujo ângulo entre elas diferencie, no máximo, do valor de tolerância em relação a 180 graus. Por exemplo, se o valor de tolerância for 10, apenas linhas cujo menor angulo entre elas esteja no intervalo de (170,180) terão os campos comparados.
+
 
 ## Botões
 ### 1- Calcula Azimute
