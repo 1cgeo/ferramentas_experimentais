@@ -87,17 +87,15 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         ignored_fields = ignored_fields.split(';')
         tol = self.parameterAsDouble(parameters, self.TOLERANCE, context)
 
+        # Get frame extents
         extents = [x for x in extents.getFeatures()]
-
+        # Gets buffered frame intersections -> bbox
         bbox = self.getExtentsIntersection(extents, tol)
-
+        # Get points inside bbox
         feats_inside = self.getPointsInsideIntersection(bbox, layers[0])
-
-        # feats_bbox = self.getFeatsFromIntersection(bbox, layers[0])
-
+        # Check intersections
         no_touch, attr_error = self.checkIntersection(bbox, feats_inside, ignored_fields)
 
-        print(no_touch,attr_error)
         if no_touch:
             sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, no_touch[0].fields(),
                 no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
@@ -133,35 +131,24 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             vf = vertices[-1].asWkt()
             vf = QgsGeometry.fromWkt(vf)
             if any((vi.intersection(bbox), vf.intersection(bbox))):
-                v_to_analyse.append((feat, vi, vf))
+                v_to_analyse.append(feat)
         return v_to_analyse
     
     def checkIntersection(self, bbox, feats, ignored_fields):
         no_touch = []
         attr_error = []
-        for feat1 in feats:
-            ft1, vi1, vf1 = feat1
+        for ft1 in feats:
             touches = False
-            for feat2 in feats:
-                ft2, vi2, vf2 = feat2
+            for ft2 in feats:
                 if ft1.geometry().equals(ft2.geometry()):
                     continue
                 if ft1.geometry().touches(ft2.geometry()):
                     touches = True
-                    print(f"feat {ft1.attribute('fid')} touches feat {ft2.attribute('fid')}")
                     if not self.checkFieldsOnFeatureIntersection(ft1, ft2, ignored_fields):
                         attr_error.append(ft1)
-                        print(f"feat {ft1.attribute('fid')} inconsistency feat {ft2.attribute('fid')}")
             if not touches:
                 no_touch.append(ft1)
         return no_touch, attr_error
-
-    def getFeatsFromIntersection(self, intersection, layer):
-        return [x for x in layer.getFeatures() if intersection.intersects(x.geometry())]
-
-        # Verificar se a interseção está contida no polígono para ver caso do snap
-        # Trabalhar a ideia do dissolve
-        # Há casos de layers área em cima de outro layer? (não fazendo um hole)
 
     def checkFieldsOnFeatureIntersection(self, feat1, feat2, ignore_list):
         attrs_to_loop = (x for x in feat1.fields().names() if x not in ignore_list)
