@@ -2,35 +2,18 @@
 
 from qgis import processing
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing,
+from qgis.core import (QgsProcessing, QgsProject,
                        QgsFeatureSink, QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
                        QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterBoolean,
                        QgsProcessingParameterString,
-                       QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterField,
                        QgsProcessingParameterNumber,
-                       QgsFeature,
-                       QgsVectorLayer,
-                       QgsPoint,
-                       QgsGeometry,
+                       QgsFeature, QgsVectorLayer,
                        QgsProcessingParameterVectorDestination,
-                       QgsField,
-                       QgsFields,
-                       QgsFeatureRequest,
-                       QgsProcessingOutputVectorLayer,
-                       QgsProject,
-                       QgsWkbTypes
+                       QgsGeometry, QgsField,
+                       QgsFields, QgsWkbTypes
                        )
 
 
@@ -47,7 +30,8 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT_FRAMES,
-                self.tr('Select frames layer')
+                self.tr('Select frame layer'),
+                [QgsProcessing.TypeVectorPolygon, QgsProcessing.TypeVectorLine]
             )
         )
         self.addParameter(
@@ -241,17 +225,3 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return self.tr("Verifica a conexão de layers entre molduras distintas")
-
-# TODO: check if 2 layers were selected
-class ValidateQgsProcessingParameterFeatureSource(QgsProcessingParameterFeatureSource):
-    '''
-    Auxiliary class for validationg the number of layers
-    '''
-
-    def __init__(self, name, description='', types=[QgsProcessing.TypeVectorAnyGeometry]):
-        super().__init__(name, description, types)
-
-    def checkValueIsAcceptable(self, feats, context=None):
-        if len(feats) == 2:
-            return True
-        return False
