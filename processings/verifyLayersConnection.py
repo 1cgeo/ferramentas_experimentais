@@ -27,7 +27,10 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterVectorDestination,
                        QgsField,
                        QgsFields,
-                       QgsFeatureRequest
+                       QgsFeatureRequest,
+                       QgsProcessingOutputVectorLayer,
+                       QgsProject,
+                       QgsWkbTypes
                        )
 
 
@@ -44,7 +47,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT_FRAMES,
-                self.tr('Select (two) frames')
+                self.tr('Select frames layer')
             )
         )
         self.addParameter(
@@ -91,67 +94,128 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         final_attr_error = []
         layer_list = [[],[]]
 
-        # Get frame extents
-        extents = [x for x in extents.getFeatures()]
+        # Get VectorLayer from extents
+        extentsLayer = self.setupExtentsLayer(extents, layers[0].sourceCrs())
+
+        # If VectorLayer is a polygon, transform into lines
+        if next(extentsLayer.getFeatures()).geometry().wkbType() in [QgsWkbTypes.MultiPolygon, QgsWkbTypes.Polygon]:
+                extentsLayer = self.extentsAsLines(context, feedback, extentsLayer)
+
         # Gets buffered frame intersections -> bbox
-        bbox = self.getExtentsIntersection(extents, tol)
+        inter_zones = self.bufferExtents(context, feedback, extentsLayer, tol)
+
+        # Gets points inside inter_zones
+        feats_inside_intersection = self.getPointsInsideIntersection(layers[0], inter_zones)
+
+        # Check intersection
+        no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
+
+        # Add features inside sink
+        sink1, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, layers[0].fields(), 5, layers[0].sourceCrs())
+        for feat in attr_error:
+            sink1.addFeature(feat)
+        sink2, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, layers[0].fields(), 5, layers[0].sourceCrs())
+        for feat in no_touch:
+            sink2.addFeature(feat)
+
+
         # Get points inside bbox
-        for layer in layers:
-            feats_inside = self.getPointsInsideIntersection(bbox, layer)
-            # Check intersections
-            no_touch, attr_error = self.checkIntersection(bbox, feats_inside, ignored_fields)
-            final_attr_error.extend(attr_error)
-            layer_list[0].extend([layer.name() for x in range(len(no_touch))])
-            final_no_touch.extend(no_touch)
-            layer_list[1].extend([layer.name() for x in range(len(attr_error))])
+        # for layer in layers:
+        #     feats_inside = self.getPointsInsideIntersection(bbox, layer)
+        #     # Check intersections
+        #     no_touch, attr_error = self.checkIntersection(bbox, feats_inside, ignored_fields)
+        #     final_attr_error.extend(attr_error)
+        #     layer_list[0].extend([layer.name() for x in range(len(no_touch))])
+        #     final_no_touch.extend(no_touch)
+        #     layer_list[1].extend([layer.name() for x in range(len(attr_error))])
 
-        field =  QgsFields()
-        field.append(QgsField('camada', QVariant.String))
-        print(final_no_touch)
+        # field =  QgsFields()
+        # field.append(QgsField('camada', QVariant.String))
 
-        if final_no_touch:
-            sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, field,
-                no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
-            for idx, feat in enumerate(final_no_touch):
-                feat.setFields(field)
-                feat.setAttribute('camada', layer_list[0][idx])
-                sink_no_touch.addFeature(feat)
-        if final_attr_error:
-            sink_attr_error, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, field,
-                attr_error[0].geometry().wkbType(), layers[0].sourceCrs())
-            for idx, feat in enumerate(final_attr_error):
-                feat.setFields(field)
-                feat.setAttribute('camada', layer_list[1][idx])
-                sink_attr_error.addFeature(feat)
+        # if final_no_touch:
+        #     sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, field,
+        #         no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
+        #     for idx, feat in enumerate(final_no_touch):
+        #         feat.setFields(field)
+        #         feat.setAttribute('camada', layer_list[0][idx])
+        #         sink_no_touch.addFeature(feat)
+        # if final_attr_error:
+        #     sink_attr_error, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, field,
+        #         attr_error[0].geometry().wkbType(), layers[0].sourceCrs())
+        #     for idx, feat in enumerate(final_attr_error):
+        #         feat.setFields(field)
+        #         feat.setAttribute('camada', layer_list[1][idx])
+        #         sink_attr_error.addFeature(feat)
+        # return {
+        #     self.NO_TOUCH: no_touch,
+        #     self.ATTR_ERROR: attr_error
+        # }
         return {
-            self.NO_TOUCH: no_touch,
-            self.ATTR_ERROR: attr_error
-        }
-    # TODO: verify buffer type
-    def getExtentsIntersection(self, extents, tol):
-        flyr1, flyr2 = extents[0], extents[1]
-        gflyr1, gflyr2 = flyr1.geometry(), flyr2.geometry()
-        if gflyr1.intersects(gflyr2):
-            intersection = gflyr1.intersection(gflyr2)
-            bbox = intersection.boundingBox().buffered(tol).asWktPolygon()
-            bbox = QgsGeometry.fromWkt(bbox)
-            return bbox
-        return None
+            self.ATTR_ERROR: sink1,
+            self.NO_TOUCH: sink2
+            }
 
-    def getPointsInsideIntersection(self, bbox, layer):
+    def setupExtentsLayer(self, extents, sourceCrs):
+        feats = list(extents.getFeatures())
+        wkb_list = {
+            2: 'LineString',
+            3: 'Polygon',
+            5: 'MultiLineString',
+            6: 'MultiPolygon',
+        }
+        wkb_id = feats[0].geometry().wkbType()
+        uri = f"{wkb_list.get(wkb_id)}?crs={sourceCrs.authid().lower()}"
+        vectorLayer = QgsVectorLayer(uri, "Scratch",  "memory")
+        dataProvider = vectorLayer.dataProvider() 
+        for feat in feats:
+            to_insert = QgsFeature()
+            to_insert.setGeometry(feat.geometry())
+            dataProvider.addFeatures([to_insert])
+        return vectorLayer
+
+    def extentsAsLines(self, context, feedback, extents):
+        lines = processing.run(
+            'qgis:polygonstolines',
+            {
+                'INPUT': extents,
+                'OUTPUT': 'memory:'
+            },
+            is_child_algorithm=True,
+            context=context,
+            feedback=feedback)['OUTPUT']
+        lines = context.takeResultLayer(lines)
+        return lines
+
+    def bufferExtents(self, context, feedback, lines, tol):
+        buffer = processing.run(
+            'qgis:buffer',
+            {
+                'INPUT': lines,
+                'DISTANCE': tol,
+                'OUTPUT': 'memory:',
+                'DISSOLVE': True
+            },
+            is_child_algorithm=True,
+            context=context,
+            feedback=feedback)['OUTPUT']
+        buffer = context.takeResultLayer(buffer)
+        return buffer
+
+    def getPointsInsideIntersection(self, layer, ref):
         v_to_analyse = []
-        feats = layer.getFeatures(QgsFeatureRequest().setFilterRect(bbox.boundingBox()))
+        ref = next(ref.getFeatures()).geometry()
+        feats = layer.getFeatures()
         for feat in feats:
             vertices = list(feat.geometry().vertices())
             vi = vertices[0].asWkt()
             vi = QgsGeometry.fromWkt(vi)
             vf = vertices[-1].asWkt()
             vf = QgsGeometry.fromWkt(vf)
-            if any((vi.intersection(bbox), vf.intersection(bbox))):
+            if any((vi.intersection(ref), vf.intersection(ref))):
                 v_to_analyse.append(feat)
         return v_to_analyse
     
-    def checkIntersection(self, bbox, feats, ignored_fields):
+    def checkIntersection(self, feats, ignored_fields):
         no_touch = []
         attr_error = []
         for ft1 in feats:

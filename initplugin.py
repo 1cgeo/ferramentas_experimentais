@@ -2,6 +2,7 @@
 import os
 from PyQt5.QtWidgets import QAction, QMenu
 from PyQt5.QtGui import QIcon
+from qgis.core import QgsApplication
 
 from .processings.plugin_alg import PluginAlg
 from .calcula_azimute.calcazimute import calazim
