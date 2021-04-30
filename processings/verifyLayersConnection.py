@@ -98,62 +98,48 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         extentsLayer = self.setupExtentsLayer(extents, layers[0].sourceCrs())
 
         # If VectorLayer is a polygon, transform into lines
+        # TODO: When QGIS migrates to py3.8, use walrus on getFeatures() to delete it later?
         if next(extentsLayer.getFeatures()).geometry().wkbType() in [QgsWkbTypes.MultiPolygon, QgsWkbTypes.Polygon]:
                 extentsLayer = self.extentsAsLines(context, feedback, extentsLayer)
 
         # Gets buffered frame intersections -> bbox
         inter_zones = self.bufferExtents(context, feedback, extentsLayer, tol)
 
-        # Gets points inside inter_zones
-        feats_inside_intersection = self.getPointsInsideIntersection(layers[0], inter_zones)
+        # Iterates over every layer
+        for layer in layers:
+            # Gets points inside inter_zones
+            feats_inside_intersection = self.getPointsInsideIntersection(layer, inter_zones)
+            # Check intersection
+            no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
+            # Appends to total results
+            final_no_touch.extend(no_touch)
+            final_attr_error.extend(attr_error)
+            # Identifies from which layer the error is originated
+            layer_list[0].extend([layer.name() for x in range(len(no_touch))])
+            layer_list[1].extend([layer.name() for x in range(len(attr_error))])
 
-        # Check intersection
-        no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
+        field =  QgsFields()
+        field.append(QgsField('camada', QVariant.String))
 
-        # Add features inside sink
-        sink1, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, layers[0].fields(), 5, layers[0].sourceCrs())
-        for feat in attr_error:
-            sink1.addFeature(feat)
-        sink2, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, layers[0].fields(), 5, layers[0].sourceCrs())
-        for feat in no_touch:
-            sink2.addFeature(feat)
-
-
-        # Get points inside bbox
-        # for layer in layers:
-        #     feats_inside = self.getPointsInsideIntersection(bbox, layer)
-        #     # Check intersections
-        #     no_touch, attr_error = self.checkIntersection(bbox, feats_inside, ignored_fields)
-        #     final_attr_error.extend(attr_error)
-        #     layer_list[0].extend([layer.name() for x in range(len(no_touch))])
-        #     final_no_touch.extend(no_touch)
-        #     layer_list[1].extend([layer.name() for x in range(len(attr_error))])
-
-        # field =  QgsFields()
-        # field.append(QgsField('camada', QVariant.String))
-
-        # if final_no_touch:
-        #     sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, field,
-        #         no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
-        #     for idx, feat in enumerate(final_no_touch):
-        #         feat.setFields(field)
-        #         feat.setAttribute('camada', layer_list[0][idx])
-        #         sink_no_touch.addFeature(feat)
-        # if final_attr_error:
-        #     sink_attr_error, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, field,
-        #         attr_error[0].geometry().wkbType(), layers[0].sourceCrs())
-        #     for idx, feat in enumerate(final_attr_error):
-        #         feat.setFields(field)
-        #         feat.setAttribute('camada', layer_list[1][idx])
-        #         sink_attr_error.addFeature(feat)
-        # return {
-        #     self.NO_TOUCH: no_touch,
-        #     self.ATTR_ERROR: attr_error
-        # }
+        # Outputs to sinks
+        if final_no_touch:
+            sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, field,
+                no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_no_touch):
+                feat.setFields(field)
+                feat.setAttribute('camada', layer_list[0][idx])
+                sink_no_touch.addFeature(feat)
+        if final_attr_error:
+            sink_attr_error, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, field,
+                attr_error[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_attr_error):
+                feat.setFields(field)
+                feat.setAttribute('camada', layer_list[1][idx])
+                sink_attr_error.addFeature(feat)
         return {
-            self.ATTR_ERROR: sink1,
-            self.NO_TOUCH: sink2
-            }
+            self.NO_TOUCH: no_touch,
+            self.ATTR_ERROR: attr_error
+        }
 
     def setupExtentsLayer(self, extents, sourceCrs):
         feats = list(extents.getFeatures())
