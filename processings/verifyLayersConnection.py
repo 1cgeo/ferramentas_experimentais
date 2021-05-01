@@ -86,7 +86,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
 
         # If VectorLayer is a polygon, transform into lines
         # TODO: When QGIS migrates to py3.8, use walrus on getFeatures() to delete it later?
-        if next(extentsLayer.getFeatures()).geometry().wkbType() in [QgsWkbTypes.MultiPolygon, QgsWkbTypes.Polygon]:
+        if extentsLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 extentsLayer = self.extentsAsLines(context, feedback, extentsLayer)
 
         # Gets only intersection between frames
@@ -98,7 +98,11 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         # Iterates over every layer
         for layer in layers:
             # Gets points inside inter_zones
-            feats_inside_intersection = self.getPointsInsideIntersection(layer, inter_zones)
+            if layer.geometryType() == QgsWkbTypes.LineGeometry:
+                feats_inside_intersection = self.getPointsInsideIntersectionL(layer, inter_zones)
+            elif layer.geometryType() == QgsWkbTypes.PolygonGeometry:
+                feats_inside_intersection = self.getPointsInsideIntersectionA(layer, inter_zones)
+
             # Check intersection
             no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
             # Appends to total results
@@ -204,7 +208,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         provider.deleteFeatures(feats_to_delete)
         return intersection
 
-    def getPointsInsideIntersection(self, layer, ref):
+    def getPointsInsideIntersectionL(self, layer, ref):
         v_to_analyse = []
         ref = next(ref.getFeatures()).geometry()
         feats = layer.getFeatures()
@@ -217,7 +221,20 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             if any((vi.intersection(ref), vf.intersection(ref))):
                 v_to_analyse.append(feat)
         return v_to_analyse
-    
+
+    def getPointsInsideIntersectionA(self, layer, ref):
+        v_to_analyse = []
+        ref = next(ref.getFeatures()).geometry()
+        feats = layer.getFeatures()
+        for feat in feats:
+            for v in feat.geometry().vertices():
+                v = v.asWkt()
+                v = QgsGeometry.fromWkt(v)
+                if v.intersects(ref):
+                    v_to_analyse.append(feat)
+                    break
+        return v_to_analyse
+
     def checkIntersection(self, feats, ignored_fields):
         no_touch = []
         attr_error = []
