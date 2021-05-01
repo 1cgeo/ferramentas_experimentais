@@ -23,8 +23,10 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
     LAYERS = 'LAYERS'
     TOLERANCE = 'TOLERANCE'
     IGNORE_LIST = 'IGNORE_LIST'
-    NO_TOUCH = 'NO_TOUCH'
-    ATTR_ERROR = 'ATTR_ERROR'
+    NO_TOUCH_L = 'NO_TOUCH_L'
+    NO_TOUCH_A = 'NO_TOUCH_A'
+    ATTR_ERROR_L = 'ATTR_ERROR_L'
+    ATTR_ERROR_A = 'ATTR_ERROR_A'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -59,14 +61,26 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                self.NO_TOUCH,
-                self.tr('Revisar ligação')
+                self.NO_TOUCH_L,
+                self.tr('Revisar ligação (linha)')
             )
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                self.ATTR_ERROR,
-                self.tr('Revisar atributos na ligação')
+                self.ATTR_ERROR_L,
+                self.tr('Revisar atributos na ligação (linha)')
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.NO_TOUCH_A,
+                self.tr('Revisar ligação (área)')
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.ATTR_ERROR_A,
+                self.tr('Revisar atributos na ligação (área)')
             )
         )
 
@@ -77,9 +91,12 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         ignored_fields = ignored_fields.split(';')
         tol = self.parameterAsDouble(parameters, self.TOLERANCE, context)
 
-        final_no_touch = []
-        final_attr_error = []
-        layer_list = [[],[]]
+        final_no_touch_l = []
+        final_no_touch_a = []
+        final_attr_error_l = []
+        final_attr_error_a = []
+        layer_list_l = [[],[]]
+        layer_list_a = [[],[]]
 
         # Get VectorLayer from extents
         extentsLayer = self.setupExtentsLayer(extents, layers[0].sourceCrs())
@@ -97,42 +114,63 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
 
         # Iterates over every layer
         for layer in layers:
-            # Gets points inside inter_zones
             if layer.geometryType() == QgsWkbTypes.LineGeometry:
+                # Gets points inside inter_zones
                 feats_inside_intersection = self.getPointsInsideIntersectionL(layer, inter_zones)
+                # Check intersection
+                no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
+                # Appends to total results
+                final_attr_error_l.extend(attr_error)
+                final_no_touch_l.extend(no_touch)
+                # Identifies from which layer the error is originated
+                layer_list_l[0].extend([layer.name() for x in range(len(no_touch))])
+                layer_list_l[1].extend([layer.name() for x in range(len(attr_error))])
             elif layer.geometryType() == QgsWkbTypes.PolygonGeometry:
+                # Same as before, but for area layers
                 feats_inside_intersection = self.getPointsInsideIntersectionA(layer, inter_zones)
-
-            # Check intersection
-            no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
-            # Appends to total results
-            final_no_touch.extend(no_touch)
-            final_attr_error.extend(attr_error)
-            # Identifies from which layer the error is originated
-            layer_list[0].extend([layer.name() for x in range(len(no_touch))])
-            layer_list[1].extend([layer.name() for x in range(len(attr_error))])
+                no_touch, attr_error = self.checkIntersection(feats_inside_intersection, ignored_fields)
+                final_no_touch_a.extend(no_touch)
+                final_attr_error_a.extend(attr_error)
+                layer_list_a[0].extend([layer.name() for x in range(len(no_touch))])
+                layer_list_a[1].extend([layer.name() for x in range(len(attr_error))])
 
         field =  QgsFields()
         field.append(QgsField('camada', QVariant.String))
 
         # Outputs to sinks
-        if final_no_touch:
-            sink_no_touch, _ = self.parameterAsSink(parameters, self.NO_TOUCH, context, field,
-                no_touch[0].geometry().wkbType(), layers[0].sourceCrs())
-            for idx, feat in enumerate(final_no_touch):
+        if final_no_touch_l:
+            sink_no_touch_l, _ = self.parameterAsSink(parameters, self.NO_TOUCH_L, context, field,
+                final_no_touch_l[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_no_touch_l):
                 feat.setFields(field)
-                feat.setAttribute('camada', layer_list[0][idx])
-                sink_no_touch.addFeature(feat)
-        if final_attr_error:
-            sink_attr_error, _ = self.parameterAsSink(parameters, self.ATTR_ERROR, context, field,
-                attr_error[0].geometry().wkbType(), layers[0].sourceCrs())
-            for idx, feat in enumerate(final_attr_error):
+                feat.setAttribute('camada', layer_list_l[0][idx])
+                sink_no_touch_l.addFeature(feat)
+        if final_attr_error_l:
+            sink_attr_error_l, _ = self.parameterAsSink(parameters, self.ATTR_ERROR_L, context, field,
+                final_attr_error_l[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_attr_error_l):
                 feat.setFields(field)
-                feat.setAttribute('camada', layer_list[1][idx])
-                sink_attr_error.addFeature(feat)
+                feat.setAttribute('camada', layer_list_l[1][idx])
+                sink_attr_error_l.addFeature(feat)
+        if final_no_touch_a:
+            sink_no_touch_a, _ = self.parameterAsSink(parameters, self.NO_TOUCH_A, context, field,
+                final_no_touch_a[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_no_touch_a):
+                feat.setFields(field)
+                feat.setAttribute('camada', layer_list_a[0][idx])
+                sink_no_touch_a.addFeature(feat)
+        if final_attr_error_a:
+            sink_attr_error_a, _ = self.parameterAsSink(parameters, self.ATTR_ERROR_A, context, field,
+                final_attr_error_a[0].geometry().wkbType(), layers[0].sourceCrs())
+            for idx, feat in enumerate(final_attr_error_a):
+                feat.setFields(field)
+                feat.setAttribute('camada', layer_list_a[1][idx])
+                sink_attr_error_a.addFeature(feat)
         return {
-            self.NO_TOUCH: no_touch,
-            self.ATTR_ERROR: attr_error
+            self.NO_TOUCH_L: final_no_touch_l,
+            self.ATTR_ERROR_L: final_attr_error_l,
+            self.NO_TOUCH_A: final_no_touch_a,
+            self.ATTR_ERROR_A: final_attr_error_a
         }
 
     def setupExtentsLayer(self, extents, sourceCrs):
