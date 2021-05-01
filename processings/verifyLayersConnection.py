@@ -35,7 +35,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterMultipleLayers(
+            ValidateQgsProcessingParameterMultipleLayers(
                 self.LAYERS,
                 self.tr('Layers to be verified')
             )
@@ -51,7 +51,10 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.TOLERANCE,
                 self.tr('Tolerance'),
-                QgsProcessingParameterNumber.Double
+                QgsProcessingParameterNumber.Double,
+                defaultValue=0.1,
+                minValue=0.0001,
+                maxValue=100
             )
         )
         self.addParameter(
@@ -85,6 +88,9 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         # TODO: When QGIS migrates to py3.8, use walrus on getFeatures() to delete it later?
         if next(extentsLayer.getFeatures()).geometry().wkbType() in [QgsWkbTypes.MultiPolygon, QgsWkbTypes.Polygon]:
                 extentsLayer = self.extentsAsLines(context, feedback, extentsLayer)
+
+        # Gets only intersection between frames
+        extentsLayer = self.filterExtents(context, feedback, extentsLayer)
 
         # Gets buffered frame intersections -> bbox
         inter_zones = self.bufferExtents(context, feedback, extentsLayer, tol)
@@ -171,6 +177,33 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         buffer = context.takeResultLayer(buffer)
         return buffer
 
+    def filterExtents(self, context, feedback, extents):
+        intersection = processing.run(
+            'qgis:intersection',
+            {
+                'INPUT': extents,
+                'OVERLAY': extents,
+                'OUTPUT': 'memory:'
+            },
+            is_child_algorithm=True,
+            context=context,
+            feedback=feedback)['OUTPUT']
+        intersection = context.takeResultLayer(intersection)
+        ids_and_areas = []
+        feats_to_delete = []
+        provider = intersection.dataProvider()
+        max_len = 0
+        for feat in intersection.getFeatures():
+            length = feat.geometry().length()
+            max_len = max(max_len, length)
+            ids_and_areas.append((feat.id(), length))
+        for item in ids_and_areas:
+            feat_id, length = item
+            if length > max_len/2:
+                feats_to_delete.append(feat_id)
+        provider.deleteFeatures(feats_to_delete)
+        return intersection
+
     def getPointsInsideIntersection(self, layer, ref):
         v_to_analyse = []
         ref = next(ref.getFeatures()).geometry()
@@ -225,3 +258,24 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return self.tr("Verifica a conexão de layers entre molduras distintas")
+
+class ValidateQgsProcessingParameterMultipleLayers(QgsProcessingParameterMultipleLayers):
+    '''
+    Auxiliary class for validationg the number of layers
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def checkValueIsAcceptable(self, layers_names, context=None):
+        mapLayers = QgsProject.instance().mapLayers()
+        for lyr_name in layers_names:
+            lyr = mapLayers.get(lyr_name, None)
+            if lyr is None:
+                continue
+            elif lyr and (lyr.geometryType() in (QgsWkbTypes.LineString, QgsWkbTypes.MultiLineString, QgsWkbTypes.MultiPolygon, 
+                                                    QgsWkbTypes.Polygon, QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry)):
+                continue
+            else:
+                return False
+        return True
