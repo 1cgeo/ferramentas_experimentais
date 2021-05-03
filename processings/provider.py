@@ -23,6 +23,7 @@ from .identifySmallFeatures import IdentifySmallFeatures
 from .identifySmallLines import IdentifySmallLines
 from .identifyUndershootLines import IdentifyUndershootLines
 from .identifyDiscontinuitiesInLines import IdentifyDiscontinuitiesInLines
+from .removeHoles import RemoveHoles
 
 class Provider(QgsProcessingProvider):
 
@@ -41,6 +42,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifySmallLines())
         self.addAlgorithm(IdentifyUndershootLines())
         self.addAlgorithm(IdentifyDiscontinuitiesInLines())
+        self.addAlgorithm(RemoveHoles())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
