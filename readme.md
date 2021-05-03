@@ -67,6 +67,14 @@ Recebe uma lista de camadas vetoriais (linhas), um número indicando o valor má
 ### 13 - Identificar mudança de atributos em linhas
 Recebe uma camada vetorial do tipo linha, os campos a serem verificados e um valor de tolerância para desvio da linha. Verifica-se se houve mudança no valor dos campos a serem verificados entre duas linhas cujo ângulo entre elas diferencie, no máximo, do valor de tolerância em relação a 180 graus. Por exemplo, se o valor de tolerância for 10, apenas linhas cujo menor angulo entre elas esteja no intervalo de (170,180) terão os campos comparados.
 
+### 14 - Identificar conexão entre molduras
+Vefifica a conexão de geometrias em áreas próximas às molduras indicadas. A rotina verificará a conexão dos vértices muito próximos das molduras, além da conformidade de atributos entre as feições conectadas próximas dos limites da moldura.
+Parâmetros necessários:
+- Camada de molduras : todas as feições da camada ou seleção feita pelo usuário
+- Camadas a serem verificadas: camadas do tipo linha ou área que serão analisadas
+- Atributos a serem ignorados: separados por ";", define quais atributos serão ignorados na comparação de atributos entre feições conectadas
+- Tolerância: apenas feições próximas das interseções entre molduras (definido por esse parâmetro)serão analisadas 
+
 
 ## Botões
 ### 1- Calcula Azimute
