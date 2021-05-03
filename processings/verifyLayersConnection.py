@@ -323,8 +323,6 @@ class ValidateQgsProcessingParameterMultipleLayers(QgsProcessingParameterMultipl
         super().__init__(*args, **kwargs)
 
     def checkValueIsAcceptable(self, layers_names, context=None):
-        import inspect
-        print(inspect.getmembers(self))
         mapLayers = QgsProject.instance().mapLayers()
         for lyr_name in layers_names:
             lyr = mapLayers.get(lyr_name, None)
