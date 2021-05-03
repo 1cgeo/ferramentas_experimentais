@@ -75,6 +75,11 @@ Parâmetros necessários:
 - Atributos a serem ignorados: separados por ";", define quais atributos serão ignorados na comparação de atributos entre feições conectadas
 - Tolerância: apenas feições próximas das interseções entre molduras (definido por esse parâmetro)serão analisadas 
 
+### 15 - Remover __Holes__ menores que tolerância
+Verifica holes menores que a tolerância e os remove. As modificações não são salvas: caso o usuário queira confirmar as mudanças, deverá salvar a camada manualmente.
+Parâmetros:
+- Camada
+- Tolerância: remove __holes__ cuja áreas são maiores que a tolerância
 
 ## Botões
 ### 1- Calcula Azimute

@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from qgis import processing
-from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing, QgsProject,
-                       QgsFeatureSink, QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import (QgsProcessing,
+                       QgsProcessingAlgorithm,
                        QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterString,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterNumber,
                        QgsFeature, QgsVectorLayer,
-                       QgsProcessingParameterVectorDestination,
                        QgsGeometry, QgsField,
-                       QgsFields, QgsWkbTypes
                        )
 
 class RemoveHoles(QgsProcessingAlgorithm):
@@ -77,7 +72,7 @@ class RemoveHoles(QgsProcessingAlgorithm):
         return 'Remove holes'
 
     def displayName(self):
-        return self.tr('RemoveHoles')
+        return self.tr('Remove Holes')
 
     def group(self):
         return self.tr('Missoes')
