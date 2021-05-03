@@ -72,6 +72,8 @@ Recebe uma camada vetorial do tipo linha, os campos a serem verificados e um val
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
 
+O propósito original dessa ferramenta é calcular o azimute de pistas de pouso no padrão do MGCP.
+
 ### 2- Copia WKT 
 Copia, para a área de transferência, a geometria das feições selecionadas em WKT.
 
