@@ -1,4 +1,4 @@
-from Ferramentas_Producao.modules.spellchecker.factories.datasetFactory import DatasetFactory 
+from ferramentas_experimentais.modules.spellchecker.factories.datasetFactory import DatasetFactory 
 
 class SpellCheckerCtrl:
 
