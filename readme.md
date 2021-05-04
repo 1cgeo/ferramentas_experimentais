@@ -81,6 +81,20 @@ Parâmetros:
 - Camada
 - Tolerância: remove __holes__ cuja áreas são maiores que a tolerância
 
+### 16 - Verificador ortográfico
+
+Recebe como entrada múltiplas camadas e um nome de atributo. Cria uma coluna temporária com os erros ortográficos encontrados naquele atributo.
+
+*As camadas devem estar com a edição ativa para a criação da coluna temporária*
+
+### 17 - Carrega shapefiles
+
+Carrega uma pasta com shapefiles de forma organizada.
+
+### 18 - Verifica UUID
+
+Recebe como entrada múltiplas camadas e um nome de atributo. Encontra erros de UUID duplicado e de UUID inválido. Também possui a opção de corrigir os erros encontrados.
+
 ## Botões
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
