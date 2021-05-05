@@ -25,6 +25,9 @@ from .identifyUndershootLines import IdentifyUndershootLines
 from .identifyDiscontinuitiesInLines import IdentifyDiscontinuitiesInLines
 from .removeHoles import RemoveHoles
 from .attributeValleyBottom import AttributeValleyBottom
+from .loadShapefilesAlg import LoadShapefilesAlg
+from .spellCheckerAlg import SpellCheckerAlg
+from .uuidCheckerAlg import UuidCheckerAlg
 
 class Provider(QgsProcessingProvider):
 
@@ -45,6 +48,9 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifyDiscontinuitiesInLines())
         self.addAlgorithm(RemoveHoles())
         self.addAlgorithm(AttributeValleyBottom())
+        self.addAlgorithm(LoadShapefilesAlg())
+        self.addAlgorithm(SpellCheckerAlg())
+        self.addAlgorithm(UuidCheckerAlg())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
