@@ -1,31 +1,17 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsProcessingParameterCrs,
                        QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
                        QgsVectorLayer,
                        QgsFeature,
-                       QgsProcessingParameterFolderDestination,
-                       QgsProcessingParameterFile
+                       QgsProcessingParameterFile,
+                       QgsProcessingParameterFolderDestination
                        )
 from qgis import processing
 import os
-from shutil import *
 import datetime
 import subprocess
-import shutil
 
 class ExportarParaShapefile (QgsProcessingAlgorithm): 
 

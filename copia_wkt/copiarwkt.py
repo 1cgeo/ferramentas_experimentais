@@ -1,31 +1,4 @@
-import os
-import sys
-import inspect
-
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsAbstractFeatureSource,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsField,
-                       QgsExpressionContext,
-                       QgsExpressionContextScope,
-                       QgsAuxiliaryStorage,
-                       QgsPropertyDefinition,
-                       QgsFeature,
-                       Qgis,
-                       QgsWkbTypes
-                       )
+from qgis.core import Qgis
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *

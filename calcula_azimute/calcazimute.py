@@ -1,34 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
-import sys
-import inspect
-
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsAbstractFeatureSource,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsField,
-                       QgsExpressionContext,
-                       QgsExpressionContextScope,
+from qgis.core import (QgsField,
                        QgsAuxiliaryStorage,
                        QgsPropertyDefinition,
                        QgsFeature,
                        Qgis,
-                       QgsWkbTypes,
-                       QgsApplication
+                       QgsWkbTypes
                        )
-from qgis.utils import iface
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
