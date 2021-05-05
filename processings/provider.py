@@ -1,8 +1,4 @@
-from os import listdir, fdopen, remove
-from tempfile import mkstemp
-from shutil import move, copymode
-import tempfile
-import shutil
+from os import listdir
 import xml.etree.ElementTree as ET 
 from os.path import isfile, join, dirname
 from qgis.core import QgsProcessingProvider, QgsProcessingModelAlgorithm, QgsXmlUtils

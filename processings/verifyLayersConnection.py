@@ -2,8 +2,7 @@
 
 from qgis import processing
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing, QgsProject,
-                       QgsFeatureSink, QgsProcessingAlgorithm,
+from qgis.core import (QgsProcessing, QgsProject, QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterMultipleLayers,
@@ -11,7 +10,6 @@ from qgis.core import (QgsProcessing, QgsProject,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterNumber,
                        QgsFeature, QgsVectorLayer,
-                       QgsProcessingParameterVectorDestination,
                        QgsGeometry, QgsField,
                        QgsFields, QgsWkbTypes
                        )

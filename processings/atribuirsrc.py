@@ -2,23 +2,12 @@
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
                        QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
                        QgsProcessingParameterCrs,
                        QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
                        QgsProcessingParameterBoolean
                        )
-from qgis import processing
 
 class AtribuirSRC(QgsProcessingAlgorithm): 
 

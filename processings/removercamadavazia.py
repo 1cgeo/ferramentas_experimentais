@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
                        QgsProject,
                        QgsMapLayer,
                        Qgis)
