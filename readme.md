@@ -108,6 +108,11 @@ Substituto temporário do processing de contruir áreas a partir de delimitador 
 
 Tem como entrada múltiplas camadas de linha e o raio de busca. Procura pontas livre considerando todas as camadas simultâneamente.
 
+### 4 - Extrai holes de Terreno Sujeito a Inundação
+
+Tem como entrada a camada de terreno sujeito a inundação. O model dissolve os polígonos e extrai os holes para inspeção.
+
+
 ## Ferramentas
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.
