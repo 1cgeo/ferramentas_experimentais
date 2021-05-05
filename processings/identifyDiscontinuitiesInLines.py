@@ -1,29 +1,13 @@
 # -*- coding: utf-8 -*-
-
 from qgis.PyQt.QtCore import (QCoreApplication, QVariant)
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
                        QgsPointXY,
-                       QgsProcessingParameterCrs,
-                       QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterBoolean,
-                       QgsFeatureRequest,
-                       QgsExpression,
                        QgsFeature,
-                       QgsProcessingParameterFile,
                        QgsProcessingParameterVectorLayer,
                        QgsField,
-                       QgsFields,
                        QgsFeatureRequest,
                        QgsGeometryUtils,
                        QgsProcessingParameterField,
@@ -31,7 +15,6 @@ from qgis.core import (QgsProcessing,
                        QgsGeometry
                        )
 from qgis import processing
-from qgis.utils import iface
 import math
 class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm): 
 
@@ -181,7 +164,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         return 'identifydiscontinuitiesinlines'
 
     def displayName(self):
-        return self.tr('Identifica Descontinuidade em Linhas')
+        return self.tr('Identifica mudança de atributos em linhas')
 
     def group(self):
         return self.tr('Missoes')
@@ -190,5 +173,5 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo identifica se existe alguma descontinuidade entre linhas nos campos escolhidos e dentro da tolerância para continuidade")
+        return self.tr("O algoritmo identifica se existe alguma mudança de atributos entre linhas nos campos escolhidos e dentro da tolerância para continuidade")
     

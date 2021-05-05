@@ -3,34 +3,13 @@
 from qgis.PyQt.QtCore import (QCoreApplication, QVariant)
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsProcessingParameterCrs,
-                       QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterBoolean,
-                       QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterField,
                        QgsFeature,
-                       QgsVectorLayer,
-                       QgsPoint,
-                       QgsGeometry,
-                       QgsProcessingParameterVectorDestination,
-                       QgsField,
-                       QgsFields,
-                       NULL
+                       QgsField
                        )
 from qgis import processing
-from qgis.analysis import QgsNativeAlgorithms
 
 class StreamOrder(QgsProcessingAlgorithm):
 
@@ -123,7 +102,6 @@ class StreamOrder(QgsProcessingAlgorithm):
     def orderedLayer(self, parameters, context, originalLayer, orderedFeatures):
 
         newField = originalLayer.fields()
-        #newField.append(QgsField('id', QVariant.Int))
         newField.append(QgsField('ordem', QVariant.Int))
         features = orderedFeatures
 

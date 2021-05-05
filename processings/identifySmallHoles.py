@@ -3,26 +3,14 @@
 from qgis.PyQt.QtCore import (QCoreApplication, QVariant)
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
-                       QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsProcessingParameterCrs,
-                       QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterBoolean,
-                       QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterNumber,
                        QgsGeometry,
                        QgsField,
                        QgsFeature,
-                       QgsFields
+                       QgsFields,
+                       QgsProcessingParameterVectorLayer
                        )
 from qgis import processing
 

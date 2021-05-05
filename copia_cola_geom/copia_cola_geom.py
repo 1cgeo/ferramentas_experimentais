@@ -1,30 +1,4 @@
-import os
-import sys
-import inspect
-
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProject,
-                       QgsMapLayer,
-                       QgsCoordinateReferenceSystem,
-                       QgsCoordinateTransform,
-                       QgsProject,
-                       QgsPointXY,
-                       QgsAbstractFeatureSource,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsField,
-                       QgsExpressionContext,
-                       QgsExpressionContextScope,
-                       QgsAuxiliaryStorage,
-                       QgsPropertyDefinition,
-                       QgsFeature,
-                       Qgis,
-                       QgsWkbTypes,
+from qgis.core import (Qgis,
                        QgsSettings
                        )
 
@@ -59,17 +33,17 @@ def validLayer(layer):
 
 def startPasteButton():
     try:
-        layer = self.iface.activeLayer()
-        self.validLayer(layer)
+        layer = iface.activeLayer()
+        validLayer(layer)
         geom = QgsSettings()
         geometria = geom.value("Ferramentas_Experimentais/geometria", False)
         feature = next(layer.getSelectedFeatures())
-        self.validGeometry(layer, geometria)
-        self.pastegeom(layer, geometria, feature)
-        self.iface.messageBar().pushMessage('Executado', 'A geometria da feição foi modificada',
+        validGeometry(layer, geometria)
+        pastegeom(layer, geometria, feature)
+        iface.messageBar().pushMessage('Executado', 'A geometria da feição foi modificada',
                                         level=Qgis.Success, duration=5)
     except Exception as e:
-        self.iface.messageBar().pushMessage('Erro', str(e), level=Qgis.Critical, duration=5)
+        iface.messageBar().pushMessage('Erro', str(e), level=Qgis.Critical, duration=5)
 
 def pastegeom(layer, geometria, feature):
     layer.dataProvider().changeGeometryValues({feature.id(): geometria})
