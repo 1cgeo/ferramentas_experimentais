@@ -164,7 +164,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         return 'identifydiscontinuitiesinlines'
 
     def displayName(self):
-        return self.tr('Identifica mudança de atributos em linhas')
+        return self.tr('Identifica Mudança de Atributos em Linhas')
 
     def group(self):
         return self.tr('Missoes')
