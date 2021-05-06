@@ -40,8 +40,8 @@ from qgis.core import (QgsProcessing,
 import os
 from qgis import core
 from qgis.utils import iface
-from ferramentas_experimentais.processings.processingAlg import ProcessingAlg
-from ferramentas_experimentais.modules.spellchecker.spellCheckerCtrl import SpellCheckerCtrl
+from .processingAlg import ProcessingAlg
+from ..modules.spellchecker.spellCheckerCtrl import SpellCheckerCtrl
 import re
 
 class SpellCheckerAlg(ProcessingAlg):
