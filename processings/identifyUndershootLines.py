@@ -80,9 +80,9 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                     for geometry in featgeom.constGet():
                         ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
                         ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
-                        if not(multiPointGeom.buffer(1, 1).intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[0]))[0] < minDist:
+                        if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[0]))[0] < minDist:
                             points.append(geometry[0])
-                        if not(multiPointGeom.buffer(1, 1).intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[-1]))[0] < minDist:
+                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[-1]))[0] < minDist:
                             points.append(geometry[-1])            
             feedback.setProgress( step * progressStep )
         returnMessage = ('Nenhuma linha encontrada!')

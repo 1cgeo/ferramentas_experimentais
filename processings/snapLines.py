@@ -71,16 +71,21 @@ class SnapLines(QgsProcessingAlgorithm):
         for frameFeature in frameLayer.getFeatures():
             FrameArea = frameFeature.geometry().boundingBox()
             request = QgsFeatureRequest().setFilterRect(FrameArea)
+            multiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in frameFeature.geometry().vertices() ])
             for step, layer in enumerate(layerList):   
                 for layerFeature in layer.getFeatures(request):
                     featgeom = layerFeature.geometry()
+                    if allFramesGeom.crosses(featgeom):
+                        continue
                     for geometry in featgeom.constGet():
                         firstPoint = geometry[0]
-                        lastPoint = geometry[-1]
-                        if self.isNearestPointOfFrame(firstPoint, frameFeature.geometry(), allFramesGeom, minDist):
-                            self.snapPoint(firstPoint, 0, layerFeature, layer, frameFeature, frameLayer)
-                        if self.isNearestPointOfFrame(lastPoint, frameFeature.geometry(), allFramesGeom, minDist):
-                            self.snapPoint(lastPoint, -1, layerFeature, layer, frameFeature, frameLayer)
+                        lastIdx = len(geometry) - 1
+                        lastPoint = geometry[lastIdx]
+                        if not(multiPointGeom.intersects(core.QgsGeometry.fromPointXY(QgsPointXY(lastPoint)))) and self.isNearestPointOfFrame(lastPoint, frameFeature.geometry(), allFramesGeom, minDist):
+                            self.snapPoint(lastPoint, lastIdx, layerFeature, layer, frameFeature, frameLayer, minDist)
+                        if not(multiPointGeom.intersects(core.QgsGeometry.fromPointXY(QgsPointXY(firstPoint)))) and self.isNearestPointOfFrame(firstPoint, frameFeature.geometry(), allFramesGeom, minDist):
+                            self.snapPoint(firstPoint, 0, layerFeature, layer, frameFeature, frameLayer, minDist)
+                        
             feedback.setProgress( step * progressStep )
         return {self.OUTPUT: ''}
 
@@ -103,25 +108,32 @@ class SnapLines(QgsProcessingAlgorithm):
             allFramesGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance
         )
 
-    def snapPoint(self, point, idxPoint, layerFeature, layer, frameFeature, frameLayer):
+    def snapPoint(self, point, idxPoint, layerFeature, layer, frameFeature, frameLayer, distance):
         sourceFrameTransform, destFrameTransform = self.getGeometryTransforms(frameLayer.crs(), 4674)
         sourceLayerTransform, destLayerTransform = self.getGeometryTransforms(layer.crs(), 4674)
 
         frameGeom = frameFeature.geometry()
         frameLinestring = core.QgsLineString( frameGeom.vertices() )
 
-        frameLinestring.transform( destFrameTransform )
-        point.transform( destLayerTransform )
-        projectedPointFrame = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
-        projectedPointLayer = projectedPointFrame.clone()
+        vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
 
-        projectedPointFrame.transform( sourceFrameTransform )
-        distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPointFrame ) )
-        frameGeom.insertVertex( projectedPointFrame, after )
-        self.updateLayerFeature(frameLayer, frameFeature, frameGeom)
-       
-        projectedPointLayer.transform( sourceLayerTransform )
-        point.transform( sourceLayerTransform )
+        if core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
+            projectedPointLayer = vertex
+        else:
+            frameLinestring.transform( destFrameTransform )
+            point.transform( destLayerTransform )
+            
+            projectedPointFrame = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
+            projectedPointLayer = projectedPointFrame.clone()
+
+            projectedPointFrame.transform( sourceFrameTransform )
+            projectedPointLayer.transform( sourceLayerTransform )
+
+            
+            distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPointFrame ) )
+            frameGeom.insertVertex( projectedPointFrame, after )
+            self.updateLayerFeature(frameLayer, frameFeature, frameGeom)
+        
         layerGeom = layerFeature.geometry()
         layerGeom.moveVertex(projectedPointLayer, idxPoint)
         self.updateLayerFeature(layer, layerFeature, layerGeom)
