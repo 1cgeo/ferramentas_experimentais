@@ -2,7 +2,7 @@ import bz2
 import pickle
 import _pickle as cPickle
 import os
-from ferramentas_experimentais.modules.spellchecker.structures.ternarySearchTree import Trie, Node
+from ..structures.ternarySearchTree import Trie, Node
 
 WORLIST_FILE_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),

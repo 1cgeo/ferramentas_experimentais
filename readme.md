@@ -108,6 +108,26 @@ Substituto temporário do processing de contruir áreas a partir de delimitador 
 
 Tem como entrada múltiplas camadas de linha e o raio de busca. Procura pontas livre considerando todas as camadas simultâneamente.
 
+### 4 - Extrai holes de Polígonos
+
+Tem como entrada a camada polígono. O model dissolve os polígonos e extrai os holes para inspeção.
+
+### 5 - Sliver Polygon
+
+Retorna os poligonos com razão entre área e perímetro menor que a tolerância.
+
+### 6 - Verifica duplicados em lote
+
+Verifica geometria duplicada na própria camada de todas as camadas ativas no projeto.
+
+### 7 - Verifica geometria inválida em lote
+
+Verifica geometrias inválidas de todas as camadas ativas no projeto.
+
+### 8 - Verifica vértices
+
+Verifica ângulo menor que a tolerância (10 graus), vertex near edge, unshared vertex on intersections, unshared vertex on shared edges de todas as camadas ativas no projeto.
+
 ## Ferramentas
 ### 1- Calcula Azimute
 Cria um campo na tabela de atributos da camada ativa, como armazenamento auxiliar, indicando o ângulo, no sentido horário, entre o norte e a direção da feição (considerando a *Oriented Minimum Bounding Box* da feição), recebe como entrada apenas camadas de linhas ou de polígonos.

@@ -1,0 +1,193 @@
+<Option type="Map">
+  <Option name="children" type="Map">
+    <Option name="dsgtools:donutholeextractor_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="dsgtools:donutholeextractor" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="538" />
+        <Option name="component_pos_y" type="double" value="248" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Separar Buraco do Exterior de um Pol&#237;gono" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="328" />
+      <Option name="component_pos_y" type="double" value="248" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="dsgtools:donutholeextractor_1" />
+      <Option name="outputs" type="Map">
+        <Option name="hole_inunda" type="Map">
+          <Option name="child_id" type="QString" value="dsgtools:donutholeextractor_1" />
+          <Option name="color" type="QString" value="" />
+          <Option name="comment" type="Map">
+            <Option name="color" type="QString" value="" />
+            <Option name="component_description" type="QString" value="" />
+            <Option name="component_height" type="double" value="60" />
+            <Option name="component_pos_x" type="double" value="0" />
+            <Option name="component_pos_y" type="double" value="0" />
+            <Option name="component_width" type="double" value="100" />
+            <Option name="outputs_collapsed" type="bool" value="true" />
+            <Option name="parameters_collapsed" type="bool" value="true" />
+          </Option>
+          <Option name="component_description" type="QString" value="hole_inunda" />
+          <Option name="component_height" type="double" value="30" />
+          <Option name="component_pos_x" type="double" value="338" />
+          <Option name="component_pos_y" type="double" value="360" />
+          <Option name="component_width" type="double" value="200" />
+          <Option name="default_value" type="Map">
+            <Option name="class" type="QString" value="QgsProcessingOutputLayerDefinition" />
+            <Option name="create_options" type="Map">
+              <Option name="fileEncoding" type="QString" value="System" />
+            </Option>
+            <Option name="sink" type="Map">
+              <Option name="active" type="bool" value="true" />
+              <Option name="type" type="int" value="1" />
+              <Option name="val" type="QString" value="TEMPORARY_OUTPUT" />
+            </Option>
+          </Option>
+          <Option name="mandatory" type="bool" value="true" />
+          <Option name="name" type="QString" value="hole_inunda" />
+          <Option name="output_name" type="QString" value="DONUTHOLE" />
+          <Option name="outputs_collapsed" type="bool" value="true" />
+          <Option name="parameters_collapsed" type="bool" value="true" />
+        </Option>
+      </Option>
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="native:dissolve_1" />
+            <Option name="output_name" type="QString" value="OUTPUT" />
+            <Option name="source" type="int" value="1" />
+          </Option>
+        </Option>
+        <Option name="SELECTED" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="bool" value="false" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="native:dissolve_1" type="Map">
+      <Option name="active" type="bool" value="true" />
+      <Option name="alg_config" />
+      <Option name="alg_id" type="QString" value="native:dissolve" />
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="441" />
+        <Option name="component_pos_y" type="double" value="91" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Dissolver" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="342" />
+      <Option name="component_pos_y" type="double" value="142" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="dependencies" />
+      <Option name="id" type="QString" value="native:dissolve_1" />
+      <Option name="outputs" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+      <Option name="params" type="Map">
+        <Option name="FIELD" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2" />
+            <Option name="static_value" type="StringList">
+              <Option type="QString" value="" />
+            </Option>
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="Terrenosujeitoainundao" />
+            <Option name="source" type="int" value="0" />
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+  </Option>
+  <Option name="designerParameterValues" />
+  <Option name="groupBoxes" />
+  <Option name="help" />
+  <Option name="modelVariables" />
+  <Option name="model_group" type="QString" value="missoes" />
+  <Option name="model_name" type="QString" value="Extrai Holes TSI" />
+  <Option name="parameterDefinitions" type="Map">
+    <Option name="Terrenosujeitoainundao" type="Map">
+      <Option name="data_types" type="List">
+        <Option type="int" value="2" />
+      </Option>
+      <Option name="default" type="invalid" />
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="Terreno sujeito a inunda&#231;&#227;o" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="metadata" />
+      <Option name="name" type="QString" value="Terrenosujeitoainundao" />
+      <Option name="parameter_type" type="QString" value="vector" />
+    </Option>
+    <Option name="dsgtools:donutholeextractor_1:hole_inunda" type="Map">
+      <Option name="create_by_default" type="bool" value="true" />
+      <Option name="data_type" type="int" value="-1" />
+      <Option name="default" type="QgsProcessingOutputLayerDefinition">
+        <Option type="Map">
+          <Option name="create_options" type="Map">
+            <Option name="fileEncoding" type="QString" value="System" />
+          </Option>
+          <Option name="sink" type="Map">
+            <Option name="active" type="bool" value="true" />
+            <Option name="type" type="int" value="1" />
+            <Option name="val" type="QString" value="TEMPORARY_OUTPUT" />
+          </Option>
+        </Option>
+      </Option>
+      <Option name="defaultGui" type="invalid" />
+      <Option name="description" type="QString" value="hole_inunda" />
+      <Option name="flags" type="int" value="0" />
+      <Option name="help" type="QString" value="" />
+      <Option name="metadata" />
+      <Option name="name" type="QString" value="dsgtools:donutholeextractor_1:hole_inunda" />
+      <Option name="parameter_type" type="QString" value="sink" />
+      <Option name="supports_append" type="bool" value="false" />
+      <Option name="supports_non_file_outputs" type="bool" value="true" />
+    </Option>
+  </Option>
+  <Option name="parameterOrder" />
+  <Option name="parameters" type="Map">
+    <Option name="Terrenosujeitoainundao" type="Map">
+      <Option name="color" type="QString" value="" />
+      <Option name="comment" type="Map">
+        <Option name="color" type="QString" value="" />
+        <Option name="component_description" type="QString" value="" />
+        <Option name="component_height" type="double" value="60" />
+        <Option name="component_pos_x" type="double" value="396" />
+        <Option name="component_pos_y" type="double" value="-1" />
+        <Option name="component_width" type="double" value="100" />
+        <Option name="outputs_collapsed" type="bool" value="true" />
+        <Option name="parameters_collapsed" type="bool" value="true" />
+      </Option>
+      <Option name="component_description" type="QString" value="Terrenosujeitoainundao" />
+      <Option name="component_height" type="double" value="30" />
+      <Option name="component_pos_x" type="double" value="337" />
+      <Option name="component_pos_y" type="double" value="58" />
+      <Option name="component_width" type="double" value="200" />
+      <Option name="name" type="QString" value="Terrenosujeitoainundao" />
+      <Option name="outputs_collapsed" type="bool" value="true" />
+      <Option name="parameters_collapsed" type="bool" value="true" />
+    </Option>
+  </Option>
+</Option>
