@@ -26,27 +26,28 @@ def showQgisErrorMessage(title, text):
     )
 
 def cutFeatureSelected(layer, distance):
-    feats = list(layer.selectedFeatures())
-    layer.removeSelection()
-    newFeaturesId = []
-    for featOrigin in feats:
-        length = featOrigin.geometry().length()
-        if length > distance*1.2:
-            layer.select(featOrigin.id())
-            attributes = featOrigin.attributes()
-            attributes[0] = None
-            featSubstringA = getLineSubstring(layer, 0, distance)
-            f = core.QgsFeature()
-            f.setAttributes(attributes)
-            f.setGeometry(featSubstringA.geometry())
+    for feat in layer.selectedFeatures():
+        length = feat.geometry().length()
+        if length < distance*1.2:
+            layer.deselect(feat.id())
+
+    if layer.selectedFeatureCount() > 0:
+        newFeaturesId = []
+        newFeats = getLineSubstring(layer, 0, distance)
+        for f in newFeats.getFeatures():
             layer.addFeature(f)
             newFeaturesId.append(f.id())
-            featSubstringB = getLineSubstring(layer, distance, length)
-            featOrigin.setGeometry( featSubstringB.geometry() )
-            layer.updateFeature(featOrigin)
-            layer.deselect(featOrigin.id())
-    iface.mapCanvas().refresh()
-    layer.selectByIds(newFeaturesId)
+
+        updateFeats = getLineSubstring(layer, distance, core.QgsProperty.fromExpression('length( $geometry)'))
+        for f in layer.selectedFeatures():
+            request = core.QgsFeatureRequest().setFilterExpression('"id" = {}'.format(f["id"]))
+            upfeat = next(updateFeats.getFeatures(request))
+            f.setGeometry(upfeat.geometry())
+            layer.updateFeature(f)
+
+        layer.removeSelection()
+        layer.selectByIds(newFeaturesId)
+        iface.mapCanvas().refresh()
 
 def getLineSubstring(layer, startDistance, endDistance):
     r = processing.run(
@@ -60,10 +61,7 @@ def getLineSubstring(layer, startDistance, endDistance):
             'START_DISTANCE' : startDistance 
         }
     )
-    it = r['OUTPUT'].getFeatures()
-    feat = core.QgsFeature()
-    it.nextFeature(feat)
-    return feat
+    return r['OUTPUT']
 
 def addFeature(layer, attributes, geometry):
     f = core.QgsFeature()
