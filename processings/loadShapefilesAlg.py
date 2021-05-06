@@ -40,7 +40,7 @@ from qgis.core import (QgsProcessing,
                        QgsVectorLayer)
 import os
 from qgis.utils import iface
-from ferramentas_experimentais.processings.processingAlg import ProcessingAlg
+from .processingAlg import ProcessingAlg
 
 class LoadShapefilesAlg(ProcessingAlg):
 
