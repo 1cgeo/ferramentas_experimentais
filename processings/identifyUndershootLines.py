@@ -12,9 +12,11 @@ from qgis.core import (QgsProcessing,
                        QgsFields,
                        QgsFeatureRequest,
                        QgsProcessingParameterNumber,
-                       QgsGeometry
+                       QgsGeometry,
+                       QgsPointXY
                        )
 from qgis import processing
+from qgis import core, gui
 from qgis.utils import iface
 import math
 class IdentifyUndershootLines(QgsProcessingAlgorithm): 
@@ -53,7 +55,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      
-        feedback.setProgressText('Procurando linhas menores que tolerância...')
+        feedback.setProgressText('Procurando linhas...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
         frameLayer = self.parameterAsVectorLayer(parameters,'INPUT_FRAME', context)
         minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)
@@ -65,11 +67,10 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         listSize = len(layerList)
         progressStep = 100/listSize if listSize else 0
         step = 0
-        returnMessage = ('nenhuma linha mais próxima que a distância encontrada')
-        for frames in frameLayer.getFeatures():
-            frame = frames
+        for frame in frameLayer.getFeatures():
             FrameArea = frame.geometry().boundingBox()
             request = QgsFeatureRequest().setFilterRect(FrameArea)
+            multiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in frame.geometry().vertices() ])
             for step,layer in enumerate(layerList):
                 if feedback.isCanceled():
                     return {self.OUTPUT: points}       
@@ -79,15 +80,15 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                     for geometry in featgeom.constGet():
                         ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
                         ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
-                        if not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[0]))[0] < minDist:
+                        if not(multiPointGeom.buffer(1, 1).intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[0]))[0] < minDist:
                             points.append(geometry[0])
-                        if not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[-1]))[0] < minDist:
+                        if not(multiPointGeom.buffer(1, 1).intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[-1]))[0] < minDist:
                             points.append(geometry[-1])            
             feedback.setProgress( step * progressStep )
-        if not len(points)==0:
-            self.outLayer(parameters, context, points, CRS, 4)
-            returnMessage = 'camada(s) gerada(s)'
-
+        returnMessage = ('Nenhuma linha encontrada!')
+        if not len(points) == 0 :
+            newLayerId = self.outLayer(parameters, context, points, CRS, 4)
+            returnMessage = newLayerId
         return{self.OUTPUT: returnMessage}
     
     def touchesOtherLine(self, layer, feature, point):
@@ -99,13 +100,12 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                     continue
                 return True
         return False
-        
   
     def outLayer(self, parameters, context, geometry, CRS, geomType):
         newField = QgsFields()
         
 
-        (sink, newLayer) = self.parameterAsSink(
+        (sink, newLayerId) = self.parameterAsSink(
             parameters,
             self.OUTPUT,
             context,
@@ -119,7 +119,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
             newFeat.setGeometry(geom)
             sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
         
-        return newLayer
+        return newLayerId
         
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -128,7 +128,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         return IdentifyUndershootLines()
 
     def name(self):
-        return 'IdentifyUndershootLines'
+        return 'identifyundershootlines'
 
     def displayName(self):
         return self.tr('Identifica Linhas Próximas à Moldura')
