@@ -21,7 +21,7 @@ from qgis import core, gui
 from qgis.utils import iface
 import math
 
-class SnapLines(QgsProcessingAlgorithm): 
+class SnapLinesInFrame(QgsProcessingAlgorithm): 
 
     INPUT_LAYERS = 'INPUT_LAYER_LIST'
     INPUT_MIN_DIST= 'INPUT_MIN_DIST'
@@ -31,35 +31,30 @@ class SnapLines(QgsProcessingAlgorithm):
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
-                'INPUT_LAYER_LIST',
+                self.INPUT_LAYERS,
                 self.tr('Selecionar camadas'),
                 QgsProcessing.TypeVectorLine
             )
         )
         self.addParameter(
             QgsProcessingParameterNumber(
-                'INPUT_MIN_DIST',
+                self.INPUT_MIN_DIST,
                 self.tr('Insira o valor da distância'), 
                 type=QgsProcessingParameterNumber.Double, 
                 minValue=0)
             )
         self.addParameter(
             QgsProcessingParameterVectorLayer(
-                'INPUT_FRAME',
+                self.INPUT_FRAME,
                 self.tr('Selecionar camada correspondente à moldura'),
-                [2]
+                [QgsProcessing.TypeVectorPolygon]
             )
         )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
-            )
-        ) 
+
     def processAlgorithm(self, parameters, context, feedback):      
-        layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
-        frameLayer = self.parameterAsVectorLayer(parameters,'INPUT_FRAME', context)
-        minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)
+        layerList = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
+        frameLayer = self.parameterAsVectorLayer(parameters, self.INPUT_FRAME, context)
+        minDist = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
         
         listSize = len(layerList)
         progressStep = 100/listSize if listSize else 0
@@ -153,10 +148,10 @@ class SnapLines(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return SnapLines()
+        return SnapLinesInFrame()
 
     def name(self):
-        return 'SnapLines'
+        return 'snaplinesinframe'
 
     def displayName(self):
         return self.tr('Conectar pontas soltas na moldura')
@@ -168,5 +163,5 @@ class SnapLines(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo identifica se existe alguma ponta solta próxima a moldura e faz a conexão com a moldura criando um vertex em comum")
+        return self.tr("O algoritmo identifica se existe alguma ponta solta próxima a moldura e faz a conexão com a moldura criando um vertice em comum")
     

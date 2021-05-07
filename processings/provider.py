@@ -24,7 +24,8 @@ from .attributeValleyBottom import AttributeValleyBottom
 from .loadShapefilesAlg import LoadShapefilesAlg
 from .spellCheckerAlg import SpellCheckerAlg
 from .uuidCheckerAlg import UuidCheckerAlg
-from .snapLines import SnapLines
+from .snapLinesInFrame import SnapLinesInFrame
+from .clipLayerInFrame import ClipLayerInFrame
 
 class Provider(QgsProcessingProvider):
 
@@ -48,7 +49,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(LoadShapefilesAlg())
         self.addAlgorithm(SpellCheckerAlg())
         self.addAlgorithm(UuidCheckerAlg())
-        self.addAlgorithm(SnapLines())
+        self.addAlgorithm(SnapLinesInFrame())
+        self.addAlgorithm(ClipLayerInFrame())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
