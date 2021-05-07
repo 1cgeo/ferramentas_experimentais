@@ -36,8 +36,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
                 'INPUT_FIELDS',
                 self.tr('Selecione os campos que serão analisados'), 
                 type=QgsProcessingParameterField.Any, 
-                parentLayerParameterName='INPUT_LAYER', 
-                defaultValue = 'nome',
+                parentLayerParameterName='INPUT_LAYER',
                 allowMultiple=True)
             )
         
