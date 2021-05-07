@@ -36,8 +36,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
                 'INPUT_FIELDS',
                 self.tr('Selecione os campos que serão analisados'), 
                 type=QgsProcessingParameterField.Any, 
-                parentLayerParameterName='INPUT_LAYER', 
-                defaultValue = 'nome',
+                parentLayerParameterName='INPUT_LAYER',
                 allowMultiple=True)
             )
         
@@ -164,7 +163,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         return 'identifydiscontinuitiesinlines'
 
     def displayName(self):
-        return self.tr('Identifica mudança de atributos em linhas')
+        return self.tr('Identifica Mudança de Atributos em Linhas')
 
     def group(self):
         return self.tr('Missoes')

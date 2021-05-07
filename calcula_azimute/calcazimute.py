@@ -12,7 +12,16 @@ from PyQt5.QtCore import *
 from qgis.utils import iface
 
 def calazim():
+    confirmation = confirmAction()
+    if not confirmation:
+        iface.messageBar().pushMessage("Cancelado", u"ação cancelada pelo usuário",
+                                        level=Qgis.Warning, duration=5)
+        return
     layer = iface.activeLayer()
+    if not layer:
+        iface.messageBar().pushMessage("Erro", u"Selecione uma camada válida",
+                                        level=Qgis.Critical, duration=5)
+        return
     if not (layer.geometryType() == QgsWkbTypes.LineGeometry or layer.geometryType() == QgsWkbTypes.PolygonGeometry):
         iface.messageBar().pushMessage("Erro", u"Entrada não é camada vetorial tipo linha ou poligono!",
                                         level=Qgis.Critical, duration=5)
@@ -45,3 +54,11 @@ def calazim():
         auxLayer.addFeature(auxFeature)
     iface.messageBar().pushMessage("Executado", "Campo angulo_azim adicionado a tabela de atributos!",
                                     level=Qgis.Success, duration=5)
+
+def confirmAction():
+    confirmation = False
+    reply = QMessageBox.question(iface.mainWindow(), 'Continuar?', 
+                 'Será criado um campo auxiliar com atributo de azimute. Deseja continuar?', QMessageBox.Yes, QMessageBox.No)
+    if reply == QMessageBox.Yes:
+        confirmation = True
+    return confirmation
