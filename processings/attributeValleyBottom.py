@@ -14,7 +14,9 @@ from qgis.core import (QgsProcessing, QgsProject,
                        QgsFeature, QgsVectorLayer,
                        QgsProcessingParameterVectorDestination,
                        QgsGeometry, QgsField, QgsPoint,
-                       QgsFields, QgsWkbTypes
+                       QgsFields, QgsWkbTypes,
+                       QgsProcessingFeatureSourceDefinition,
+                       QgsProperty, QgsFeatureRequest
                        )
 
 class AttributeValleyBottom(QgsProcessingAlgorithm):
@@ -75,29 +77,32 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
 
         extentsLayer = self.setupExtentsLayer(extents, crs)
 
-        if extentsLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
-            extentsLayerL = self.extentsAsLines(context, feedback, extentsLayer)
-            extentsLayerA = extentsLayer
-        elif extentsLayer.geometryType() == QgsWkbTypes.LineGeometry :
-            extentsLayerL = extentsLayer
-            extentsLayerA = self.extentsAsPolygons(context, feedback, extentsLayer)
+        dangles_points = self.identifyDangles(layer, tol, areaFilterLayers=[waterbody, extentsLayer])
 
-        bufferedExtentsLayerL = self.bufferExtents(context, feedback, extentsLayerL, tol)
-        dissolvedExtentsLayerA = self.dissolve(context, feedback, extentsLayerA)
+        filtered_layer = self.verifyIfFirstVertex(dangles_points, layer)
 
-        # Filters features with 1st vertex is inside extents
-        filteredFeats = self.getFilteredFeats(dissolvedExtentsLayerA, layer.getFeatures(), predicate=True)
-        print(len(filteredFeats))
+        self.setupNewFeats(filtered_layer, cut_size)
 
-        # Filters features that not intersects bufferedExtentsLayerL
-        filteredFeats = self.getFilteredFeats(bufferedExtentsLayerL, filteredFeats, predicate=False)
-        print(len(filteredFeats))
+        # if extentsLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
+        #     extentsLayerL = self.extentsAsLines(context, feedback, extentsLayer)
+        #     extentsLayerA = extentsLayer
+        # elif extentsLayer.geometryType() == QgsWkbTypes.LineGeometry :
+        #     extentsLayerL = extentsLayer
+        #     extentsLayerA = self.extentsAsPolygons(context, feedback, extentsLayer)
 
-        # Gets only features that do not touch waterbody
-        filteredFeats = self.filterOnIntersection(waterbody.getFeatures(), filteredFeats)
-        print(len(filteredFeats))
+        # bufferedExtentsLayerL = self.bufferExtents(context, feedback, extentsLayerL, tol)
+        # dissolvedExtentsLayerA = self.dissolve(context, feedback, extentsLayerA)
 
-        self.cutfeatures(layer, filteredFeats, cut_size)
+        # # Filters features with 1st vertex is inside extents
+        # filteredFeats = self.getFilteredFeats(dissolvedExtentsLayerA, layer.getFeatures(), predicate=True)
+
+        # # Filters features that not intersects bufferedExtentsLayerL
+        # filteredFeats = self.getFilteredFeats(bufferedExtentsLayerL, filteredFeats, predicate=False)
+
+        # # Gets only features that do not touch waterbody
+        # filteredFeats = self.filterOnIntersection(waterbody.getFeatures(), filteredFeats)
+
+        # self.cutfeatures(layer, filteredFeats, cut_size)
 
         # Cuts and attributes if necessary
         return {}
@@ -212,11 +217,14 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
         for featOrigin in feats:
             geom = featOrigin.geometry()
             length = geom.length()
-            if geom.length() > 1.2*cut_size:
+            if length > 1.2*cut_size:
                 g1, g2 = self.divideGeometries(geom, cut_size)
+                print(g1, g2)
                 attributes = featOrigin.attributes()
+                fields = featOrigin.fields()
                 attributes[0] = None
                 f = QgsFeature()
+                f.setFields(fields)
                 f.setAttributes(attributes)
                 f.setAttribute('tipo', 3)
                 f.setGeometry(g1)
@@ -228,15 +236,79 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
                 layer.updateFeature(featOrigin)
         # iface.mapCanvas().refresh()
 
+    def identifyDangles(self, layer, radius, lineFilterLayers=[], areaFilterLayers=[]):
+        dangles = processing.run(
+            'dsgtools:identifydangles',
+            {
+                'INPUT': layer,
+                'SELECTED': False,
+                'LINEFILTERLAYERS': lineFilterLayers,
+                'POLYGONFILTERLAYERS': areaFilterLayers,
+                'IGNOREINNER': False,
+                'TYPE': True,
+                'FLAGS': 'memory:'
+            }
+        )['FLAGS']
+        return dangles
+
+    def verifyIfFirstVertex(self, lyrPoints, lyrLines):
+        spatial_joined = processing.run(
+            'native:joinattributesbylocation',
+            {
+                'INPUT': lyrPoints,
+                'JOIN': lyrLines,
+                'PREDICATE': [0],
+                'OUTPUT': 'memory:',
+            }
+        )['OUTPUT']
+        for point in spatial_joined.getFeatures():
+            request = QgsFeatureRequest().setFilterExpression(f'"id"={point.attribute("id")}')
+            lineFeat = next(lyrLines.getFeatures(request))
+            locate = lineFeat.geometry().lineLocatePoint(point.geometry())
+            if locate > 0.01:
+                lyrLines.deleteFeature(lineFeat.id())
+        lyrLines.commitChanges()
+        return lyrLines
+            
+    def getLineSubstring(self, layer, startDistance, endDistance):
+        r = processing.run(
+            'native:linesubstring',
+            {   'END_DISTANCE' : endDistance, 
+                'INPUT' : QgsProcessingFeatureSourceDefinition(
+                    layer.source()
+                ), 
+                'OUTPUT' : 'TEMPORARY_OUTPUT', 
+                'START_DISTANCE' : startDistance 
+            }
+        )
+        return r['OUTPUT']
+    
+    def setupNewFeats(self, layer, cut_distance):
+        layer.startEditing()
+        original_feats = list(layer.getFeatures())
+        newFeats = self.getLineSubstring(layer, 0, cut_distance)
+        for f in newFeats.getFeatures():
+            layer.addFeature(f)
+        updatedFeats = self.getLineSubstring(layer, cut_distance, QgsProperty.fromExpression('length( $geometry)'))
+        for f in original_feats:
+            request = QgsFeatureRequest().setFilterExpression(f'"id" = {f.attribute("id")}')
+            upfeat = next(updatedFeats.getFeatures(request))
+            f.changeGeometry(f.id(), upfeat.geometry())
+            layer.updateFeature(f)
+
     def divideGeometries(self, geom, cut_size):
-        interpolate = geom.interpolate()
-        _, near_p, _ , _ = geom.closestSegmentWithContext(interpolate)
+        interpolate = geom.interpolate(cut_size)
+        interpolate_p = interpolate.asPoint()
+        interpolate_p_as_p = QgsPoint(interpolate_p.x(), interpolate_p.y())
+        near_p, _ , _, _, _ = geom.closestVertex(interpolate_p)
         seg_left = []
         seg_right = []
         flow = 'L'
-        for v in geom.vertices():
+        for i, v in enumerate(geom.vertices()):
             if v.distanceSquared(near_p.x(), near_p.y()) < 1e-6:
                 flow = 'R'
+                seg_left.append(interpolate_p_as_p)
+                seg_right.append(interpolate_p_as_p)
             if flow == 'L':
                 seg_left.append(v)
             else:
