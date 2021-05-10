@@ -10,6 +10,7 @@ from .copia_wkt.copiarwkt import copywkt
 from .copia_cola_geom.copia_cola_geom import startCopyButton, startPasteButton
 from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
 from .corta_fundo_vale.widgets.corta_tool import CortaTool
+from .spatialFilter import SpatialFilter
 
 from .processings.provider import Provider
 from . import resources
@@ -19,6 +20,7 @@ class InitPlugin:
     def __init__(self, iface):
         self.iface = iface
         self.cortaWidget = CortaTool( callback=cortaFundoVale )
+        self.spatialFilterTool = SpatialFilter()
         self.provider = None
         self.toolBar = None
 
@@ -62,6 +64,15 @@ class InitPlugin:
             "Cola a geometria"
         )
         self.toolBar.addAction(self.actioncopiageom)
+
+        self.actionaSpatialFilter = self.createAction(
+            "Filtro espacial", 
+            "spatialFilter.png", 
+            self.spatialFilterTool.start, 
+            "Filtra o espaco de aquisição",
+            "Filtro espacial"
+        )
+        self.toolBar.addAction(self.actionaSpatialFilter)
         
         # Addprovider
         PluginAlg.initProcessing(self)
