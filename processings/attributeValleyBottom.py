@@ -269,7 +269,7 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
             request = QgsFeatureRequest().setFilterExpression(f'"id"={point.attribute("id")}')
             lineFeat = next(lyrLines.getFeatures(request))
             locate = lineFeat.geometry().lineLocatePoint(point.geometry())
-            if locate > 0.01:
+            if locate < 0.01:
                 lines_to_cut.append(lineFeat)
         lyrLines.selectByIds([x.id() for x in lines_to_cut])
         return lines_to_cut
@@ -295,19 +295,16 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
         newFeats = self.getLineSubstring(layer, 0, cut_distance)
         updatedFeats = self.getLineSubstring(layer, cut_distance, QgsProperty.fromExpression('length( $geometry)'))
         print('Number of newFeats', len(list(newFeats.getFeatures())))
-        request = QgsFeatureRequest().setSubsetOfAttributes(featsToCutIds)
-        for f in newFeats.getFeatures(request):
-            f.setAttribute('tipo', 3)
-            layer.addFeature(f)
-        print('Spdated newFEats')
+        print('Uppdated newFeats')
         print('Number of toUpdateFeats', len(list(updatedFeats.getFeatures())))
+        for f in newFeats.getFeatures():
+            layer.addFeature(f)
+            layer.changeAttributeValue(f.id(), f.fieldNameIndex('tipo'), 3)
         for f in feats_to_cut:
             request = QgsFeatureRequest().setFilterExpression(f'"id" = {f.attribute("id")}')
             upfeat = next(updatedFeats.getFeatures(request))
-            # f.setGeometry(upfeat.geometry())
-            layer.changeAttributeValue(f.id(), f.fieldNameIndex('tipo'), 3)
             layer.changeGeometry(f.id(), upfeat.geometry())
-            layer.updateFeature(f)
+            # layer.updateFeature(f)
 
     def divideGeometries(self, geom, cut_size):
         interpolate = geom.interpolate(cut_size)
