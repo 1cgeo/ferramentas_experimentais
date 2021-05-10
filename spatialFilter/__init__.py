@@ -11,6 +11,7 @@ class SpatialFilter:
         self.isEditing = 0
         self.isActive = False
         self.myMapTool.canvasClicked.connect( self.mouseClick )
+        self.myMapTool.keyReleaseEvent = lambda event: self.disconnect() if event.key() == QtCore.Qt.Key_Escape else ''
 
     def start(self):
         self.isActive = not self.isActive
