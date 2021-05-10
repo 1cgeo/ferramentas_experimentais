@@ -77,11 +77,13 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
 
         extentsLayer = self.setupExtentsLayer(extents, crs)
 
-        dangles_points = self.identifyDangles(layer, tol, areaFilterLayers=[waterbody, extentsLayer])
+        dangles_points = self.identifyDangles(layer, tol, areaFilterLayers=[extentsLayer])
 
-        filtered_layer = self.verifyIfFirstVertex(dangles_points, layer)
+        feats_to_cut = self.verifyIfFirstVertex(dangles_points, layer)
 
-        self.setupNewFeats(filtered_layer, cut_size)
+        print('Filtered layer has: ', len(feats_to_cut))
+
+        self.setupNewFeats(feats_to_cut, layer, cut_size)
 
         # if extentsLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
         #     extentsLayerL = self.extentsAsLines(context, feedback, extentsLayer)
@@ -236,7 +238,7 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
                 layer.updateFeature(featOrigin)
         # iface.mapCanvas().refresh()
 
-    def identifyDangles(self, layer, radius, lineFilterLayers=[], areaFilterLayers=[]):
+    def identifyDangles(self, layer, radius, lineFilterLayers=None, areaFilterLayers=None):
         dangles = processing.run(
             'dsgtools:identifydangles',
             {
@@ -244,20 +246,22 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
                 'SELECTED': False,
                 'LINEFILTERLAYERS': lineFilterLayers,
                 'POLYGONFILTERLAYERS': areaFilterLayers,
-                'IGNOREINNER': False,
-                'TYPE': True,
+                'IGNOREINNER': True,
+                'TYPE': False,
+                'TOLERANCE': radius,
                 'FLAGS': 'memory:'
             }
         )['FLAGS']
         return dangles
 
     def verifyIfFirstVertex(self, lyrPoints, lyrLines):
+        lines_to_cut = []
         spatial_joined = processing.run(
             'native:joinattributesbylocation',
             {
                 'INPUT': lyrPoints,
                 'JOIN': lyrLines,
-                'PREDICATE': [0],
+                'PREDICATE': [3], # Touches
                 'OUTPUT': 'memory:',
             }
         )['OUTPUT']
@@ -266,34 +270,43 @@ class AttributeValleyBottom(QgsProcessingAlgorithm):
             lineFeat = next(lyrLines.getFeatures(request))
             locate = lineFeat.geometry().lineLocatePoint(point.geometry())
             if locate > 0.01:
-                lyrLines.deleteFeature(lineFeat.id())
-        lyrLines.commitChanges()
-        return lyrLines
+                lines_to_cut.append(lineFeat)
+        lyrLines.selectByIds([x.id() for x in lines_to_cut])
+        return lines_to_cut
             
     def getLineSubstring(self, layer, startDistance, endDistance):
         r = processing.run(
             'native:linesubstring',
             {   'END_DISTANCE' : endDistance, 
                 'INPUT' : QgsProcessingFeatureSourceDefinition(
-                    layer.source()
+                    layer.source(),
+                    selectedFeaturesOnly=True
                 ), 
-                'OUTPUT' : 'TEMPORARY_OUTPUT', 
+                'OUTPUT' : 'memory:', 
                 'START_DISTANCE' : startDistance 
             }
         )
         return r['OUTPUT']
     
-    def setupNewFeats(self, layer, cut_distance):
+    def setupNewFeats(self, feats_to_cut, layer, cut_distance):
+        featsToCutIds = [x.attribute('id') for x in feats_to_cut]
         layer.startEditing()
-        original_feats = list(layer.getFeatures())
+        print('Number of feats', len(feats_to_cut))
         newFeats = self.getLineSubstring(layer, 0, cut_distance)
-        for f in newFeats.getFeatures():
-            layer.addFeature(f)
         updatedFeats = self.getLineSubstring(layer, cut_distance, QgsProperty.fromExpression('length( $geometry)'))
-        for f in original_feats:
+        print('Number of newFeats', len(list(newFeats.getFeatures())))
+        request = QgsFeatureRequest().setSubsetOfAttributes(featsToCutIds)
+        for f in newFeats.getFeatures(request):
+            f.setAttribute('tipo', 3)
+            layer.addFeature(f)
+        print('Spdated newFEats')
+        print('Number of toUpdateFeats', len(list(updatedFeats.getFeatures())))
+        for f in feats_to_cut:
             request = QgsFeatureRequest().setFilterExpression(f'"id" = {f.attribute("id")}')
             upfeat = next(updatedFeats.getFeatures(request))
-            f.changeGeometry(f.id(), upfeat.geometry())
+            # f.setGeometry(upfeat.geometry())
+            layer.changeAttributeValue(f.id(), f.fieldNameIndex('tipo'), 3)
+            layer.changeGeometry(f.id(), upfeat.geometry())
             layer.updateFeature(f)
 
     def divideGeometries(self, geom, cut_size):
