@@ -105,6 +105,19 @@ Parâmetros necessários:
 - Distância de corte: Em quantos metros a feição será cortada, baseado em seu início.
 - Distância máxima entre vértices e molduras: Caso a distância entre o vértice inicial da feição e a moldura/corpo d'água seja menor que esse parâmetro, a feição será ignorada
 
+### 20 - Identifica Imutabilidade de Atributo em Poligonos Vizinhos
+Retorna uma camada com polígonos, menores que a área definida pelo usuário, que tem o mesmo valor que polígonos vizinhos em todos atributos selecionados.
+Parâmetros:
+- Camada de polígono
+- Campos: atributos que serão verificados
+- Área máxima: polígonos maiores ou iguais a essa área não serão retornados
+
+### 21 - Identifica Linhas Seccionadas sem Motivo
+Retorna camada pontos onde há interseção entre extremidades de apenas 2 linhas sem mudança de atributos.
+Parâmetros:
+- Múltiplas camadas de linha
+- Campos: atributos que **não** serão verificados
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 

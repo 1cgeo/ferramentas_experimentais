@@ -51,7 +51,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Linha Próxima à Moldura')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      
@@ -78,11 +78,11 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                 for feature in features:
                     featgeom = feature.geometry()
                     for geometry in featgeom.constGet():
-                        ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
-                        ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
-                        if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[0]))[0] < minDist:
+                        ptIni = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[0]))
+                        ptFin = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[-1]))
+                        if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[0]))[0] < minDist:
                             points.append(geometry[0])
-                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(QgsPointXY(geometry[-1]))[0] < minDist:
+                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[-1]))[0] < minDist:
                             points.append(geometry[-1])            
             feedback.setProgress( step * progressStep )
         returnMessage = ('Nenhuma linha encontrada!')

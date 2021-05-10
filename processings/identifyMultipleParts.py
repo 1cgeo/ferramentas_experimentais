@@ -28,7 +28,7 @@ class IdentifyMultipleParts(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Multiplas Partes')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      
