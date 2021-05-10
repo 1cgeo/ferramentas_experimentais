@@ -27,6 +27,7 @@ from .uuidCheckerAlg import UuidCheckerAlg
 from .snapLinesInFrame import SnapLinesInFrame
 from .clipLayerInFrame import ClipLayerInFrame
 from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
+from .identifySplittedLines import IdentifySplittedLines 
 
 class Provider(QgsProcessingProvider):
 
@@ -52,6 +53,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(UuidCheckerAlg())
         self.addAlgorithm(SnapLinesInFrame())
         self.addAlgorithm(ClipLayerInFrame())
+        self.addAlgorithm(IdentifySplittedLines())
         self.addAlgorithm(IdentifySameAttributesInNeighbouringPolygons())
         for model in self.modelsAlg():
             self.addAlgorithm(model)

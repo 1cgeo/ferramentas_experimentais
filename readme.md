@@ -102,6 +102,11 @@ Parâmetros:
 - Campos: atributos que serão verificados
 - Área máxima: polígonos maiores ou iguais a essa área não serão retornados
 
+### 20 - Identifica Linhas Seccionadas sem Motivo
+Retorna camada pontos onde há interseção entre extremidades de apenas 2 linhas sem mudança de atributos.
+Parâmetros:
+- Múltiplas camadas de linha
+- Campos: atributos que **não** serão verificados
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
