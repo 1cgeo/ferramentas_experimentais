@@ -33,7 +33,8 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterString(
                 'INPUT_FIELDS',
-                self.tr('Digite os campos que não serão analisados separados por vírgula'))
+                self.tr('Digite os campos que não serão analisados separados por vírgula')),
+                defaultValue = 'observacao,data_modificacao,controle_uuid,usuario_criacao,usuario_atualizacao,lenght_otf,id'
             )
 
         self.addParameter(
