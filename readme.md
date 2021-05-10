@@ -95,6 +95,16 @@ Carrega uma pasta com shapefiles de forma organizada.
 
 Recebe como entrada múltiplas camadas e um nome de atributo. Encontra erros de UUID duplicado e de UUID inválido. Também possui a opção de corrigir os erros encontrados.
 
+### 19 - Atributar fundos de vale
+Similar à ferramente 4- Corta início da linha, mas é realizada na extensão da camada. Utiliza a ferramenta __Identify Dangles__ do DSGTools para identificar as pontas livres e corta/atributa a feição de acordo com os parâmetros fornecidos pelo usuário.
+Atualmente a ferramenta modifica o atributo 'tipo' para o valor 3 nas feições cortadas.
+Parâmetros necessários:
+- Camada de molduras
+- Camada a ser processada (trecho de drenagem)
+- Camada do corpo d'água
+- Distância de corte: Em quantos metros a feição será cortada, baseado em seu início.
+- Distância máxima entre vértices e molduras: Caso a distância entre o vértice inicial da feição e a moldura/corpo d'água seja menor que esse parâmetro, a feição será ignorada
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
