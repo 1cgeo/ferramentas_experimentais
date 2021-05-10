@@ -95,6 +95,14 @@ Carrega uma pasta com shapefiles de forma organizada.
 
 Recebe como entrada múltiplas camadas e um nome de atributo. Encontra erros de UUID duplicado e de UUID inválido. Também possui a opção de corrigir os erros encontrados.
 
+### 19 - Identifica Imutabilidade de Atributo em Poligonos Vizinhos
+Retorna uma camada com polígonos, menores que a área definida pelo usuário, que tem o mesmo valor que polígonos vizinhos em todos atributos selecionados.
+Parâmetros:
+- Camada de polígono
+- Campos: atributos que serão verificados
+- Área máxima: polígonos maiores ou iguais a essa área não serão retornados
+
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
