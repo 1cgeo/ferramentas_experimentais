@@ -43,7 +43,7 @@ class identifySmallHoles(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Saída')
+                self.tr('Flag Holes Pequenos)
             )
         )
     def processAlgorithm(self, parameters, context, feedback):      

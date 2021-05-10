@@ -54,7 +54,7 @@ class IdentifySameAttributesInNeighbouringPolygons(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Poligono com Atributos Iguais')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      

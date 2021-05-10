@@ -49,7 +49,7 @@ class IdentifySmallFeatures(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Feições Pequenas')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      

@@ -39,11 +39,11 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Quebra de Linha Desnecessaria ')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      
-        feedback.setProgressText('Procurando descontinuidades...')
+        feedback.setProgressText('Procurando linhas seccionadas...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
         inputFieldsString = self.parameterAsString( parameters,'INPUT_FIELDS', context )
         inputFields =  inputFieldsString.split(",")
@@ -78,7 +78,7 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
                         pointsGeomAndLayer.append([pt, layer.name()])
             feedback.setProgress( step * progressStep )    
         if len(pointsGeomAndLayer)==0:
-            return{self.OUTPUT: 'nenhuma descontinuidade encontrada'}
+            return{self.OUTPUT: 'nenhuma linha encontrada'}
         newLayer = self.outLayer(parameters, context, pointsGeomAndLayer, CRS, 4)
         return{self.OUTPUT: newLayer}
 

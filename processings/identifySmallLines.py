@@ -51,7 +51,7 @@ class IdentifySmallLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Linhas Pequenas')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      

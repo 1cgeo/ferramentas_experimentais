@@ -51,7 +51,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Mudança de atributos')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      

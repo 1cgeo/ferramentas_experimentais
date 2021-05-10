@@ -51,7 +51,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Linha Próxima à Moldura')
             )
         ) 
     def processAlgorithm(self, parameters, context, feedback):      

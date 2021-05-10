@@ -72,7 +72,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada de Inconsistências:')
+                self.tr('Flag Drenagem Inconsistente Com Curva de Nivel')
             )
         ) 
 
