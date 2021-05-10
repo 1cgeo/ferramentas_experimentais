@@ -26,6 +26,7 @@ from .spellCheckerAlg import SpellCheckerAlg
 from .uuidCheckerAlg import UuidCheckerAlg
 from .snapLinesInFrame import SnapLinesInFrame
 from .clipLayerInFrame import ClipLayerInFrame
+from .verifyAngles import VerifyAngles
 
 class Provider(QgsProcessingProvider):
 
@@ -51,6 +52,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(UuidCheckerAlg())
         self.addAlgorithm(SnapLinesInFrame())
         self.addAlgorithm(ClipLayerInFrame())
+        self.addAlgorithm(VerifyAngles())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
