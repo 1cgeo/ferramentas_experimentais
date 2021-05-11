@@ -38,14 +38,16 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.P1,
                 self.tr('Segment size along line from intersection points'),
-                type=QgsProcessingParameterNumber.Double
+                type=QgsProcessingParameterNumber.Double,
+                defaultValue=50
             )
         )
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.P2,
                 self.tr('Tolerance from point projection on line'),
-                type=QgsProcessingParameterNumber.Double
+                type=QgsProcessingParameterNumber.Double,
+                defaultValue=10
             )
         )
         self.addParameter(
