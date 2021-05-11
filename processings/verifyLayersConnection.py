@@ -52,8 +52,9 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterString(
                 self.IGNORE_LIST,
-                self.tr('Fields to be ignored (separeted by ;)'),
-                optional=True
+                self.tr('Fields to be ignored (separeted by ,)'),
+                optional=True,
+                defaultValue = 'observacao,data_modificacao,controle_uuid,usuario_criacao,usuario_atualizacao,lenght_otf,id'
             )
         )
         self.addParameter(
@@ -96,7 +97,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
         layers_l = self.parameterAsLayerList(parameters, self.LAYERS_L, context)
         layers_a = self.parameterAsLayerList(parameters, self.LAYERS_A, context)
         ignored_fields = self.parameterAsString(parameters, self.IGNORE_LIST, context)
-        ignored_fields = ignored_fields.split(';')
+        ignored_fields = ignored_fields.split(',')
         tol = self.parameterAsDouble(parameters, self.TOLERANCE, context)
         crs = QgsProject.instance().crs()
 
