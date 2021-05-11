@@ -15,7 +15,6 @@ class PluginAlg(object):
 
     def initProcessing(self):
         self.provider = Provider()
-        ProcessingConfig.settingIcons["Ferramentas Experimentais"] = QIcon(':/plugins/Ferramentas_Experimentais/lab.png')
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def initGui(self):

@@ -13,7 +13,6 @@ from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 
 from .processings.provider import Provider
-from . import resources
 
 class InitPlugin:
 

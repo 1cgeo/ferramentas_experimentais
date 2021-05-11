@@ -26,8 +26,12 @@ from .spellCheckerAlg import SpellCheckerAlg
 from .uuidCheckerAlg import UuidCheckerAlg
 from .snapLinesInFrame import SnapLinesInFrame
 from .clipLayerInFrame import ClipLayerInFrame
+import os
 
 class Provider(QgsProcessingProvider):
+
+    def __init__(self):
+        super(Provider, self).__init__()
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(AtribuirSRC())
@@ -56,8 +60,7 @@ class Provider(QgsProcessingProvider):
 
     def modelsAlg(self):
         models = []
-        mainFolder = dirname(__file__)
-        pathFolder = join(mainFolder, "Models")
+        pathFolder = join(dirname(__file__), "Models")
         pathfileList = [join(pathFolder, f) for f in listdir(pathFolder) if isfile(join(pathFolder, f))]
         for pathfile in pathfileList:
             model = self.loadModel(self.getXmlData(pathfile))
@@ -86,7 +89,7 @@ class Provider(QgsProcessingProvider):
             return f.read()
 
     def load(self):
-        ProcessingConfig.settingIcons["Ferramentas Experimentais"] = self.icon()
+        ProcessingConfig.settingIcons[self.name()] = self.icon()
         ProcessingConfig.addSetting(
             Setting(
                 self.name(),
@@ -106,4 +109,13 @@ class Provider(QgsProcessingProvider):
         return self.tr('Ferramentas Experimentais')
 
     def icon(self):
-        return QIcon(':/plugins/Ferramentas_Experimentais/icons/lab.png')
+        return QIcon(
+            os.path.join(
+                os.path.abspath(os.path.join(
+                    os.path.dirname(__file__)
+                )),
+                '..',
+                'icons',
+                'lab.png'
+            )
+        )
