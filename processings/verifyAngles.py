@@ -60,7 +60,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
                 self.MAX_ANGLE,
                 self.tr('Maximum angle'),
                 QgsProcessingParameterNumber.Double,
-                defaultValue=160.0
+                defaultValue=340.0
             )
         )
         self.addParameter(
@@ -86,23 +86,25 @@ class VerifyAngles(QgsProcessingAlgorithm):
         fields = QgsFields()
         fields.append(QgsField('Error description', QVariant.String))
 
-        sink_l, _ = self.parameterAsSink(parameters, self.OUTPUT_LINE, context, fields,
+        sinkL, _ = self.parameterAsSink(parameters, self.OUTPUT_LINE, context, fields,
             QgsWkbTypes.LineString, crs)
-        sink_a, _ = self.parameterAsSink(parameters, self.OUTPUT_AREA, context, fields,
-            QgsWkbTypes.Polygon, crs)
+        sinkA, _ = self.parameterAsSink(parameters, self.OUTPUT_AREA, context, fields,
+            QgsWkbTypes.LineString, crs)
 
-        featsToAnalyse = self.checkAngleInsideLayer(lines, minA, maxA)
-        sink_l.addFeatures(featsToAnalyse)
+        featsToAnalyseL = self.checkAngleInsideLayerL(lines, minA, maxA)
+        featsToAnalyseA = self.checkAngleInsideLayerA(areas, minA, maxA)
+        sinkL.addFeatures(featsToAnalyseL)
+        sinkA.addFeatures(featsToAnalyseA)
 
         return {
-            self.OUTPUT_LINE: sink_l,
-            self.OUTPUT_AREA: sink_a}
+            self.OUTPUT_LINE: sinkL,
+            self.OUTPUT_AREA: sinkA}
 
-    def checkAngleInsideLayer(self, layers, minA, maxA):
+    def checkAngleInsideLayerL(self, layers, minA, maxA):
         beginning = True
         featsToAnalyse = []
-        for lineLayer in layers:
-            for feat in lineLayer.getFeatures():
+        for layer in layers:
+            for feat in layer.getFeatures():
                 vertices = feat.geometry().vertices()
                 if beginning:
                     if vertices.hasNext():
@@ -114,8 +116,57 @@ class VerifyAngles(QgsProcessingAlgorithm):
                     # Jumps discontinuos lines
                     line = QgsGeometry.fromPolyline([v2,v3])
                     if not line.within(feat.geometry()):
-                        beginning = True
-                        continue
+                        # beginning = True
+                        v1 = v3
+                        if vertices.hasNext():
+                            v2 = next(vertices)
+                        if vertices.hasNext():
+                            v3 = next(vertices)
+                    # Checks angle
+                    angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
+                    angle = math.degrees(angle)
+                    if angle > maxA or angle < minA:
+                        newFeat = QgsFeature()
+                        newFeat.setGeometry(QgsLineString([v1,v2,v3]))
+                        featsToAnalyse.append(newFeat)
+                    v1, v2 = v2, v3
+        return featsToAnalyse
+
+    def checkAngleInsideLayerA(self, layers, minA, maxA):
+        beginning = True
+        featsToAnalyse = []
+        for layer in layers:
+            for feat in layer.getFeatures():
+                vertices = feat.geometry().vertices()
+                geom = feat.geometry()
+                if beginning:
+                    if vertices.hasNext():
+                        v1 = next(vertices)
+                        vf = v1.clone()
+                    if vertices.hasNext():
+                        v2 = next(vertices)
+                        vi = v2.clone()
+                    beginning = False
+                for v3 in vertices:
+                    # Jumps discontinuos lines
+                    # Can use all(v.within...)
+                    v2g, v3g, vig = QgsGeometry.fromWkt(v2.asWkt()), QgsGeometry.fromWkt(v3.asWkt()), QgsGeometry.fromWkt(vi.asWkt())
+                    print(all([geom.intersects(v2g), geom.intersects(v3g), geom.intersects(vig)]), vertices.hasNext() )
+                    if not vertices.hasNext() and all([geom.intersects(v2g), geom.intersects(v3g), geom.intersects(vig)]):
+                        angle = QgsGeometryUtils.angleBetweenThreePoints(v2.x(), v2.y(), v3.x(), v3.y(), vi.x(), vi.y())
+                        if angle > maxA or angle < minA:
+                            newFeat = QgsFeature()
+                            newFeat.setGeometry(QgsLineString([v2,v3,vi]))
+                            featsToAnalyse.append(newFeat)
+                    line = QgsGeometry.fromPolyline([v2,v3])
+                    if not line.within(feat.geometry()):
+                        # beginning = True
+                        v1 = v3
+                        if vertices.hasNext():
+                            v2 = next(vertices)
+                        if vertices.hasNext():
+                            v3 = next(vertices)
+                    # Checks angle
                     angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
                     angle = math.degrees(angle)
                     if angle > maxA or angle < minA:
