@@ -61,7 +61,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
                 self.TOLERANCE,
                 self.tr('Tolerance'),
                 QgsProcessingParameterNumber.Double,
-                defaultValue=0.1,
+                defaultValue=2,
                 minValue=0.0001,
                 maxValue=100
             )
