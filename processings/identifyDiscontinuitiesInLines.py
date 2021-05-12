@@ -12,7 +12,9 @@ from qgis.core import (QgsProcessing,
                        QgsGeometryUtils,
                        QgsProcessingParameterField,
                        QgsProcessingParameterNumber,
-                       QgsGeometry
+                       QgsGeometry,
+                       QgsExpression,
+                       QgsFields
                        )
 from qgis import processing
 import math
@@ -21,6 +23,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
     INPUT_LAYER = 'INPUT_LAYER'
     INPUT_FIELDS = 'INPUT_FIELDS'
     INPUT_ANGLE = 'INPUT_ANGLE'
+    INPUT_MAX_SIZE = 'INPUT_MAX_SIZE'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
@@ -49,6 +52,15 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
             )
 
         self.addParameter(
+            QgsProcessingParameterNumber(
+                'INPUT_MAX_SIZE',
+                self.tr('Insira o comprimento máximo, em metros, das linhas analisadas'), 
+                type=QgsProcessingParameterNumber.Double, 
+                optional = True,
+                minValue=0)
+            )
+
+        self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
                 self.tr('Flag Mudança de atributos')
@@ -59,8 +71,13 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         layer = self.parameterAsVectorLayer(parameters,'INPUT_LAYER', context)
         inputFields = self.parameterAsFields( parameters,'INPUT_FIELDS', context )
         angle = self.parameterAsDouble(parameters,'INPUT_ANGLE', context)
+        maxLength = self.parameterAsDouble(parameters,'INPUT_MAX_SIZE', context)
+        allFeatures = layer.getFeatures()
+        if  maxLength>0:
+            expr = QgsExpression( "$length < " + str(maxLength))
+            allFeatures = layer.getFeatures(QgsFeatureRequest(expr))
         pointsAndFields= []
-        for feature in layer.getFeatures():
+        for feature in allFeatures:
             if feedback.isCanceled():
                 return {self.OUTPUT: pointsAndfields}
             featgeom = feature.geometry()
