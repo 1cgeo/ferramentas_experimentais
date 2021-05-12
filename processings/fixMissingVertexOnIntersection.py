@@ -14,7 +14,8 @@ from qgis.core import (
                         QgsFeatureRequest,
                         QgsProcessingParameterNumber,
                         QgsGeometry,
-                        QgsPointXY
+                        QgsPointXY,
+                        QgsPoint
                     )
 from qgis import processing
 from qgis.utils import iface
@@ -22,6 +23,7 @@ from qgis.utils import iface
 class FixMissingVertexOnIntersection(QgsProcessingAlgorithm): 
 
     INPUT_LAYERS = 'INPUT_LAYER_LIST'
+    INPUT_MIN_DIST= 'INPUT_MIN_DIST'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -31,9 +33,18 @@ class FixMissingVertexOnIntersection(QgsProcessingAlgorithm):
                 QgsProcessing.TypeVectorLine
             )
         )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.INPUT_MIN_DIST,
+                self.tr('Insira o valor da distância'), 
+                type=QgsProcessingParameterNumber.Double, 
+                defaultValue = 1.0,
+                minValue=0)
+        )
 
     def processAlgorithm(self, parameters, context, feedback):      
         layerList = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
+        minDist = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
 
         for i in range(0, len(layerList)):
             for feat1 in layerList[i].getFeatures():
@@ -45,6 +56,7 @@ class FixMissingVertexOnIntersection(QgsProcessingAlgorithm):
                         if feat1geom.intersects(feat2geom) and (i!=j or (i==j and feat1.id() > feat2.id())):
                             intersections = feat1geom.intersection(feat2geom)
                             for intersection in intersections.vertices():
+                                intersection = self.closestCommonVertex(intersection,feat1geom,feat2geom, minDist)
                                 if not self.checkVertex(intersection, feat1geom):
                                     newgeom1 = self.addVertex(intersection, feat1geom)
                                     self.updateLayerFeature(layerList[i], feat1, newgeom1)
@@ -54,6 +66,18 @@ class FixMissingVertexOnIntersection(QgsProcessingAlgorithm):
         
         return {}
 
+
+    def closestCommonVertex(self, intersection, geom1, geom2, dist):
+        closest1 = geom1.closestVertex(QgsPointXY(intersection))
+        closest2 = geom2.closestVertex(QgsPointXY(intersection))
+        dist1 = QgsGeometry.fromPointXY(QgsPointXY(intersection)).distance(QgsGeometry.fromPointXY(closest1[0]))
+        dist2 = QgsGeometry.fromPointXY(QgsPointXY(intersection)).distance(QgsGeometry.fromPointXY(closest2[0]))
+        if dist1 < dist and  dist1 < dist2 :
+            return QgsPoint(closest1[0])
+        if dist2 < dist and  dist2 <= dist1 :
+            return QgsPoint(closest2[0])
+
+        return intersection
 
     def checkVertex(self, intersection, geom):
         closest = geom.closestVertex(QgsPointXY(intersection))
