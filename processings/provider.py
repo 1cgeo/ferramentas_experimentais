@@ -31,6 +31,7 @@ import os
 from .verifyAngles import VerifyAngles
 from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
 from .identifySplittedLines import IdentifySplittedLines 
+from .snapBetweenLines import SnapBetweenLines
 
 class Provider(QgsProcessingProvider):
 
@@ -62,6 +63,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyAngles())
         self.addAlgorithm(IdentifySplittedLines())
         self.addAlgorithm(IdentifySameAttributesInNeighbouringPolygons())
+        self.addAlgorithm(SnapBetweenLines())
         self.addAlgorithm(FixMissingVertexOnIntersection())
 
         for model in self.modelsAlg():
