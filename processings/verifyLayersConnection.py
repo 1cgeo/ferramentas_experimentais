@@ -54,7 +54,7 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
                 self.IGNORE_LIST,
                 self.tr('Fields to be ignored (separeted by ,)'),
                 optional=True,
-                defaultValue = 'observacao,data_modificacao,controle_uuid,usuario_criacao,usuario_atualizacao,lenght_otf,id'
+                defaultValue = 'observacao,data_modificacao,controle_uuid,usuario_criacao,usuario_atualizacao,length_otf,id,lenght_otf'
             )
         )
         self.addParameter(
