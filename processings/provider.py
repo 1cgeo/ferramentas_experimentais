@@ -27,6 +27,7 @@ from .uuidCheckerAlg import UuidCheckerAlg
 from .snapLinesInFrame import SnapLinesInFrame
 from .clipLayerInFrame import ClipLayerInFrame
 from .fixMissingVertexOnIntersection import FixMissingVertexOnIntersection
+from .identifyOverlaps import IdentifyOverlaps
 import os
 from .verifyAngles import VerifyAngles
 from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
@@ -63,6 +64,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifySplittedLines())
         self.addAlgorithm(IdentifySameAttributesInNeighbouringPolygons())
         self.addAlgorithm(FixMissingVertexOnIntersection())
+        self.addAlgorithm(IdentifyOverlaps())
 
         for model in self.modelsAlg():
             self.addAlgorithm(model)

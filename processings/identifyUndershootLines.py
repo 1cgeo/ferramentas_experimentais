@@ -58,7 +58,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         feedback.setProgressText('Procurando linhas...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
         frameLayer = self.parameterAsVectorLayer(parameters,'INPUT_FRAME', context)
-        minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)
+        minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)**2
         CRSstr = iface.mapCanvas().mapSettings().destinationCrs().authid()
         CRS = QgsCoordinateReferenceSystem(CRSstr)
         
@@ -79,11 +79,12 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                     featgeom = feature.geometry()
                     for geometry in featgeom.constGet():
                         ptIni = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[0]))
-                        ptFin = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[-1]))
+                        lastIdx = len(geometry) - 1
+                        ptFin = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[lastIdx]))
                         if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[0]))[0] < minDist:
                             points.append(geometry[0])
-                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[-1]))[0] < minDist:
-                            points.append(geometry[-1])            
+                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[lastIdx]))[0] < minDist:
+                            points.append(geometry[lastIdx])            
             feedback.setProgress( step * progressStep )
         returnMessage = ('Nenhuma linha encontrada!')
         if not len(points) == 0 :

@@ -127,6 +127,9 @@ Clipa multiplas camadas de linha e área com a moldura. As molduras são dissolv
 ### 24 - Corrige interseções sem vértice em comum
 Tem como entrada múltiplas camada de linha. O algoritmo cria um vertice em comum quando necessário para ambas as linhas na interseção entre elas.
 
+### 25 - Identifica overlaps
+Tem como entrada múltiplas camada de linha e múltiplas camadas de polígono. O algoritmo cria flag de overlaps entre camadas de mesma geometria.
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
