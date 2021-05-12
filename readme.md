@@ -118,6 +118,15 @@ Parâmetros:
 - Múltiplas camadas de linha
 - Campos: atributos que **não** serão verificados
 
+### 22 - Snap na moldura
+Realiza o snap na moldura de múltiplas camadas de linha. Também cria vértices na moldura no ponto de interseção.
+
+### 23 - Clipa camadas com a moldura
+Clipa multiplas camadas de linha e área com a moldura. As molduras são dissolvidas antes do processamento.
+
+### 24 - Corrige interseções sem vértice em comum
+Tem como entrada múltiplas camada de linha. O algoritmo cria um vertice em comum quando necessário para ambas as linhas na interseção entre elas.
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
@@ -165,3 +174,6 @@ Botão Copiar Geometria: copia, para uma variável interna do QGIS, a geometria 
 
 ### 4- Corta início da linha
 Dado um ou mais linhas selecionadas, a ferramenta corta o ínicio do linha em uma distância configurável.
+
+### 5- Filtro espacial
+Permite o usuário desenhar um poligono, e aplicar esse poligono como filtro espacial nas camadas.
