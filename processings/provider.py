@@ -26,6 +26,7 @@ from .spellCheckerAlg import SpellCheckerAlg
 from .uuidCheckerAlg import UuidCheckerAlg
 from .snapLinesInFrame import SnapLinesInFrame
 from .clipLayerInFrame import ClipLayerInFrame
+from .fixMissingVertexOnIntersection import FixMissingVertexOnIntersection
 import os
 from .verifyAngles import VerifyAngles
 from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
@@ -61,6 +62,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyAngles())
         self.addAlgorithm(IdentifySplittedLines())
         self.addAlgorithm(IdentifySameAttributesInNeighbouringPolygons())
+        self.addAlgorithm(FixMissingVertexOnIntersection())
+
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
