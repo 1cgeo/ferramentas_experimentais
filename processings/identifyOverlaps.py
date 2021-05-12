@@ -99,8 +99,13 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
                     for j in range(i, len(layerListpol)):
                         for feat2 in layerListpol[j].getFeatures(request):
                             feat2geom = feat2.geometry()
-                            if feat1geom.overlaps(feat2geom) and (i!=j or (i==j and feat1.id() > feat2.id())):
-                                overlaps_a.append(feat1geom.intersection(feat2geom))
+                            if feat1geom.intersects(feat2geom) and (i!=j or (i==j and feat1.id() > feat2.id())):
+                                intersections = feat1geom.intersection(feat2geom)
+                                if intersections.type() == QgsWkbTypes.PolygonGeometry:
+                                    if intersections.isMultipart():
+                                        overlaps_a.extend(intersections.asMultiLineString())
+                                    else:
+                                        overlaps_a.append(intersections)
 
             sinkId_a = self.addSink(overlaps_a, self.OUTPUT_A, parameters, context, 3, CRS)
 
