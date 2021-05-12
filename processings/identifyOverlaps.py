@@ -43,7 +43,7 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
             QgsProcessingParameterMultipleLayers(
                 self.INPUT_LAYERS_A,
                 self.tr('Selecionar camadas polígono'),
-                QgsProcessing.TypeVectorLine,
+                QgsProcessing.TypeVectorPolygon,
                 optional=True
             )
         )
@@ -66,9 +66,28 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
 
         CRSstr = iface.mapCanvas().mapSettings().destinationCrs().authid()
         CRS = QgsCoordinateReferenceSystem(CRSstr)
-        sinkId_l = ''
-        sinkId_a = ''
-        count = 1
+
+        fields = QgsFields()
+        fields.append(QgsField('erro', QVariant.String))
+
+
+        (sink_l, sinkId_l) = self.parameterAsSink(
+            parameters,
+            self.OUTPUT_L,
+            context,
+            fields,
+            5,
+            CRS
+        )
+
+        (sink_a, sinkId_a) = self.parameterAsSink(
+            parameters,
+            self.OUTPUT_A,
+            context,
+            fields,
+            6,
+            CRS
+        )
 
         if len(layerListlinha) > 0:
             overlaps_l = []
@@ -83,12 +102,11 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
                                 intersections = feat1geom.intersection(feat2geom)
                                 if intersections.type() == QgsWkbTypes.LineGeometry:
                                     if intersections.isMultipart():
-                                        overlaps_l.extend(intersections.asMultiLineString())
+                                        overlaps_l.extend(intersections.asGeometryCollection())
                                     else:
                                         overlaps_l.append(intersections)
 
-            sinkId_l = self.addSink(overlaps_l, self.OUTPUT_L, parameters, context, 2, CRS)
-
+            self.addSink(overlaps_l, sink_l, fields)
 
         if len(layerListpol) > 0:
             overlaps_a = []
@@ -103,36 +121,22 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
                                 intersections = feat1geom.intersection(feat2geom)
                                 if intersections.type() == QgsWkbTypes.PolygonGeometry:
                                     if intersections.isMultipart():
-                                        overlaps_a.extend(intersections.asMultiLineString())
+                                        overlaps_a.extend(intersections.asGeometryCollection())
                                     else:
                                         overlaps_a.append(intersections)
 
-            sinkId_a = self.addSink(overlaps_a, self.OUTPUT_A, parameters, context, 3, CRS)
+            self.addSink(overlaps_a, sink_a, fields)
 
         return {self.OUTPUT_L: sinkId_l, self.OUTPUT_A: sinkId_a}
 
 
-    def addSink(self, geometries, sinkname, parameters, context, geomType, crs):
-        newField = QgsFields()
-        newField.append(QgsField('erro', QVariant.String))
-
-        (sink, sinkId) = self.parameterAsSink(
-            parameters,
-            sinkname,
-            context,
-            newField,
-            geomType,
-            crs
-        )
-
+    def addSink(self, geometries, sink, fields):
         for geom in geometries:
-            newFeat = QgsFeature(newField)
+            newFeat = QgsFeature(fields)
             newFeat.setGeometry(geom)
             newFeat['erro'] = 'Overlap incorreto'
-            sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
+            sink.addFeature(newFeat)
         
-        return sinkId
-
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
 
