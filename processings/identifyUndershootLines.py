@@ -103,7 +103,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
   
     def outLayer(self, parameters, context, geometry, CRS, geomType):
         newField = QgsFields()
-        
+        newField.append(QgsField('id', QVariant.Int))
 
         (sink, newLayerId) = self.parameterAsSink(
             parameters,
@@ -113,11 +113,14 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
             geomType,
             CRS
         )
-        
+        idcounter = 0
         for geom in geometry:
             newFeat = QgsFeature()
             newFeat.setGeometry(geom)
+            newFeat.setFields(newField)
+            newFeat['id'] = idcounter
             sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
+            idcounter +=1
         
         return newLayerId
         
