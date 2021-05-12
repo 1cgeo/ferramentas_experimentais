@@ -84,7 +84,6 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
                                 if intersections.type() == QgsWkbTypes.LineGeometry:
                                     if intersections.isMultipart():
                                         overlaps_l.extend(intersections.asMultiLineString())
-                                        print(overlaps_l)
                                     else:
                                         overlaps_l.append(intersections)
 
