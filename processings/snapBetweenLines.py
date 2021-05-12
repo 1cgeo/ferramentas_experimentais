@@ -40,7 +40,7 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
                 self.INPUT_MIN_DIST,
                 self.tr('Insira o valor da distância'), 
                 type=QgsProcessingParameterNumber.Double, 
-                minValue=0)
+                minValue=5)
             )
 
     def processAlgorithm(self, parameters, context, feedback):      
@@ -50,48 +50,86 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         listSize = len(layerList)
         progressStep = 100/listSize if listSize else 0
         step = 0
-        for i in range(0, layerList):   
-            for currentFeature in layerList[i].getFeatures():
+        for i in range(0, listSize):   
+            currentLayer = layerList[i]
+            for currentFeature in currentLayer.getFeatures():
                 currentGeometry = currentFeature.geometry()
                 for currentGeometryPart in currentGeometry.constGet():
                     firstPoint = core.QgsPointXY( currentGeometryPart[0] )
-                    firstRequest = self.getFeatureRequest( QgsGeometry.fromPointXY( firstPoint ) , curretLayer.crs(), snapDistance )
 
                     lastIdx = len(currentGeometryPart) - 1
                     lastPoint = core.QgsPointXY( currentGeometryPart[lastIdx] )
-                    lastRequest = self.getFeatureRequest( QgsGeometry.fromPointXY( lastPoint ) , curretLayer.crs(), snapDistance )
 
-                    hasVertex = False
-                    minVertexDistance = None
-                    vertex = None
-
-                    minSegmentDistance = None
-                    segment = None
-
-                    for j in range(i, layerList):
-                        otherFirstFeatures = layerList[j].getFeatures( firstRequest )
-                        if not self.touchesOtherLine(
-                                QgsGeometry.fromPointXY( firstPoint ), 
-                                currentFeature,
-                                otherFirstFeatures
-                            ):
-                            for otherFeature in otherFirstFeatures:
-                                pass
+                    targets = [
+                        { 
+                            'hasSameLayerTarget': False,
+                            'hasVertexTarget': None,
+                            'vertexOrSegmentTarget': None,
+                            'minDistanceTarget': None,
+                            'layerTarget': None
+                        },
+                        { 
+                            'hasSameLayerTarget': False,
+                            'hasVertexTarget': None,
+                            'vertexOrSegmentTarget': None,
+                            'minDistanceTarget': None,
+                            'layerTarget': None
+                        }
+                    ]
+                   
+                    for j in range(i, listSize):
+                        sameLayer = i == j
+                        for idx, currentPoint in enumerate([firstPoint, lastPoint]):
                             
-                        
-                        otherLastFeatures = layerList[j].getFeatures( lastRequest )
-                        if not self.touchesOtherLine(
-                                QgsGeometry.fromPointXY( lastPoint ), 
-                                currentFeature,
-                                otherLastFeatures
-                            ):
-                            pass
-                    
+                            if targets[idx]['hasSameLayerTarget'] and not sameLayer:
+                                continue
+
+                            request = self.getFeatureRequest( QgsGeometry.fromPointXY( currentPoint ) , currentLayer.crs(), snapDistance )
+                            otherLayer = layerList[j]
+                            otherFeatures = otherLayer.getFeatures( request )
+                            hasVertex, vertexOrSegment, minDistance = self.foundTarget(
+                                currentPoint, 
+                                currentFeature, 
+                                otherFeatures, 
+                                sameLayer, 
+                                snapDistance
+                            )
+                            if not vertexOrSegment:
+                                continue
+
+                            if targets[idx]['hasVertexTarget'] and not hasVertex:
+                                continue
+
+                            if targets[idx]['minDistanceTarget'] and minDistance < targets[idx]['minDistanceTarget']:
+                                targets[idx]['hasVertexTarget'] = hasVertex
+                                targets[idx]['vertexOrSegmentTarget'] = vertexOrSegment
+                                targets[idx]['minDistanceTarget'] = minDistance
+                                targets[idx]['layerTarget'] = otherLayer
+                                targets[idx]['hasSameLayerTarget'] = sameLayer
+                                continue
+
+                            targets[idx]['hasVertexTarget'] = hasVertex
+                            targets[idx]['vertexOrSegmentTarget'] = vertexOrSegment
+                            targets[idx]['minDistanceTarget'] = minDistance
+                            targets[idx]['layerTarget'] = otherLayer
+                            targets[idx]['hasSameLayerTarget'] = sameLayer
+                    for idx, currentPoint in enumerate([firstPoint, lastPoint]):
+                        if not targets[idx]['layerTarget']:
+                            continue
+                        self.snapPoint(
+                            currentPoint, 
+                            0 if idx == 0 else lastIdx, 
+                            currentFeature, 
+                            currentLayer, 
+                            targets[idx]['layerTarget'], 
+                            targets[idx]['hasVertexTarget'], 
+                            targets[idx]['vertexOrSegmentTarget']
+                        )
+            feedback.setProgress( i * progressStep )
+
         return {self.OUTPUT: ''}
 
     def getFeatureRequest(self, geometry, crs, distance, segment=5):
-        sourceTransform, destTransform = self.getGeometryTransforms(crs, 4674)
-        geometry.transform( destFrameTransform )
         return QgsFeatureRequest().setFilterRect(
             geometry.buffer(distance, segment).boundingBox()
         )
@@ -101,70 +139,90 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         destTransform = core.QgsCoordinateTransform(sourceCrs, destCrs, core.QgsCoordinateTransformContext())
         sourceTransform = core.QgsCoordinateTransform(destCrs, sourceCrs, core.QgsCoordinateTransformContext())
         return sourceTransform, destTransform
-         
-    def touchesOtherLine(self, point, currentFeature, otherFeatures):
+
+    def foundTarget(self, point, currentFeature, otherFeatures, sameLayer, distance):
+        hasVertex = False
+        minVertexDistance = None
+        currentVertex = None
+
+        minSegmentDistance = None
+        segment = None
+
+        otherFeatureList = list(otherFeatures)
+        if self.touchesOtherLine(
+                QgsGeometry.fromPointXY( point ), 
+                currentFeature,
+                otherFeatureList,
+                sameLayer
+            ):
+            return False, None, None
+        for otherFeature in otherFeatureList:
+            if sameLayer and currentFeature.id() == otherFeature.id():
+                continue
+            vertex, vertexId, vertexDistance = self.closestVertex(point, otherFeature, distance)
+            if vertex and not hasVertex:
+                hasVertex = True
+                minVertexDistance = vertexDistance
+                currentVertex = vertex
+                continue
+            if vertex and hasVertex and minVertexDistance <= vertexDistance:
+                continue
+            if vertex and hasVertex and minVertexDistance > vertexDistance:
+                minVertexDistance = vertexDistance
+                currentVertex = vertex
+                continue
+            
+            foundSegment, segmentDistance = self.closestSegment(point, otherFeature, distance)
+            if foundSegment and not segment:
+                minSegmentDistance = segmentDistance
+                segment = otherFeature
+            if foundSegment and segment and minSegmentDistance > segmentDistance:
+                minSegmentDistance = segmentDistance
+                segment = otherFeature
+        return hasVertex, currentVertex if hasVertex else segment, minVertexDistance if hasVertex else minSegmentDistance
+
+    def touchesOtherLine(self, point, currentFeature, otherFeatures, sameLayer):
         for otherFeature in otherFeatures:
-            if otherFeature.geometry().intersects(point):
-                if str(currentFeature.geometry()) == str(otherFeature.geometry()):
-                    continue
+            if (
+                    otherFeature.geometry().intersects(point) 
+                    and 
+                    not sameLayer
+                ):
                 return True
         return False
 
-    def closestVertex(self):
-        sourceFrameTransform, destFrameTransform = self.getGeometryTransforms(frameLayer.crs(), 4674)
-        sourceLayerTransform, destLayerTransform = self.getGeometryTransforms(layer.crs(), 4674)
+    def closestVertex(self, point, otherFeature, distance):
+        otherLinestring = core.QgsLineString( otherFeature.geometry().vertices() )
+        vertex, vertexId = core.QgsGeometryUtils.closestVertex(otherLinestring, core.QgsPoint(point.x(), point.y()))
+        vertexDistance = core.QgsGeometry.fromPointXY(point).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex)))
+        if vertexDistance > distance:
+            return None, None, None
+        return vertex, vertexId, vertexDistance
 
-        frameGeom = frameFeature.geometry()
-        frameLinestring = core.QgsLineString( frameGeom.vertices() )
+    def closestSegment(self, point, otherFeature, distance):
+        segmentDistance = otherFeature.geometry().closestSegmentWithContext(point)[0]
+        return segmentDistance < distance, segmentDistance
 
-        vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
+    def snapPoint(self, point, idxPoint, currentFeature, currentLayer, otherLayer, hasVertex, vertexOrSegment):
+        if hasVertex:
+            projectedPoint = vertexOrSegment
+        else:
+            otherGeometry = vertexOrSegment.geometry() 
+            linestring = core.QgsLineString( otherGeometry.vertices() )
+            projectedPoint = core.QgsGeometryUtils.closestPoint( linestring, core.QgsPoint(point.x(), point.y()) )
 
-        if core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
-            projectedPointLayer = vertex
-
-    def closestSegment(self):
-        return (
-            frameGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance 
-            and 
-            allFramesGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance
-        )
+            distance, p, after, orient = otherGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
+            otherGeometry.insertVertex( projectedPoint, after )
+            self.updateLayerFeature(otherLayer, vertexOrSegment, otherGeometry)
+        
+        currentGeometry = currentFeature.geometry()
+        currentGeometry.moveVertex(projectedPoint, idxPoint)
+        self.updateLayerFeature(currentLayer, currentFeature, currentGeometry)
 
     def updateLayerFeature(self, layer, feature, geometry):
         feature.setGeometry(geometry)
         layer.startEditing()
         layer.updateFeature(feature)
-
-    ###################
-
-    def snapPoint(self, point, idxPoint, layerFeature, layer, frameFeature, frameLayer, distance):
-        sourceFrameTransform, destFrameTransform = self.getGeometryTransforms(frameLayer.crs(), 4674)
-        sourceLayerTransform, destLayerTransform = self.getGeometryTransforms(layer.crs(), 4674)
-
-        frameGeom = frameFeature.geometry()
-        frameLinestring = core.QgsLineString( frameGeom.vertices() )
-
-        vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
-
-        if core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
-            projectedPointLayer = vertex
-        else:
-            frameLinestring.transform( destFrameTransform )
-            point.transform( destLayerTransform )
-            
-            projectedPointFrame = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
-            projectedPointLayer = projectedPointFrame.clone()
-
-            projectedPointFrame.transform( sourceFrameTransform )
-            projectedPointLayer.transform( sourceLayerTransform )
-
-            
-            distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPointFrame ) )
-            frameGeom.insertVertex( projectedPointFrame, after )
-            self.updateLayerFeature(frameLayer, frameFeature, frameGeom)
-        
-        layerGeom = layerFeature.geometry()
-        layerGeom.moveVertex(projectedPointLayer, idxPoint)
-        self.updateLayerFeature(layer, layerFeature, layerGeom)
         
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
