@@ -25,8 +25,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
 
     INPUT_LINES = 'INPUT_LINES'
     INPUT_AREAS = 'INPUT_AREAS'
-    MIN_ANGLE = 'MIN_ANGLE'
-    MAX_ANGLE = 'MAX_ANGLE'
+    ANGLE = 'ANGLE'
     OUTPUT_LINE = 'OUTPUT_LINE'
     OUTPUT_AREA = 'OUTPUT_AREA'
 
@@ -49,18 +48,10 @@ class VerifyAngles(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterNumber(
-                self.MIN_ANGLE,
+                self.ANGLE,
                 self.tr('Minimum angle'),
                 QgsProcessingParameterNumber.Double,
                 defaultValue=20.0
-            )
-        )
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.MAX_ANGLE,
-                self.tr('Maximum angle'),
-                QgsProcessingParameterNumber.Double,
-                defaultValue=340.0
             )
         )
         self.addParameter(
@@ -80,7 +71,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
         lines = self.parameterAsLayerList(parameters, self.INPUT_LINES, context)
         areas = self.parameterAsLayerList(parameters, self.INPUT_AREAS, context)
         minA = self.parameterAsDouble(parameters, self.MIN_ANGLE, context)
-        maxA = self.parameterAsDouble(parameters, self.MAX_ANGLE, context)
+        maxA = 360 - minA
 
         crs = QgsProject.instance().crs()
         fields = QgsFields()
