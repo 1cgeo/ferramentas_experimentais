@@ -91,12 +91,10 @@ class VerifyAngles(QgsProcessingAlgorithm):
         sinkA, _ = self.parameterAsSink(parameters, self.OUTPUT_AREA, context, fields,
             QgsWkbTypes.LineString, crs)
 
-        # featsToAnalyseL = self.checkAngleInsideLayerL(lines, minA, maxA)
-        # featsToAnalyseA = self.checkAngleInsideLayerA(areas, minA, maxA)
         featsToAnalyseL = [
             *self.caseInternLine(lines, minA, maxA),
-            *self.caseInternArea(areas, minA, maxA)
-            # *self.caseBetweenLines(lines, minA, maxA)
+            *self.caseInternArea(areas, minA, maxA),
+            *self.caseBetweenLines(lines, minA, maxA)
             ]
         sinkL.addFeatures(featsToAnalyseL)
         # sinkA.addFeatures(featsToAnalyseA)
@@ -104,72 +102,6 @@ class VerifyAngles(QgsProcessingAlgorithm):
         return {
             self.OUTPUT_LINE: sinkL,
             self.OUTPUT_AREA: sinkA}
-
-    # def checkAngleInsideLayerL(self, layers, minA, maxA):
-    #     rotated = False
-    #     featsToAnalyse = []
-    #     for layer in layers:
-    #         for feat in layer.getFeatures():
-    #             if 'oldFeat' not in locals():
-    #                 oldFeat = QgsFeature(feat)
-    #             vertices = feat.geometry().vertices()
-    #             # Gets v1 and v2 in the first iteration
-    #             if all(('v1' not in locals(), 'v2' not in locals())):
-    #                 v1 = next(vertices) if vertices.hasNext() else None
-    #                 v2 = next(vertices) if vertices.hasNext() else None
-    #             # Calls next() when it was rotated on last vertex, otherwise two last points would be the same
-    #             if rotated:
-    #                 next(vertices)
-    #             for v3 in vertices:
-    #                 # Checks connection between lines
-    #                 oldLine = QgsGeometry.fromPolyline([v1,v2])
-    #                 newLine = QgsGeometry.fromPolyline([v2,v3])
-    #                 # 1st case: oldline inside oldfeat, but line disconnected
-    #                 # 2nd case: oldLine not inside oldFeat nor feat (oldLine disconnected)
-    #                 # In any of those scenarios, there will be a rotation
-    #                 if all([not newLine.within(feat.geometry()), oldLine.within(oldFeat.geometry())]) or all([not oldLine.within(feat.geometry()),not oldLine.within(oldFeat.geometry())]): # and line.within(feat.geometry()):
-    #                     v1, v2 = v2, v3
-    #                     rotated = True if not vertices.hasNext() else False
-    #                     continue
-    #                 # Checks angle
-    #                 angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
-    #                 angle = math.degrees(angle)
-    #                 if angle > maxA or angle < minA:
-    #                     newFeat = QgsFeature()
-    #                     newFeat.setGeometry(QgsLineString([v1,v2,v3]))
-    #                     featsToAnalyse.append(newFeat)
-    #                 v1, v2 = v2, v3
-    #             oldFeat = QgsFeature(feat)
-    #     return featsToAnalyse
-
-    # def checkAngleInsideLayerA(self, layers, minA, maxA):
-    #     featsToAnalyse = []
-    #     for layer in layers:
-    #         for feat in layer.getFeatures():
-    #             vertices = feat.geometry().vertices()
-    #             geom = feat.geometry()
-    #             if vertices.hasNext():
-    #                 v1 = next(vertices)
-    #             if vertices.hasNext():
-    #                 v2 = next(vertices)
-    #                 _v = v2.clone()
-    #             for v3 in vertices:
-    #                 v1g, v2g, v3g,  = QgsGeometry.fromWkt(v1.asWkt()), QgsGeometry.fromWkt(v2.asWkt()), QgsGeometry.fromWkt(v3.asWkt())
-    #                 if all([geom.intersects(v2g), geom.intersects(v3g), geom.intersects(v1g)]):
-    #                     angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
-    #                     angle = math.degrees(angle)
-    #                     if angle > maxA or angle < minA:
-    #                         newFeat = QgsFeature()
-    #                         newFeat.setGeometry(QgsLineString([v1,v2,v3]))
-    #                         featsToAnalyse.append(newFeat)
-    #                     if not vertices.hasNext():
-    #                         angle = QgsGeometryUtils.angleBetweenThreePoints(v2.x(), v2.y(), v3.x(), v3.y(), _v.x(), _v.y())
-    #                         if angle > maxA or angle < minA:
-    #                             newFeat = QgsFeature()
-    #                             newFeat.setGeometry(QgsLineString([v2,v3,_v]))
-    #                             featsToAnalyse.append(newFeat)
-    #                 v1, v2 = v2, v3
-    #     return featsToAnalyse
 
     def caseInternLine(self, layers, minA, maxA):
         featsToAnalyse = []
@@ -212,7 +144,9 @@ class VerifyAngles(QgsProcessingAlgorithm):
                         gfeat2 = feat2.geometry()
                         if gfeat1.intersects(gfeat2):
                             toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2, minA, maxA)
-                            if toAnalyse:
+                            if isinstance(toAnalyse, tuple):
+                                featsToAnalyse.extend(x for x in toAnalyse if x)
+                            elif toAnalyse:
                                 featsToAnalyse.append(toAnalyse)
         return featsToAnalyse
 
@@ -223,24 +157,59 @@ class VerifyAngles(QgsProcessingAlgorithm):
             newFeat = QgsFeature()
             if isinstance(v1, QgsPoint):
                 newFeat.setGeometry(QgsGeometry.fromPolyline([v1,v2,v3]))
-            if isinstance(v1, QgsPointXY):
+            elif isinstance(v1, QgsPointXY):
                 newFeat.setGeometry(QgsGeometry.fromPolylineXY([v1,v2,v3]))
-            print('passed!')
-            print(v1,v2,v3)
             return newFeat
-    
+
     def checkIfIntersectionIsValid(self, g1, g2, minA, maxA):
         intersection = g1.intersection(g2)
+        if intersection.wkbType() != QgsWkbTypes.Point:
+            return False
         intersection = intersection.asPoint()
+
+        _, g1VertexIdx, g1PreviousVertexIdx, g1NextVertexIdx, _ = g1.closestVertex(intersection)
+        _, g2VertexIdx, g2PreviousVertexIdx, g2NextVertexIdx, _ = g2.closestVertex(intersection)
+
         vg1 = list(g1.vertices())
         vg2 = list(g2.vertices())
-        # Se não há sobreposição
-        if not vg1[0].compare(vg2[0]):
-            if vg1[-1].compare(vg2[0]):
-                feat = self.checkIntersectionAndCreateFeature(vg1[-2], vg1[-1], vg2[1], minA, maxA)
-            elif vg1[0].compare(vg2[-1]):
-                feat = self.checkIntersectionAndCreateFeature(vg2[-2], vg2[-1], vg1[1], minA, maxA)
-        return feat
+
+        # Intersections between beginning / end of v1 and v2
+        if g1NextVertexIdx == g2PreviousVertexIdx == -1:
+            feat = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            return feat
+
+        elif g2NextVertexIdx == g1PreviousVertexIdx == -1:
+            feat = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+            return feat
+
+        # Intersections between beggining / end of v1 or v2 and middle of v1/v2
+        elif g1NextVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
+            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            return feat1, feat2
+
+        elif g1PreviousVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
+            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            return feat1, feat2
+        
+        elif g2NextVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
+            feat1 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
+            feat2 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+            return feat1, feat2
+
+        elif g2PreviousVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
+            feat1 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
+            feat2 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+            return feat1, feat2
+        
+        # Intersection in the middle of features
+        elif all([g1PreviousVertexIdx != -1, g1NextVertexIdx!= -1, g2PreviousVertexIdx != -1, g2NextVertexIdx != -1]):
+            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            feat3 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+            feat4 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            return feat1, feat2, feat3, feat4
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -249,10 +218,10 @@ class VerifyAngles(QgsProcessingAlgorithm):
         return VerifyAngles()
 
     def name(self):
-        return 'Verify angles'
+        return 'Verify Angles'
 
     def displayName(self):
-        return self.tr('Verify angles')
+        return self.tr('Verify Angles')
 
     def group(self):
         return self.tr('Missoes')
@@ -261,4 +230,4 @@ class VerifyAngles(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("Verify angles")
+        return self.tr("Verify Angles")
