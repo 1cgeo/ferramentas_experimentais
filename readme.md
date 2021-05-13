@@ -130,6 +130,9 @@ Tem como entrada múltiplas camada de linha. O algoritmo cria um vertice em comu
 ### 25 - Identifica overlaps
 Tem como entrada múltiplas camada de linha e múltiplas camadas de polígono. O algoritmo cria flag de overlaps entre camadas de mesma geometria.
 
+### 26 - Snap entre linhas
+Tem como entrada múltiplas camada de linha e uma distância. Realiza o snap entre linhas criando vértices na feição destino se necessário.
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
