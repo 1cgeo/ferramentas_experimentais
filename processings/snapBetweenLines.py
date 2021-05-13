@@ -40,7 +40,7 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
                 self.INPUT_MIN_DIST,
                 self.tr('Insira o valor da distância'), 
                 type=QgsProcessingParameterNumber.Double, 
-                minValue=5)
+                defaultValue=2)
             )
 
     def processAlgorithm(self, parameters, context, feedback):      
@@ -60,35 +60,47 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
                     lastIdx = len(currentGeometryPart) - 1
                     lastPoint = core.QgsPointXY( currentGeometryPart[lastIdx] )
 
-                    targets = [
-                        { 
+                    targets = []
+                    #Testa se o ponto inicial ou final é ponta solta
+                    for idx, currentPoint in enumerate([firstPoint, lastPoint]):
+                        found = False
+                        for j in range(i, listSize):
+                            request = self.getFeatureRequest( QgsGeometry.fromPointXY( currentPoint ) , currentLayer.crs(), snapDistance )
+                            otherLayer = layerList[j]
+                            otherFeatures = otherLayer.getFeatures( request )
+                            otherFeatureList = list(otherFeatures)
+                            if not self.touchesOtherLine(
+                                    QgsGeometry.fromPointXY( currentPoint ), 
+                                    currentFeature,
+                                    otherFeatureList,
+                                    sameLayer
+                                ):
+                                found = True
+                                break
+                        if found:
+                            continue
+                        targets.append({ 
+                            'currentPoint': currentPoint,
+                            'pointIndex': 0 if idx == 0 else lastIdx,
                             'hasSameLayerTarget': False,
                             'hasVertexTarget': None,
                             'vertexOrSegmentTarget': None,
                             'minDistanceTarget': None,
                             'layerTarget': None
-                        },
-                        { 
-                            'hasSameLayerTarget': False,
-                            'hasVertexTarget': None,
-                            'vertexOrSegmentTarget': None,
-                            'minDistanceTarget': None,
-                            'layerTarget': None
-                        }
-                    ]
+                        })
                    
                     for j in range(i, listSize):
                         sameLayer = i == j
-                        for idx, currentPoint in enumerate([firstPoint, lastPoint]):
+                        for idx, target in enumerate(targets):
                             
                             if targets[idx]['hasSameLayerTarget'] and not sameLayer:
                                 continue
 
-                            request = self.getFeatureRequest( QgsGeometry.fromPointXY( currentPoint ) , currentLayer.crs(), snapDistance )
+                            request = self.getFeatureRequest( QgsGeometry.fromPointXY( targets[idx]['currentPoint'] ) , currentLayer.crs(), snapDistance )
                             otherLayer = layerList[j]
                             otherFeatures = otherLayer.getFeatures( request )
                             hasVertex, vertexOrSegment, minDistance = self.foundTarget(
-                                currentPoint, 
+                                targets[idx]['currentPoint'], 
                                 currentFeature, 
                                 otherFeatures, 
                                 sameLayer, 
@@ -113,12 +125,12 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
                             targets[idx]['minDistanceTarget'] = minDistance
                             targets[idx]['layerTarget'] = otherLayer
                             targets[idx]['hasSameLayerTarget'] = sameLayer
-                    for idx, currentPoint in enumerate([firstPoint, lastPoint]):
+                    for idx, target in enumerate(targets):
                         if not targets[idx]['layerTarget']:
                             continue
                         self.snapPoint(
-                            currentPoint, 
-                            0 if idx == 0 else lastIdx, 
+                            targets[idx]['currentPoint'], 
+                            targets[idx]['pointIndex'], 
                             currentFeature, 
                             currentLayer, 
                             targets[idx]['layerTarget'], 
@@ -133,12 +145,6 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         return QgsFeatureRequest().setFilterRect(
             geometry.buffer(distance, segment).boundingBox()
         )
-    
-    def getGeometryTransforms(self, sourceCrs, destCrsId):
-        destCrs = core.QgsCoordinateReferenceSystem(destCrsId)
-        destTransform = core.QgsCoordinateTransform(sourceCrs, destCrs, core.QgsCoordinateTransformContext())
-        sourceTransform = core.QgsCoordinateTransform(destCrs, sourceCrs, core.QgsCoordinateTransformContext())
-        return sourceTransform, destTransform
 
     def foundTarget(self, point, currentFeature, otherFeatures, sameLayer, distance):
         hasVertex = False
@@ -149,13 +155,6 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         segment = None
 
         otherFeatureList = list(otherFeatures)
-        if self.touchesOtherLine(
-                QgsGeometry.fromPointXY( point ), 
-                currentFeature,
-                otherFeatureList,
-                sameLayer
-            ):
-            return False, None, None
         for otherFeature in otherFeatureList:
             if sameLayer and currentFeature.id() == otherFeature.id():
                 continue
@@ -243,5 +242,5 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo ...")
+        return self.tr("O algoritmo realiza o snap topológico entre linhas")
     
