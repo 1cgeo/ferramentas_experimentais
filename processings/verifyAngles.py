@@ -26,8 +26,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
     INPUT_LINES = 'INPUT_LINES'
     INPUT_AREAS = 'INPUT_AREAS'
     ANGLE = 'ANGLE'
-    OUTPUT_LINE = 'OUTPUT_LINE'
-    OUTPUT_AREA = 'OUTPUT_AREA'
+    OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -56,14 +55,8 @@ class VerifyAngles(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                self.OUTPUT_LINE,
-                self.tr('Flags for line layers')
-            )
-        )
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_AREA,
-                self.tr('Flags for area layers')
+                self.OUTPUT,
+                self.tr('Flags')
             )
         )
 
@@ -77,22 +70,19 @@ class VerifyAngles(QgsProcessingAlgorithm):
         self.fields = QgsFields()
         self.fields.append(QgsField('source', QVariant.String))
 
-        sinkL, _ = self.parameterAsSink(parameters, self.OUTPUT_LINE, context, self.fields,
-            QgsWkbTypes.LineString, crs)
-        sinkA, _ = self.parameterAsSink(parameters, self.OUTPUT_AREA, context, self.fields,
+        sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, self.fields,
             QgsWkbTypes.LineString, crs)
 
-        featsToAnalyseL = [
+        featsToAnalyse = [
             *self.caseInternLine(lines, minA, maxA),
             *self.caseInternArea(areas, minA, maxA),
             *self.caseBetweenLines(lines, minA, maxA)
             ]
-        sinkL.addFeatures(featsToAnalyseL)
-        # sinkA.addFeatures(featsToAnalyseA)
+        sink.addFeatures(featsToAnalyse)
 
         return {
-            self.OUTPUT_LINE: sinkL,
-            self.OUTPUT_AREA: sinkA}
+            self.OUTPUT: sink
+            }
 
     def caseInternLine(self, layers, minA, maxA):
         featsToAnalyse = []
