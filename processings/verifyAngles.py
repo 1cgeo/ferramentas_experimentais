@@ -124,23 +124,24 @@ class VerifyAngles(QgsProcessingAlgorithm):
                 request = QgsFeatureRequest().setFilterRect(gfeat1.boundingBox())
                 for j in range(i, len(layers)):
                     for feat2 in layers[j].getFeatures(request):
-                        gfeat2 = feat2.geometry()
-                        if gfeat1.intersects(gfeat2):
-                            toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2, minA, maxA)
-                            if isinstance(toAnalyse, tuple):
-                                toAnalyse = (x for x in toAnalyse if x)
-                                for feat in toAnalyse:
+                        if i!=j or (i==j and feat1.id() != feat2.id()):
+                            gfeat2 = feat2.geometry()
+                            if gfeat1.intersects(gfeat2):
+                                toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2, minA, maxA)
+                                if isinstance(toAnalyse, tuple):
+                                    toAnalyse = (x for x in toAnalyse if x)
+                                    for feat in toAnalyse:
+                                        if i==j:
+                                            feat.setAttribute('source',layers[i].name())
+                                        else:
+                                            feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                        featsToAnalyse.append(feat)
+                                elif toAnalyse:
                                     if i==j:
-                                        feat.setAttribute('source',layers[i].name())
+                                        toAnalyse.setAttribute('source',layers[i].name())
                                     else:
-                                        feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                    featsToAnalyse.append(feat)
-                            elif toAnalyse:
-                                if i==j:
-                                    toAnalyse.setAttribute('source',layers[i].name())
-                                else:
-                                    toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                featsToAnalyse.append(toAnalyse)
+                                        toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                    featsToAnalyse.append(toAnalyse)
         return featsToAnalyse
 
     def checkIntersectionAndCreateFeature(self, v1, v2, v3, minA, maxA):
