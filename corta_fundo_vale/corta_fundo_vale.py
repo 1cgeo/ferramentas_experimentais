@@ -35,6 +35,7 @@ def cutFeatureSelected(layer, distance):
         newFeaturesId = []
         newFeats = getLineSubstring(layer, 0, distance)
         for f in newFeats.getFeatures():
+            f['id'] = None
             layer.addFeature(f)
             newFeaturesId.append(f.id())
 
