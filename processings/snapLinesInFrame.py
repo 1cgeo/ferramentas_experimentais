@@ -98,9 +98,9 @@ class SnapLinesInFrame(QgsProcessingAlgorithm):
 
     def isNearestPointOfFrame(self, point, frameGeom, allFramesGeom, distance):
         return (
-            frameGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance 
+            frameGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance ** 2 
             and 
-            allFramesGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance
+            allFramesGeom.closestSegmentWithContext(QgsPointXY(point))[0] < distance ** 2
         )
 
     def snapPoint(self, point, idxPoint, layerFeature, layer, frameFeature, frameLayer, distance):
