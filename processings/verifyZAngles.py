@@ -136,6 +136,7 @@ class VerifyZAngles(QgsProcessingAlgorithm):
                                     else:
                                         toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
                                     featsToAnalyse.append(toAnalyse)
+                            # Gets the case when the z angle is created by 3 feats (at least one has only two vertices)
                             elif len(list(gfeat1.vertices())) == 2:
                                 request2 = QgsFeatureRequest().setFilterRect(gfeat2.boundingBox())
                                 for k in range(i, len(layers)):
