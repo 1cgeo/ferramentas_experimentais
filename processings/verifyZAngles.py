@@ -64,12 +64,14 @@ class VerifyZAngles(QgsProcessingAlgorithm):
         sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, self.fields,
             QgsWkbTypes.LineString, crs)
 
-        twoOntwoLines = self.caseBetweenLinesFirstRun(lines, angle)
-        caseBetweenLines = self.caseBetweenLinesSecondRun(twoOntwoLines, lines, angle)
+        # twoOntwoLines = self.caseBetweenLinesFirstRun(lines, angle)
+        # caseBetweenLines = self.caseBetweenLinesSecondRun(twoOntwoLines, lines, angle)
+
+        caseBetweenLines = self.caseBetweenLines(lines, angle)
 
         featsToAnalyse = [
-            *self.caseInternLine(lines, angle),
-            *self.caseInternArea(areas, angle),
+            # *self.caseInternLine(lines, angle),
+            # *self.caseInternArea(areas, angle),
             *caseBetweenLines
             ]
         sink.addFeatures(featsToAnalyse)
@@ -111,7 +113,7 @@ class VerifyZAngles(QgsProcessingAlgorithm):
                         featsToAnalyse.append(newFeat)
         return featsToAnalyse
 
-    def caseBetweenLinesFirstRun(self, layers, angle):
+    def caseBetweenLines(self, layers, angle):
         featsToAnalyse = []
         for i in range(0, len(layers)):
             for feat1 in layers[i].getFeatures():
@@ -121,45 +123,101 @@ class VerifyZAngles(QgsProcessingAlgorithm):
                     for feat2 in layers[j].getFeatures(request):
                         gfeat2 = feat2.geometry()
                         if gfeat1.intersects(gfeat2):
-                            toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2,angle)
-                            if isinstance(toAnalyse, tuple):
-                                toAnalyse = (x for x in toAnalyse if x)
-                                for feat in toAnalyse:
+                            if len(list(gfeat1.vertices())) > 2:
+                                print('len > 3')
+                                toAnalyse = self.checkIfIntersectionIsValid2g(gfeat1, gfeat2, angle)
+                                if isinstance(toAnalyse, tuple):
+                                    toAnalyse = (x for x in toAnalyse if x)
+                                    for feat in toAnalyse:
+                                        if i==j:
+                                            feat.setAttribute('source',layers[i].name())
+                                        else:
+                                            feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                        featsToAnalyse.append(feat)
+                                elif toAnalyse:
                                     if i==j:
-                                        feat.setAttribute('source',layers[i].name())
+                                        toAnalyse.setAttribute('source',layers[i].name())
                                     else:
-                                        feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                    featsToAnalyse.append(feat)
-                            elif toAnalyse:
-                                if i==j:
-                                    toAnalyse.setAttribute('source',layers[i].name())
-                                else:
-                                    toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                featsToAnalyse.append(toAnalyse)
+                                        toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                    featsToAnalyse.append(toAnalyse)
+                            elif len(list(gfeat1.vertices())) == 2:
+                                print('len = 3')
+                                request2 = QgsFeatureRequest().setFilterRect(gfeat2.boundingBox())
+                                for k in range(i, len(layers)):
+                                    for feat3 in layers[k].getFeatures(request2):
+                                        gfeat3 = feat3.geometry()
+                                        if not gfeat3.touches(gfeat1):
+                                            toAnalyse = self.checkIfIntersectionIsValid3g(gfeat1, gfeat2, gfeat3, angle)
+                                            if isinstance(toAnalyse, tuple):
+                                                toAnalyse = (x for x in toAnalyse if x)
+                                                for feat in toAnalyse:
+                                                    if i==j:
+                                                        feat.setAttribute('sourceA',layers[i].name())
+                                                    else:
+                                                        feat.setAttribute('sourceA',f'{layers[i].name()}/{layers[j].name()}')
+                                                    featsToAnalyse.append(feat)
+                                            elif toAnalyse:
+                                                if i==j:
+                                                    toAnalyse.setAttribute('sourceA',layers[i].name())
+                                                else:
+                                                    toAnalyse.setAttribute('sourceA',f'{layers[i].name()}/{layers[j].name()}')
+                                                featsToAnalyse.append(toAnalyse)
+        return featsToAnalyse
+
+
+    def caseBetweenLinesFirstRun(self, layers, angle):
+        featsToAnalyse = []
+        for i in range(0, len(layers)):
+            for feat1 in layers[i].getFeatures():
+                gfeat1 = feat1.geometry()
+                request = QgsFeatureRequest().setFilterRect(gfeat1.boundingBox())
+                for j in range(i, len(layers)):
+                    for feat2 in layers[j].getFeatures(request):
+                        if i!=j or (i==j and feat1.id() != feat2.id()):
+                            gfeat2 = feat2.geometry()
+                            if gfeat1.intersects(gfeat2):
+                                toAnalyse = self.checkIfIntersectionIsValid3p(gfeat1, gfeat2, angle)
+                                if isinstance(toAnalyse, tuple):
+                                    toAnalyse = (x for x in toAnalyse if x)
+                                    for feat in toAnalyse:
+                                        if i==j:
+                                            feat.setAttribute('source',layers[i].name())
+                                        else:
+                                            feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                        featsToAnalyse.append(feat)
+                                elif toAnalyse:
+                                    if i==j:
+                                        toAnalyse.setAttribute('source',layers[i].name())
+                                    else:
+                                        toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                    featsToAnalyse.append(toAnalyse)
         return featsToAnalyse
 
     def caseBetweenLinesSecondRun(self, feats, layers, angle):
         featsToAnalyse = []
+        print([x.geometry() for x in feats])
         for feat in feats:
             gfeat = feat.geometry()
             request = QgsFeatureRequest().setFilterRect(gfeat.boundingBox())
             for layer in layers:
                 for feat2 in layer.getFeatures(request):
-                    gfeat2 = feat.geometry()
+                    gfeat2 = feat2.geometry()
                     if gfeat.intersects(gfeat2):
-                            toAnalyse = self.checkIfIntersectionIsValid(gfeat, gfeat2,angle)
-                            if isinstance(toAnalyse, tuple):
-                                toAnalyse = (x for x in toAnalyse if x)
-                                featsToAnalyse.append(feat)
-                            elif toAnalyse:
-                                featsToAnalyse.append(toAnalyse)
+                        print(f'{gfeat} intersects {gfeat2}')
+                        toAnalyse = self.checkIfIntersectionIsValid3p(gfeat, gfeat2, angle)
+                        print(toAnalyse)
+                        if isinstance(toAnalyse, tuple):
+                            toAnalyse = (x for x in toAnalyse if x)
+                            featsToAnalyse.append(feat)
+                        elif toAnalyse:
+                            featsToAnalyse.append(toAnalyse)
         return featsToAnalyse
 
-
-    def checkIntersectionAndCreateFeature(self, v1, v2, v3, minA, maxA):
-        angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
-        angle = math.degrees(angle)
-        if angle > maxA or angle < minA:
+    def checkIntersectionAndCreateFeature3p(self, v1, v2, v3, angle):
+        angle1 = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
+        angle1 = math.degrees(angle1)
+        print(angle1)
+        if angle1 > angle or angle1 < 360 - angle:
             newFeat = QgsFeature(self.fields)
             if isinstance(v1, QgsPoint):
                 newFeat.setGeometry(QgsGeometry.fromPolyline([v1,v2,v3]))
@@ -172,7 +230,7 @@ class VerifyZAngles(QgsProcessingAlgorithm):
         angle2 = QgsGeometryUtils.angleBetweenThreePoints(v2.x(), v2.y(), v3.x(), v3.y(), v4.x(), v4.y())
         angle1 = math.degrees(angle1)
         angle2 = math.degrees(angle2)
-        if angle1 > 360-angle and angle2 > 360-angle:
+        if (angle1 > angle and angle2 < 360 - angle) or (angle1 < 360 - angle and angle2 > angle):
             newFeat = QgsFeature(self.fields)
             if isinstance(v1, QgsPoint):
                 newFeat.setGeometry(QgsGeometry.fromPolyline([v1,v2,v3,v4]))
@@ -181,7 +239,7 @@ class VerifyZAngles(QgsProcessingAlgorithm):
             return newFeat
 
 
-    def checkIfIntersectionIsValid(self, g1, g2, g3, angle):
+    def checkIfIntersectionIsValid2g(self, g1, g2, angle):
         intersection = g1.intersection(g2)
         if intersection.wkbType() != QgsWkbTypes.Point:
             return False
@@ -195,41 +253,67 @@ class VerifyZAngles(QgsProcessingAlgorithm):
 
         # Intersections between beginning / end of v1 and v2
         if g1NextVertexIdx == g2PreviousVertexIdx == -1:
-            feat = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+            feat = self.checkIntersectionAndCreateFeature4p(vg1[g1PreviousVertexIdx-1], vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], angle)
             return feat
 
         elif g2NextVertexIdx == g1PreviousVertexIdx == -1:
-            feat = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+            feat = self.checkIntersectionAndCreateFeature4p(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], vg1[g1NextVertexIdx+1], angle)
             return feat
 
-        # Intersections between beggining / end of v1 or v2 and middle of v1/v2
-        elif g1NextVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
-            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
-            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
-            return feat1, feat2
+    def checkIfIntersectionIsValid3g(self, g1, g2, g3, angle):
+        inter12 = g1.intersection(g2)
+        inter23 = g2.intersection(g3)
+        if any((inter12.wkbType() != QgsWkbTypes.Point, inter23.wkbType() != QgsWkbTypes.Point)):
+            return False
+        inter12 = inter12.asPoint()
+        inter23 = inter23.asPoint()
 
-        elif g1PreviousVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
-            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
-            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
-            return feat1, feat2
-        
-        elif g2NextVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
-            feat1 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
-            feat2 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
-            return feat1, feat2
+        _, g1VertexIdx, g1PreviousVertexIdx, g1NextVertexIdx, _ = g1.closestVertex(inter12)
+        # _, g212VertexIdx, g212PreviousVertexIdx, g212NextVertexIdx, _ = g2.closestVertex(inter12)
+        # _, g223VertexIdx, g223PreviousVertexIdx, g223NextVertexIdx, _ = g2.closestVertex(inter23)
+        _, g3VertexIdx, g3PreviousVertexIdx, g3NextVertexIdx, _ = g3.closestVertex(inter23)
 
-        elif g2PreviousVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
-            feat1 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
-            feat2 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
-            return feat1, feat2
+        vg1 = list(g1.vertices())
+        vg3 = list(g3.vertices())
+
+        # Intersections between beginning / end of v1 and v2
+        if g1NextVertexIdx == g3PreviousVertexIdx == -1:
+            feat = self.checkIntersectionAndCreateFeature4p(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg3[g3VertexIdx], vg3[g3NextVertexIdx], angle)
+            return feat
+
+        elif g3NextVertexIdx == g1PreviousVertexIdx == -1:
+            feat = self.checkIntersectionAndCreateFeature4p(vg3[g3PreviousVertexIdx], vg3[g3VertexIdx], vg1[g1VertexIdx], vg1[g1NextVertexIdx], angle)
+            return feat
+
+
+        # # Intersections between beggining / end of v1 or v2 and middle of v1/v2
+        # elif g1NextVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
+        #     feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+        #     feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+        #     return feat1, feat2
+
+        # elif g1PreviousVertexIdx == -1 and g2PreviousVertexIdx != -1 and g2NextVertexIdx != -1:
+        #     feat1 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+        #     feat2 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+        #     return feat1, feat2
         
-        # Intersection in the middle of features
-        elif all([g1PreviousVertexIdx != -1, g1NextVertexIdx!= -1, g2PreviousVertexIdx != -1, g2NextVertexIdx != -1]):
-            feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
-            feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
-            feat3 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
-            feat4 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
-            return feat1, feat2, feat3, feat4
+        # elif g2NextVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
+        #     feat1 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
+        #     feat2 = self.checkIntersectionAndCreateFeature(vg2[g2PreviousVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+        #     return feat1, feat2
+
+        # elif g2PreviousVertexIdx == -1 and g1PreviousVertexIdx != -1 and g1NextVertexIdx != -1:
+        #     feat1 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1PreviousVertexIdx], minA, maxA)
+        #     feat2 = self.checkIntersectionAndCreateFeature(vg2[g2NextVertexIdx], vg2[g2VertexIdx], vg1[g1NextVertexIdx], minA, maxA)
+        #     return feat1, feat2
+        
+        # # Intersection in the middle of features
+        # elif all([g1PreviousVertexIdx != -1, g1NextVertexIdx!= -1, g2PreviousVertexIdx != -1, g2NextVertexIdx != -1]):
+        #     feat1 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+        #     feat2 = self.checkIntersectionAndCreateFeature(vg1[g1PreviousVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+        #     feat3 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2PreviousVertexIdx], minA, maxA)
+        #     feat4 = self.checkIntersectionAndCreateFeature(vg1[g1NextVertexIdx], vg1[g1VertexIdx], vg2[g2NextVertexIdx], minA, maxA)
+        #     return feat1, feat2, feat3, feat4
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
