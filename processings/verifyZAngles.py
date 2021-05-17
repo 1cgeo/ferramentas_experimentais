@@ -1,27 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from qgis import processing
 import math
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing, QgsProject,
-                       QgsFeatureSink, QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
+                       QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterMultipleLayers,
-                       QgsProcessingParameterString,
-                       QgsProcessingParameterVectorLayer,
-                       QgsProcessingFeatureSourceDefinition,
                        QgsProcessingParameterNumber,
-                       QgsFeature, QgsVectorLayer,
-                       QgsProcessingParameterVectorDestination,
-                       QgsGeometry, QgsField, QgsPoint,
+                       QgsFeature, QgsGeometry,
+                       QgsField, QgsPoint,
                        QgsFields, QgsWkbTypes, QgsPointXY,
-                       QgsProcessingFeatureSourceDefinition,
-                       QgsProperty, QgsFeatureRequest,
-                       QgsGeometryUtils, QgsLineString
+                       QgsFeatureRequest, QgsGeometryUtils, 
                        )
 
-class VerifyAngles(QgsProcessingAlgorithm):
+class VerifyZAngles(QgsProcessingAlgorithm):
 
     INPUT_LINES = 'INPUT_LINES'
     INPUT_AREAS = 'INPUT_AREAS'
@@ -50,7 +42,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
                 self.ANGLE,
                 self.tr('Minimum angle'),
                 QgsProcessingParameterNumber.Double,
-                defaultValue=20.0
+                defaultValue=300.0
             )
         )
         self.addParameter(
@@ -63,8 +55,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         lines = self.parameterAsLayerList(parameters, self.INPUT_LINES, context)
         areas = self.parameterAsLayerList(parameters, self.INPUT_AREAS, context)
-        minA = self.parameterAsDouble(parameters, self.ANGLE, context)
-        maxA = 360 - minA
+        angle = self.parameterAsDouble(parameters, self.ANGLE, context)
 
         crs = QgsProject.instance().crs()
         self.fields = QgsFields()
@@ -73,10 +64,13 @@ class VerifyAngles(QgsProcessingAlgorithm):
         sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, self.fields,
             QgsWkbTypes.LineString, crs)
 
+        twoOntwoLines = self.caseBetweenLinesFirstRun(lines, angle)
+        caseBetweenLines = self.caseBetweenLinesSecondRun(twoOntwoLines, lines, angle)
+
         featsToAnalyse = [
-            *self.caseInternLine(lines, minA, maxA),
-            *self.caseInternArea(areas, minA, maxA),
-            *self.caseBetweenLines(lines, minA, maxA)
+            *self.caseInternLine(lines, angle),
+            *self.caseInternArea(areas, angle),
+            *caseBetweenLines
             ]
         sink.addFeatures(featsToAnalyse)
 
@@ -84,39 +78,40 @@ class VerifyAngles(QgsProcessingAlgorithm):
             self.OUTPUT: sink
             }
 
-    def caseInternLine(self, layers, minA, maxA):
+    def caseInternLine(self, layers, angle):
         featsToAnalyse = []
         for layer in layers:
             for feat in layer.getFeatures():
                 vertices = feat.geometry().vertices()
                 v1 = next(vertices) if vertices.hasNext() else None
                 v2 = next(vertices) if vertices.hasNext() else None
-                for v3 in vertices:
-                    newFeat = self.checkIntersectionAndCreateFeature(v1, v2, v3, minA, maxA) if all((v1,v2,v3)) else None
+                v3 = next(vertices) if vertices.hasNext() else None
+                for v4 in vertices:
+                    newFeat = self.checkIntersectionAndCreateFeature4p(v1, v2, v3, v4, angle) if all((v1,v2,v3,v4)) else None
                     if newFeat:
                         newFeat.setAttribute('source',layer.name())
                         featsToAnalyse.append(newFeat)
-                    v1,v2 = v2,v3
+                    v1,v2,v3 = v2,v3,v4
         return featsToAnalyse
 
-    def caseInternArea(self, layers, minA, maxA):
+    def caseInternArea(self, layers, angle):
         featsToAnalyse = []
         for layer in layers:
             for feat in layer.getFeatures():
                 multiPolygons = feat.geometry().asMultiPolygon()[0]
                 for vertices in multiPolygons:
-                    for i in range(len(vertices) - 2):
-                        v1, v2, v3 = vertices[i:i+3]
-                        newFeat = self.checkIntersectionAndCreateFeature(v1, v2, v3, minA, maxA) if all((v1,v2,v3)) else None
+                    for i in range(len(vertices)-3):
+                        v1, v2, v3, v4 = vertices[i:i+4]
+                        newFeat = self.checkIntersectionAndCreateFeature4p(v1, v2, v3, v4, angle) if all((v1,v2,v3,v4)) else None
                         if newFeat:
                             newFeat.setAttribute('source',layer.name())
                             featsToAnalyse.append(newFeat)
-                    newFeat = self.checkIntersectionAndCreateFeature(vertices[-2],vertices[-1], vertices[1], minA, maxA )
+                    newFeat = self.checkIntersectionAndCreateFeature4p(vertices[-3], vertices[-2],vertices[-1], vertices[1], angle)
                     if newFeat:
                         featsToAnalyse.append(newFeat)
         return featsToAnalyse
 
-    def caseBetweenLines(self, layers, minA, maxA):
+    def caseBetweenLinesFirstRun(self, layers, angle):
         featsToAnalyse = []
         for i in range(0, len(layers)):
             for feat1 in layers[i].getFeatures():
@@ -124,25 +119,42 @@ class VerifyAngles(QgsProcessingAlgorithm):
                 request = QgsFeatureRequest().setFilterRect(gfeat1.boundingBox())
                 for j in range(i, len(layers)):
                     for feat2 in layers[j].getFeatures(request):
-                        if i!=j or (i==j and feat1.id() != feat2.id()):
-                            gfeat2 = feat2.geometry()
-                            if gfeat1.intersects(gfeat2):
-                                toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2, minA, maxA)
-                                if isinstance(toAnalyse, tuple):
-                                    toAnalyse = (x for x in toAnalyse if x)
-                                    for feat in toAnalyse:
-                                        if i==j:
-                                            feat.setAttribute('source',layers[i].name())
-                                        else:
-                                            feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                        featsToAnalyse.append(feat)
-                                elif toAnalyse:
+                        gfeat2 = feat2.geometry()
+                        if gfeat1.intersects(gfeat2):
+                            toAnalyse = self.checkIfIntersectionIsValid(gfeat1, gfeat2,angle)
+                            if isinstance(toAnalyse, tuple):
+                                toAnalyse = (x for x in toAnalyse if x)
+                                for feat in toAnalyse:
                                     if i==j:
-                                        toAnalyse.setAttribute('source',layers[i].name())
+                                        feat.setAttribute('source',layers[i].name())
                                     else:
-                                        toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
-                                    featsToAnalyse.append(toAnalyse)
+                                        feat.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                    featsToAnalyse.append(feat)
+                            elif toAnalyse:
+                                if i==j:
+                                    toAnalyse.setAttribute('source',layers[i].name())
+                                else:
+                                    toAnalyse.setAttribute('source',f'{layers[i].name()}/{layers[j].name()}')
+                                featsToAnalyse.append(toAnalyse)
         return featsToAnalyse
+
+    def caseBetweenLinesSecondRun(self, feats, layers, angle):
+        featsToAnalyse = []
+        for feat in feats:
+            gfeat = feat.geometry()
+            request = QgsFeatureRequest().setFilterRect(gfeat.boundingBox())
+            for layer in layers:
+                for feat2 in layer.getFeatures(request):
+                    gfeat2 = feat.geometry()
+                    if gfeat.intersects(gfeat2):
+                            toAnalyse = self.checkIfIntersectionIsValid(gfeat, gfeat2,angle)
+                            if isinstance(toAnalyse, tuple):
+                                toAnalyse = (x for x in toAnalyse if x)
+                                featsToAnalyse.append(feat)
+                            elif toAnalyse:
+                                featsToAnalyse.append(toAnalyse)
+        return featsToAnalyse
+
 
     def checkIntersectionAndCreateFeature(self, v1, v2, v3, minA, maxA):
         angle = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
@@ -155,7 +167,21 @@ class VerifyAngles(QgsProcessingAlgorithm):
                 newFeat.setGeometry(QgsGeometry.fromPolylineXY([v1,v2,v3]))
             return newFeat
 
-    def checkIfIntersectionIsValid(self, g1, g2, minA, maxA):
+    def checkIntersectionAndCreateFeature4p(self, v1, v2, v3, v4, angle):
+        angle1 = QgsGeometryUtils.angleBetweenThreePoints(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y())
+        angle2 = QgsGeometryUtils.angleBetweenThreePoints(v2.x(), v2.y(), v3.x(), v3.y(), v4.x(), v4.y())
+        angle1 = math.degrees(angle1)
+        angle2 = math.degrees(angle2)
+        if angle1 > 360-angle and angle2 > 360-angle:
+            newFeat = QgsFeature(self.fields)
+            if isinstance(v1, QgsPoint):
+                newFeat.setGeometry(QgsGeometry.fromPolyline([v1,v2,v3,v4]))
+            elif isinstance(v1, QgsPointXY):
+                newFeat.setGeometry(QgsGeometry.fromPolylineXY([v1,v2,v3,v4]))
+            return newFeat
+
+
+    def checkIfIntersectionIsValid(self, g1, g2, g3, angle):
         intersection = g1.intersection(g2)
         if intersection.wkbType() != QgsWkbTypes.Point:
             return False
@@ -209,13 +235,13 @@ class VerifyAngles(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return VerifyAngles()
+        return VerifyZAngles()
 
     def name(self):
-        return 'Verify Angles'
+        return 'Verify Z Angles'
 
     def displayName(self):
-        return self.tr('Verify Angles')
+        return self.tr('Verify Z Angles')
 
     def group(self):
         return self.tr('Missoes')
@@ -224,4 +250,4 @@ class VerifyAngles(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("Verify Angles")
+        return self.tr("Verify Z Angles")
