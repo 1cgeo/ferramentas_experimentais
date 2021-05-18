@@ -42,7 +42,9 @@ class VerifyZAngles(QgsProcessingAlgorithm):
                 self.ANGLE,
                 self.tr('Minimum angle'),
                 QgsProcessingParameterNumber.Double,
-                defaultValue=300.0
+                defaultValue=300,
+                minValue=270,
+                maxValue=360
             )
         )
         self.addParameter(
