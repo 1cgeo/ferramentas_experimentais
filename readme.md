@@ -133,6 +133,20 @@ Tem como entrada múltiplas camada de linha e múltiplas camadas de polígono. O
 ### 26 - Snap entre linhas
 Tem como entrada múltiplas camada de linha e uma distância. Realiza o snap entre linhas criando vértices na feição destino se necessário.
 
+### 27- Identifica interseções menores que ângulo mínimo
+Verifica se segmentos consecutivos formam ângulos pequenos. É capaz de analisar camadas de maneira individual (tipo linha ou área) ou entre camadas (tipo linha).
+Parâmetros:
+- Camada(s) do tipo linha
+- Camada(s) do tipo área
+- Ângulo mínimo: segmentos que geram ângulos menores que o ângulo mínimo serão reportadas
+
+### 28 - Identifica feições no formato Z
+Verifica a existência de feições no formato "Z". É capaz de analisar camadas de maneira individual (tipo linha ou área) ou entre camadas (tipo linha).
+Parâmetros:
+- Camada do tipo linha
+- Camada do tipo área
+- Ângulo: Define para quais formatos de "Z" a ferramenta irá gerar flags. Este parâmetro é um ângulo obtuso, definido entre 270 e 360. Maiores valores deste parâmentro implicam na busca de geometrias "Z" mais deformadas.
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
