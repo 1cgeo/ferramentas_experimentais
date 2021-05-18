@@ -71,7 +71,7 @@ class VerifyAngles(QgsProcessingAlgorithm):
         self.fields.append(QgsField('source', QVariant.String))
 
         sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, self.fields,
-            QgsWkbTypes.LineString, crs)
+            QgsWkbTypes.Point, crs)
 
         featsToAnalyse = [
             *self.caseInternLine(lines, minA, maxA),
@@ -150,9 +150,9 @@ class VerifyAngles(QgsProcessingAlgorithm):
         if angle > maxA or angle < minA:
             newFeat = QgsFeature(self.fields)
             if isinstance(v1, QgsPoint):
-                newFeat.setGeometry(QgsGeometry.fromPolyline([v1,v2,v3]))
+                newFeat.setGeometry(v2)
             elif isinstance(v1, QgsPointXY):
-                newFeat.setGeometry(QgsGeometry.fromPolylineXY([v1,v2,v3]))
+                newFeat.setGeometry(v2)
             return newFeat
 
     def checkIfIntersectionIsValid(self, g1, g2, minA, maxA):
