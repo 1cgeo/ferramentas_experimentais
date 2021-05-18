@@ -276,19 +276,19 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
             points = intersections.asGeometryCollection()
         else:
             points = [ intersections ]
-        
         selectedPoint = None
         minDistance = None
         for point in points:
-            if point.distance( freePoint ) > snapDistance:
+            distance = point.distance( freePoint )
+            if distance > snapDistance:
                 continue
             if not minDistance:
-                minDistance = point.distance( freePoint )
+                minDistance = distance
                 selectedPoint = point
                 continue
-            if minDistance <= point.distance( freePoint ):
+            if minDistance <= distance:
                 continue
-            minDistance = point.distance( freePoint )
+            minDistance = distance
             selectedPoint = point 
 
         if not selectedPoint:
@@ -297,10 +297,13 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         vertex, vertexIdx, _, _, _ = currentFeature.geometry().closestVertex( selectedPoint.asPoint() )
         geom = currentFeature.geometry()
         if idxPoint == 0:
+            if not( geom.distanceToVertex(vertexIdx) < snapDistance ):
+                return freePoint
             for idx in reversed(range(0, vertexIdx)):
                 geom.deleteVertex(idx)
         else:
-            print(currentFeature["pk"], vertexIdx, idxPoint)
+            if not ( ( geom.length() - geom.distanceToVertex(vertexIdx) ) < snapDistance ):
+                return freePoint
             for idx in reversed(range(vertexIdx+1, idxPoint+1)):
                 geom.deleteVertex(idx)
         
@@ -330,5 +333,5 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo realiza o snap topológico entre linhas")
+        return self.tr("O algoritmo realiza o snap topológico entre linhas. ATENÇÂO: Pré-requisito executar o processing 'Corrige vértice faltando na interseção'.")
     
