@@ -34,6 +34,7 @@ from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributes
 from .identifySplittedLines import IdentifySplittedLines 
 from .snapBetweenLines import SnapBetweenLines
 from .verifyZAngles import VerifyZAngles
+from .snapPolygons import SnapPolygons
 
 class Provider(QgsProcessingProvider):
 
@@ -69,7 +70,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(FixMissingVertexOnIntersection())
         self.addAlgorithm(IdentifyOverlaps())
         self.addAlgorithm(VerifyZAngles())
-
+        self.addAlgorithm(SnapPolygons())
+        
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
