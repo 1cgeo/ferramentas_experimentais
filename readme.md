@@ -147,6 +147,14 @@ Parâmetros:
 - Camada do tipo área
 - Ângulo: Define para quais formatos de "Z" a ferramenta irá gerar flags. Este parâmetro é um ângulo obtuso, definido entre 270 e 360. Maiores valores deste parâmentro implicam na busca de geometrias "Z" mais deformadas.
 
+### 29 - Identifica Poligonos Vizinhos Pequenos sem Mudança de Atributos
+Retorna uma camada com polígonos, menores que a área definida pelo usuário em uma tabela CSV (Colunas: nome da camada, tamanho), que tem o mesmo valor que polígonos vizinhos em todos atributos exceto os especificados como entrada. Leva-se em consideração uma moldura (dissolvida, ou seja, considera-se apenas os limites exteriores da moldura).
+Parâmetros:
+- Camada de polígono
+- Tabela CSV
+- Camada de moldura
+- Texto: atributos que **não** serão verificados
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 

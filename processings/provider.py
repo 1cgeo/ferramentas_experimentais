@@ -36,6 +36,7 @@ from .snapBetweenLines import SnapBetweenLines
 from .verifyZAngles import VerifyZAngles
 from .snapPolygons import SnapPolygons
 from .removePoints import RemovePoints
+from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
 
 class Provider(QgsProcessingProvider):
 
@@ -73,6 +74,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyZAngles())
         self.addAlgorithm(SnapPolygons())
         self.addAlgorithm(RemovePoints())
+        self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
 
         for model in self.modelsAlg():
             self.addAlgorithm(model)
