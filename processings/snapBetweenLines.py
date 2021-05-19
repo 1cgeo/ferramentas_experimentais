@@ -242,6 +242,8 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
     def closestVertex(self, point, otherFeature, distance):
         otherLinestring = core.QgsLineString( otherFeature.geometry().vertices() )
         vertex, vertexId = core.QgsGeometryUtils.closestVertex(otherLinestring, core.QgsPoint(point.x(), point.y()))
+        if vertex.isEmpty():
+            return None, None
         vertexDistance = core.QgsGeometry.fromPointXY(point).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex)))
         if vertexDistance > distance:
             return None, None, None

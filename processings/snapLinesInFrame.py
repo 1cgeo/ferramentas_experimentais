@@ -111,8 +111,8 @@ class SnapLinesInFrame(QgsProcessingAlgorithm):
         frameLinestring = core.QgsLineString( frameGeom.vertices() )
 
         vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
-
-        if core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
+        
+        if not vertex.isEmpty() and core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
             projectedPointLayer = vertex
         else:
             frameLinestring.transform( destFrameTransform )

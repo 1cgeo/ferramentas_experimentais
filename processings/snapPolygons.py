@@ -57,9 +57,10 @@ class SnapPolygons(QgsProcessingAlgorithm):
         layerList_a = self.parameterAsLayerList(parameters, self.INPUT_LAYERS_A, context)
         snapDistance = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
 
-        self.snapPolygons(layerList_a, snapDistance)    
-        #self.snapPolygonInLines(layerList_a, layerList_l, snapDistance)
-        #self.snapLineInPolygons(layerList_l, layerList_a, snapDistance)
+        self.snapPolygons(layerList_a, snapDistance) 
+        self.snapLineInPolygons(layerList_l, layerList_a, snapDistance)
+        self.snapPolygonInLines(layerList_a, layerList_l, snapDistance)
+        
         return {self.OUTPUT_P: ''}
 
     def snapPolygons(self, polygons, snapDistance):
@@ -94,7 +95,6 @@ class SnapPolygons(QgsProcessingAlgorithm):
                                         continue
                                     otherGeometry.deleteVertex( vertexAt )
                                 self.updateLayerFeature(otherLayer, otherFeature, otherGeometry)
-                                currentFeatures = currentLayer.getFeatures()
                                 continue
                             if not self.closestSegment(currentPoint, otherFeature, snapDistance):
                                 continue
@@ -104,28 +104,31 @@ class SnapPolygons(QgsProcessingAlgorithm):
                             distance, p, after, orient = otherGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             otherGeometry.insertVertex( currentPoint, after )
                             self.updateLayerFeature(otherLayer, otherFeature, otherGeometry)
-                            currentFeatures = currentLayer.getFeatures()
 
     def snapPolygonInLines(self, polygons, lines, snapDistance):
-        for i in range(0, len(polygons)):   
-            polygonLayer = polygons[i]
+        for polygonLayer in polygons:   
             for polygonFeature in polygonLayer.getFeatures():
                 polygonGeometry = polygonFeature.geometry()
-                polygonVertices = polygonGeometry.vertices()
-                for polygonPointIdx, polygonPoint in enumerate(polygonVertices):
-                    for j in range(0, len(lines)):
-                        request = self.getFeatureRequest( QgsGeometry.fromPointXY( polygonPoint ) , polygonLayer.crs(), snapDistance )
-                        lineLayer = lines[j]
+                polygonVertices = list(polygonGeometry.vertices())
+                for polygonPoint in polygonVertices:
+                    for lineLayer in lines:
+                        request = self.getFeatureRequest( QgsGeometry.fromPointXY( QgsPointXY( polygonPoint) ) , polygonLayer.crs(), snapDistance )
                         lineFeatures = lineLayer.getFeatures( request )
                         for lineFeature in lineFeatures:
+                            lastPolygonGeometry = polygonLayer.getFeature( polygonFeature.id() ).geometry()
+                            lastPolygonVertices = list(lastPolygonGeometry.vertices()) 
+                            multiPointPolygonGeom = core.QgsGeometry.fromMultiPointXY([ 
+                                core.QgsPointXY( v ) for v in lastPolygonVertices
+                            ])
                             vertex, vertexId = self.closestVertex(polygonPoint, lineFeature, snapDistance)
                             if vertex:
                                 #snap vertex
-                                linePoint = lineFeature.geometry().vertexAt( vertexId )
-                                polygonGeometry.moveVertex(linePoint, polygonPointIdx)
+                                linePoint = lineFeature.geometry().vertexAt( lineFeature.geometry().vertexNrFromVertexId( vertexId ) )
+                                _, vertexAt = lastPolygonGeometry.closestVertexWithContext( QgsPointXY( polygonPoint ) )
+                                polygonGeometry.moveVertex(linePoint, vertexAt)
                                 self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
                                 continue
-                            if not self.closestSegment(polygonPoint, lineFeature, snapDistance):
+                            if not self.closestSegment(linePoint, polygonFeature, snapDistance):
                                 continue
                             #snap segment
                             lineGeometry = lineFeature.geometry() 
@@ -134,27 +137,29 @@ class SnapPolygons(QgsProcessingAlgorithm):
                             distance, p, after, orient = lineGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             lineGeometry.insertVertex( projectedPoint, after )
                             self.updateLayerFeature(lineLayer, lineFeature, lineGeometry)
-                            polygonGeometry.moveVertex(projectedPoint, polygonPointIdx)
+                            _, vertexAt = polygonGeometry.closestVertexWithContext( QgsPointXY( polygonPoint ) )
+                            polygonGeometry.moveVertex(projectedPoint, vertexAt)
                             self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
 
     def snapLineInPolygons(self, lines, polygons, snapDistance):
-        for i in range(0, len(lines)):   
-            lineLayer = lines[i]
+        for lineLayer in lines:   
             for lineFeature in lineLayer.getFeatures():
                 lineGeometry = lineFeature.geometry()
+                multiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in lineGeometry.vertices() ])
                 lineVertices = lineGeometry.vertices()
-                for linePointIdx, linePoint in enumerate(lineVertices):
-                    for j in range(0, len(polygons)):
-                        request = self.getFeatureRequest( QgsGeometry.fromPointXY( linePoint ) , lineLayer.crs(), snapDistance )
-                        polygonLayer = polygons[j]
+                for linePoint in lineVertices:
+                    for polygonLayer in polygons:
+                        request = self.getFeatureRequest( QgsGeometry.fromPointXY( QgsPointXY( linePoint ) ) , lineLayer.crs(), snapDistance )
                         polygonFeatures = polygonLayer.getFeatures( request )
                         for polygonFeature in polygonFeatures:
                             vertex, vertexId = self.closestVertex(linePoint, polygonFeature, snapDistance)
-                            if vertex:
+                            if vertex and not multiPointGeom.intersects( core.QgsGeometry.fromPointXY( QgsPointXY( vertex ) ) ):
                                 #snap vertex
                                 polygonGeometry = polygonFeature.geometry()
-                                polygonGeometry.moveVertex(linePoint, vertexId)
+                                polygonGeometry.moveVertex(linePoint, polygonGeometry.vertexNrFromVertexId( vertexId ) )
                                 self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
+                                continue
+                            if vertex and core.QgsGeometry.fromPointXY( QgsPointXY( linePoint ) ).intersects( core.QgsGeometry.fromPointXY( QgsPointXY( vertex ) ) ):
                                 continue
                             if not self.closestSegment(linePoint, polygonFeature, snapDistance):
                                 continue
@@ -169,7 +174,9 @@ class SnapPolygons(QgsProcessingAlgorithm):
     def closestVertex(self, point, otherFeature, snapDistance):
         otherLinestring = core.QgsLineString( otherFeature.geometry().vertices() )
         vertex, vertexId = core.QgsGeometryUtils.closestVertex(otherLinestring, core.QgsPoint(point.x(), point.y()))
-        vertexDistance = core.QgsGeometry.fromPointXY(point).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex)))
+        if vertex.isEmpty():
+            return None, None
+        vertexDistance = core.QgsGeometry.fromPointXY( QgsPointXY(point) ).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex)))
         if vertexDistance > snapDistance:
             return None, None
         return vertex, vertexId
