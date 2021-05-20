@@ -46,7 +46,7 @@ class SnapBetweenLines(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT_P,
-                self.tr('Flag overlap de linhas')
+                self.tr('Flag')
             )
         ) 
 

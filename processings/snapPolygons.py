@@ -85,10 +85,9 @@ class SnapPolygons(QgsProcessingAlgorithm):
                                 #snap vertex
                                 multiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in currentVertices ])
                                 change = True
-                                for v in vertexList:
+                                for vertexAt, v in enumerate(vertexList):
                                     if multiPointGeom.intersects( core.QgsGeometry.fromPointXY( QgsPointXY( v ) ) ):
                                         continue
-                                    _, vertexAt = otherGeometry.closestVertexWithContext( QgsPointXY( v ) )
                                     if change:
                                         otherGeometry.moveVertex(core.QgsPoint(currentPoint.x(), currentPoint.y()), vertexAt)
                                         change = False
@@ -110,7 +109,7 @@ class SnapPolygons(QgsProcessingAlgorithm):
             for polygonFeature in polygonLayer.getFeatures():
                 polygonGeometry = polygonFeature.geometry()
                 polygonVertices = list(polygonGeometry.vertices())
-                for polygonPoint in polygonVertices:
+                for vertexAt, polygonPoint in enumerate(polygonVertices):
                     for lineLayer in lines:
                         request = self.getFeatureRequest( QgsGeometry.fromPointXY( QgsPointXY( polygonPoint) ) , polygonLayer.crs(), snapDistance )
                         lineFeatures = lineLayer.getFeatures( request )
@@ -124,7 +123,6 @@ class SnapPolygons(QgsProcessingAlgorithm):
                             if vertex:
                                 #snap vertex
                                 linePoint = lineFeature.geometry().vertexAt( lineFeature.geometry().vertexNrFromVertexId( vertexId ) )
-                                _, vertexAt = lastPolygonGeometry.closestVertexWithContext( QgsPointXY( polygonPoint ) )
                                 polygonGeometry.moveVertex(linePoint, vertexAt)
                                 self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
                                 continue
@@ -137,7 +135,6 @@ class SnapPolygons(QgsProcessingAlgorithm):
                             distance, p, after, orient = lineGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             lineGeometry.insertVertex( projectedPoint, after )
                             self.updateLayerFeature(lineLayer, lineFeature, lineGeometry)
-                            _, vertexAt = polygonGeometry.closestVertexWithContext( QgsPointXY( polygonPoint ) )
                             polygonGeometry.moveVertex(projectedPoint, vertexAt)
                             self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
 
