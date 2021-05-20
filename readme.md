@@ -117,6 +117,7 @@ Retorna camada pontos onde há interseção entre extremidades de apenas 2 linha
 Parâmetros:
 - Múltiplas camadas de linha
 - Campos: atributos que **não** serão verificados
+- Camada de polígono: moldura. Moldura não dissolvida: considera-se as divisões internas. Feições que não estejam completamente dentro da moldura serão ignoradas.
 
 ### 22 - Snap na moldura
 Realiza o snap na moldura de múltiplas camadas de linha. Também cria vértices na moldura no ponto de interseção.
