@@ -12,6 +12,7 @@ from qgis.core import (QgsProcessing,
                        QgsGeometry,
                        QgsCoordinateReferenceSystem,
                        QgsProcessingParameterMultipleLayers,
+                       QgsProcessingParameterVectorLayer,
                        QgsFields
                        )
 from qgis import processing
@@ -20,6 +21,7 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
 
     INPUT_LAYER_LIST = 'INPUT_LAYER_LIST'
     INPUT_FIELDS = 'INPUT_FIELDS'
+    INPUT_FRAME = 'INPUT_FRAME'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
@@ -38,6 +40,13 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
+            QgsProcessingParameterVectorLayer(
+                'INPUT_FRAME',
+                self.tr('Selecionar camada correspondente à moldura'),
+                [2]
+            )
+        )
+        self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
                 self.tr('Flag Quebra de Linha Desnecessaria ')
@@ -46,6 +55,7 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):      
         feedback.setProgressText('Procurando linhas seccionadas...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
+        frameLayer = self.parameterAsVectorLayer(parameters,'INPUT_FRAME', context)
         inputFieldsString = self.parameterAsString( parameters,'INPUT_FIELDS', context )
         inputFields =  inputFieldsString.split(",")
         for field in inputFields:
@@ -57,27 +67,33 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
         step = 0
         pointsGeomAndLayer= []
         InitFinPoint = [0,-1]
-        for step,layer in enumerate(layerList):
-            for feature in layer.getFeatures():
-                if feedback.isCanceled():
-                    return {self.OUTPUT: pointsGeomAndLayer}
-                featgeom = feature.geometry()
-                for i in InitFinPoint:
-                    for geometry in featgeom.constGet():
-                        pt = QgsGeometry.fromPointXY(QgsPointXY(geometry[i]))
-                        lineTouched= self.linesTouched(layer, feature, pt)
-                    if len(lineTouched) == 0 or len(lineTouched) > 1:
-                        continue 
-                    fieldsChanged = self.changedFields(inputFields, feature, lineTouched[0])
-                    if not len(fieldsChanged) == 0:
+        for frames in frameLayer.getFeatures():
+            frame = frames
+            FrameArea = frame.geometry().boundingBox()
+            request1 = QgsFeatureRequest().setFilterRect(FrameArea)
+            for step,layer in enumerate(layerList):
+                for feature in layer.getFeatures(request1):
+                    if feedback.isCanceled():
+                        return {self.OUTPUT: pointsGeomAndLayer}
+                    featgeom = feature.geometry()
+                    if not featgeom.within(frame.geometry()):
                         continue
-                    alreadythere = False
-                    for point in pointsGeomAndLayer:
-                        if str(pt) == str(point[0]):
-                            alreadythere = True
-                    if not alreadythere:
-                        pointsGeomAndLayer.append([pt, layer.name()])
-            feedback.setProgress( step * progressStep )    
+                    for i in InitFinPoint:
+                        for geometry in featgeom.constGet():
+                            pt = QgsGeometry.fromPointXY(QgsPointXY(geometry[i]))
+                            lineTouched= self.linesTouched(layer, feature, pt)
+                        if len(lineTouched) == 0 or len(lineTouched) > 1:
+                            continue 
+                        fieldsChanged = self.changedFields(inputFields, feature, lineTouched[0])
+                        if not len(fieldsChanged) == 0:
+                            continue
+                        alreadythere = False
+                        for point in pointsGeomAndLayer:
+                            if str(pt) == str(point[0]):
+                                alreadythere = True
+                        if not alreadythere:
+                            pointsGeomAndLayer.append([pt, layer.name()])
+                feedback.setProgress( step * progressStep )    
         if len(pointsGeomAndLayer)==0:
             return{self.OUTPUT: 'nenhuma linha encontrada'}
         newLayer = self.outLayer(parameters, context, pointsGeomAndLayer, CRS, 4)

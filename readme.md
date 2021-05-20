@@ -117,6 +117,7 @@ Retorna camada pontos onde há interseção entre extremidades de apenas 2 linha
 Parâmetros:
 - Múltiplas camadas de linha
 - Campos: atributos que **não** serão verificados
+- Camada de polígono: moldura. Moldura não dissolvida: considera-se as divisões internas. Feições que não estejam completamente dentro da moldura serão ignoradas.
 
 ### 22 - Snap na moldura
 Realiza o snap na moldura de múltiplas camadas de linha. Também cria vértices na moldura no ponto de interseção.
@@ -146,6 +147,14 @@ Parâmetros:
 - Camada do tipo linha
 - Camada do tipo área
 - Ângulo: Define para quais formatos de "Z" a ferramenta irá gerar flags. Este parâmetro é um ângulo obtuso, definido entre 270 e 360. Maiores valores deste parâmentro implicam na busca de geometrias "Z" mais deformadas.
+
+### 29 - Identifica Poligonos Vizinhos Pequenos sem Mudança de Atributos
+Retorna uma camada com polígonos, menores que a área definida pelo usuário em uma tabela CSV (Colunas: nome da camada, tamanho), que tem o mesmo valor que polígonos vizinhos em todos atributos exceto os especificados como entrada. Leva-se em consideração uma moldura (dissolvida, ou seja, considera-se apenas os limites exteriores da moldura).
+Parâmetros:
+- Camada de polígono
+- Tabela CSV
+- Camada de moldura
+- Texto: atributos que **não** serão verificados
 
 ## Modelos
 ### 1 - Gera centroide de área edificada

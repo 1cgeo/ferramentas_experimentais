@@ -90,7 +90,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
                 fieldsChanged = []
                 if self.anglesBetweenLines(feature, line, ptFin) < (180 + angle) and self.anglesBetweenLines(feature, line, ptFin) > (180 - angle):
                     fieldsChanged = self.changedFields(inputFields, feature, line)
-                    nameOfFields = self.fieldsName(fieldsChanged)
+                    nameOfFields = self.fieldsName(fieldsChanged, feature, line)
                     if len(fieldsChanged) == 0:
                         continue
                     if [ptFin,nameOfFields] not in pointsAndFields:
@@ -139,13 +139,15 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
                 equalFields.append(field)
         return equalFields
 
-    def fieldsName(self, inputFields):
+    def fieldsName(self, inputFields, feature1, feature2):
         text = ''
         for field in inputFields:
+            value1 = feature1[field]
+            value2 = feature2[field]
             if text =='':
-                text = field
+                text = str(field) + ": " + str(value1) + " e " + str(value2)
             else:
-                text += ', ' + field
+                text += ', ' + str(field) + ": " + str(value1) + " e " + str(value2)
         return text
     def outLayer(self, parameters, context, pointsAndFields, layer, geomType):
         newField = QgsFields()
