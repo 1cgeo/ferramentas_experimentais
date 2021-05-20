@@ -23,21 +23,12 @@ import math
 
 class RemovePoints(QgsProcessingAlgorithm): 
 
-    INPUT_LAYERS_P = 'INPUT_LAYERS_P'
     INPUT_LAYERS_L = 'INPUT_LAYERS_L'
     INPUT_LAYERS_A = 'INPUT_LAYERS_A'
     INPUT_FRAME = 'INPUT_FRAME'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
-        self.addParameter(
-            QgsProcessingParameterMultipleLayers(
-                self.INPUT_LAYERS_P,
-                self.tr('Selecionar camadas ponto'),
-                QgsProcessing.TypeVectorPoint,
-                optional=True
-            )
-        )
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
                 self.INPUT_LAYERS_L,
@@ -63,12 +54,12 @@ class RemovePoints(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):      
-        layerPoints = self.parameterAsLayerList(parameters, self.INPUT_LAYERS_P, context)
-        layerLines = self.parameterAsLayerList(parameters, self.INPUT_LAYERS_L, context)
-        layerPolygons = self.parameterAsLayerList(parameters, self.INPUT_LAYERS_A, context)
         points = self.parameterAsVectorLayer(parameters, self.INPUT_FRAME, context)
         for pointFeature in points.getFeatures():
-            for layerList in [ layerPoints, layerLines, layerPolygons]:
+            for layerList in [ 
+                    self.parameterAsLayerList(parameters, self.INPUT_LAYERS_L, context), 
+                    self.parameterAsLayerList(parameters, self.INPUT_LAYERS_A, context)
+                ]:
                 self.deleteAllVerticesInLayers( pointFeature.geometry(), layerList )
         return {self.OUTPUT: ''}
 
