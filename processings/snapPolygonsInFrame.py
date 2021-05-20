@@ -61,20 +61,38 @@ class SnapPolygonsInFrame(QgsProcessingAlgorithm):
         step = 0
         
         for frameFeature in frameLayer.getFeatures():
-            FrameArea = frameFeature.geometry().boundingBox()
-            request = QgsFeatureRequest().setFilterRect(FrameArea)
-            multiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in frameFeature.geometry().vertices() ])
+            request = QgsFeatureRequest().setFilterRect( frameFeature.geometry().boundingBox() )
+            frameMultiPointGeom = core.QgsGeometry.fromMultiPointXY([ core.QgsPointXY( v ) for v in frameFeature.geometry().vertices() ])
             for step, layer in enumerate(layerList):   
                 for layerFeature in layer.getFeatures(request):
                     layerGeometry = layerFeature.geometry()
                     layerVertices = list(layerGeometry.vertices())
-                    for vertexAt, vertex in enumerate(layerVertices):
+                    for pointAt, point in enumerate(layerVertices):
                         if (
-                            not( multiPointGeom.intersects(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) ) 
+                            not( frameMultiPointGeom.intersects(core.QgsGeometry.fromPointXY(QgsPointXY(point))) ) 
                             and 
-                            self.isNearestPointOfFrame( vertex, frameFeature.geometry(), snapDistance )
+                            self.isNearestPointOfFrame( point, frameFeature.geometry(), snapDistance )
                         ):
-                            self.snapPoint(vertex, vertexAt, layerFeature, layer, frameFeature, frameLayer, snapDistance)
+                            frameGeom = frameFeature.geometry()
+                            frameLinestring = core.QgsLineString( list(frameGeom.vertices())[1:] )
+
+                            vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
+                            
+                            if (
+                                        not vertex.isEmpty() 
+                                    and 
+                                        core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < snapDistance
+                                ):
+                                projectedPoint = vertex
+                            else:
+                                projectedPoint = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
+
+                                _, _, afterVertexAt, _ = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
+                                frameGeom.insertVertex( projectedPoint, afterVertexAt )
+                                self.updateLayerFeature(frameLayer, frameFeature, frameGeom)        
+                            
+                            layerGeometry.moveVertex(projectedPoint, pointAt)
+                            self.updateLayerFeature(layer, layerFeature, layerGeometry)
             feedback.setProgress( step * progressStep )
         return {self.OUTPUT: ''}
 
@@ -93,38 +111,7 @@ class SnapPolygonsInFrame(QgsProcessingAlgorithm):
     def isNearestPointOfFrame(self, point, frameGeom, snapDistance):
         return (
             frameGeom.closestSegmentWithContext(QgsPointXY(point))[0] < snapDistance ** 2
-        )
-
-    def snapPoint(self, point, vertexAt, layerFeature, layer, frameFeature, frameLayer, snapDistance):
-        sourceFrameTransform, destFrameTransform = self.getGeometryTransforms(frameLayer.crs(), 4674)
-        sourceLayerTransform, destLayerTransform = self.getGeometryTransforms(layer.crs(), 4674)
-
-        layerGeom = layerFeature.geometry()
-
-        frameGeom = frameFeature.geometry()
-        frameLinestring = core.QgsLineString( frameGeom.vertices() )
-
-        vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
-        
-        if not vertex.isEmpty() and core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < snapDistance:
-            projectedPointLayer = vertex
-        else:
-            frameLinestring.transform( destFrameTransform )
-            point.transform( destLayerTransform )
-            
-            projectedPointFrame = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
-            projectedPointLayer = projectedPointFrame.clone()
-
-            projectedPointFrame.transform( sourceFrameTransform )
-            projectedPointLayer.transform( sourceLayerTransform )
-
-            
-            distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPointFrame ) )
-            frameGeom.insertVertex( projectedPointFrame, after )
-            self.updateLayerFeature(frameLayer, frameFeature, frameGeom)        
-        
-        layerGeom.moveVertex(projectedPointLayer, vertexAt)
-        self.updateLayerFeature(layer, layerFeature, layerGeom)
+        )        
 
     def updateLayerFeature(self, layer, feature, geometry):
         feature.setGeometry(geometry)

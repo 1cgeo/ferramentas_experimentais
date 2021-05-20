@@ -113,24 +113,18 @@ class SnapLinesInFrame(QgsProcessingAlgorithm):
         vertex, vertexId = core.QgsGeometryUtils.closestVertex(frameLinestring, point)
         
         if not vertex.isEmpty() and core.QgsGeometry.fromPointXY(QgsPointXY(point)).distance(core.QgsGeometry.fromPointXY(QgsPointXY(vertex))) < distance:
-            projectedPointLayer = vertex
+            projectedPoint = vertex
         else:
-            frameLinestring.transform( destFrameTransform )
-            point.transform( destLayerTransform )
             
-            projectedPointFrame = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
-            projectedPointLayer = projectedPointFrame.clone()
-
-            projectedPointFrame.transform( sourceFrameTransform )
-            projectedPointLayer.transform( sourceLayerTransform )
-
             
-            distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPointFrame ) )
-            frameGeom.insertVertex( projectedPointFrame, after )
+            projectedPoint = core.QgsGeometryUtils.closestPoint( frameLinestring, point )
+            
+            distance, p, after, orient = frameGeom.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
+            frameGeom.insertVertex( projectedPoint, after )
             self.updateLayerFeature(frameLayer, frameFeature, frameGeom)
         
         layerGeom = layerFeature.geometry()
-        layerGeom.moveVertex(projectedPointLayer, idxPoint)
+        layerGeom.moveVertex(projectedPoint, idxPoint)
         self.updateLayerFeature(layer, layerFeature, layerGeom)
 
     def updateLayerFeature(self, layer, feature, geometry):
