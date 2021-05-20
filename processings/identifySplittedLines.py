@@ -13,6 +13,7 @@ from qgis.core import (QgsProcessing,
                        QgsCoordinateReferenceSystem,
                        QgsProcessingParameterMultipleLayers,
                        QgsProcessingParameterVectorLayer,
+                       QgsProcessingFeatureSourceDefinition,
                        QgsFields
                        )
 from qgis import processing
@@ -67,37 +68,61 @@ class IdentifySplittedLines(QgsProcessingAlgorithm):
         step = 0
         pointsGeomAndLayer= []
         InitFinPoint = [0,-1]
-        for frames in frameLayer.getFeatures():
-            frame = frames
-            FrameArea = frame.geometry().boundingBox()
-            request1 = QgsFeatureRequest().setFilterRect(FrameArea)
-            for step,layer in enumerate(layerList):
-                for feature in layer.getFeatures(request1):
-                    if feedback.isCanceled():
-                        return {self.OUTPUT: pointsGeomAndLayer}
-                    featgeom = feature.geometry()
-                    if not featgeom.within(frame.geometry()):
-                        continue
-                    for i in InitFinPoint:
-                        for geometry in featgeom.constGet():
-                            pt = QgsGeometry.fromPointXY(QgsPointXY(geometry[i]))
-                            lineTouched= self.linesTouched(layer, feature, pt)
-                        if len(lineTouched) == 0 or len(lineTouched) > 1:
-                            continue 
-                        fieldsChanged = self.changedFields(inputFields, feature, lineTouched[0])
-                        if not len(fieldsChanged) == 0:
+        pointsInFrame = QgsFeature()
+        pointsToAdd = []
+        for frame in frameLayer.getFeatures():
+            framegeom = frame.geometry().asMultiPolygon()[0][0]
+            n = len(framegeom)
+            for i in range(n):
+                pointsToAdd.append(framegeom[i])
+        pointsInFrame.setGeometry(QgsGeometry().fromMultiPointXY(pointsToAdd))
+        allFramesFeature = next(self.dissolveFrame(frameLayer).getFeatures())
+        allFramesGeom = allFramesFeature.geometry()
+        FrameArea = allFramesGeom.boundingBox()
+        request1 = QgsFeatureRequest().setFilterRect(FrameArea)
+
+        for step,layer in enumerate(layerList):
+            for feature in layer.getFeatures(request1):
+                if feedback.isCanceled():
+                    return {self.OUTPUT: pointsGeomAndLayer}
+                featgeom = feature.geometry()
+                featgeom.convertToMultiType()    
+                for i in InitFinPoint:
+                    for geometry in featgeom.constGet():
+                        pt = QgsGeometry.fromPointXY(QgsPointXY(geometry[i]))
+                        lineTouched= self.linesTouched(layer, feature, pt)
+                    if not pt.within(allFramesGeom):
                             continue
-                        alreadythere = False
-                        for point in pointsGeomAndLayer:
-                            if str(pt) == str(point[0]):
-                                alreadythere = True
-                        if not alreadythere:
-                            pointsGeomAndLayer.append([pt, layer.name()])
-                feedback.setProgress( step * progressStep )    
+                    if len(lineTouched) == 0 or len(lineTouched) > 1:
+                        continue 
+                    fieldsChanged = self.changedFields(inputFields, feature, lineTouched[0])
+                    if not len(fieldsChanged) == 0:
+                        continue
+                    alreadythere = False
+                    if pt.intersects(pointsInFrame.geometry()):
+                        continue
+                    for point in pointsGeomAndLayer:
+                        if str(pt) == str(point[0]):
+                            alreadythere = True
+                    if not alreadythere:
+                        pointsGeomAndLayer.append([pt, layer.name()])
+            feedback.setProgress( step * progressStep )    
         if len(pointsGeomAndLayer)==0:
             return{self.OUTPUT: 'nenhuma linha encontrada'}
         newLayer = self.outLayer(parameters, context, pointsGeomAndLayer, CRS, 4)
         return{self.OUTPUT: newLayer}
+
+    def dissolveFrame(self, layer):
+        r = processing.run(
+            'native:dissolve',
+            {   'FIELD' : [], 
+                'INPUT' : QgsProcessingFeatureSourceDefinition(
+                    layer.source()
+                ), 
+                'OUTPUT' : 'TEMPORARY_OUTPUT'
+            }
+        )
+        return r['OUTPUT']    
 
     def linesTouched(self, layer, feature, point):
         lines = []
