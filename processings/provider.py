@@ -38,6 +38,8 @@ from .snapPolygons import SnapPolygons
 from .removePoints import RemovePoints
 from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
 from .snapPolygonsInFrame import SnapPolygonsInFrame
+from .checkRelationships import CheckRelationships
+from .line2Multiline import Line2Multiline
 
 class Provider(QgsProcessingProvider):
 
@@ -77,7 +79,9 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(RemovePoints())
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
         self.addAlgorithm(SnapPolygonsInFrame())
-        
+        self.addAlgorithm(CheckRelationships())
+        self.addAlgorithm(Line2Multiline())
+
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
@@ -105,7 +109,6 @@ class Provider(QgsProcessingProvider):
         for elem1 in elem:
             if elem1.attrib["name"] == "model_group":
                 elem1.attrib["value"] = "missoes"
-        
         with open(pathfile, 'w') as f:
             tree.write(pathfile)
         with open(pathfile, 'r') as f:
