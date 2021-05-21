@@ -119,7 +119,7 @@ Parâmetros:
 - Campos: atributos que **não** serão verificados
 - Camada de polígono: moldura. 
 
-### 22 - Snap na moldura
+### 22 - Snap de linhas na moldura
 Realiza o snap na moldura de múltiplas camadas de linha. Também cria vértices na moldura no ponto de interseção.
 
 ### 23 - Clipa camadas com a moldura
@@ -155,6 +155,19 @@ Parâmetros:
 - Tabela CSV
 - Camada de moldura
 - Texto: atributos que **não** serão verificados
+
+### 30 - Snap de poligonos na moldura
+Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vértices na moldura no ponto de interseção.
+
+### 31 - Converte linhas conectadas para multilinha
+
+### 32 - Conectar pontas soltas entre linhas
+
+### 33 - Conectar áreas e linhas
+
+### 34 - Remover pontos
+
+### 35 - Verificar geometrias próximas
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
