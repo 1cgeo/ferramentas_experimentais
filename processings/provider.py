@@ -38,7 +38,10 @@ from .snapPolygons import SnapPolygons
 from .removePoints import RemovePoints
 from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
 from .snapPolygonsInFrame import SnapPolygonsInFrame
+<<<<<<< HEAD
 #from .checkRelationships import CheckRelationships
+=======
+>>>>>>> c5920e5a769711ae52ace7fcdfcf1fb88c4ae181
 from .line2Multiline import Line2Multiline
 
 class Provider(QgsProcessingProvider):
