@@ -59,34 +59,24 @@ class Line2Multiline(QgsProcessingAlgorithm):
             QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
         )
         
-        connected = {}
-        multilines = {}
-        lengths = {}
-        for currentFeature in lines.getFeatures():
-            if currentFeature.id() in connected:
-                multilineId = connected[ currentFeature.id() ]
-                mls =  multilines[ multilineId ]
-            else:
-                multilineId = uuid.uuid4()
-                mls = core.QgsMultiLineString()
-                multilines[ multilineId ] = mls
-                
-                multilines[ multilineId ].addGeometry( core.QgsLineString( list(currentFeature.geometry().vertices()) ) )
-                lengths[ multilineId ] = currentFeature.geometry().length()
-                connected[ currentFeature.id() ] = multilineId
-
-            request = QgsFeatureRequest().setFilterRect( currentFeature.geometry().boundingBox() )            
-            for otherFeature in lines.getFeatures(request):
-                if ( currentFeature.id() in connected ) and ( otherFeature.id() in connected ):
+        multiGeometries = []
+        features = list(lines.getFeatures())
+        for currentFeature in features:
+            mls = core.QgsMultiLineString()
+            mls.addGeometry( core.QgsLineString( list(currentFeature.geometry().vertices()) ) )
+            for idx, currenMls in enumerate(multiGeometries):
+                if not currenMls:
                     continue
-                if not currentFeature.geometry().intersects( otherFeature.geometry() ):
-                    continue
-                lengths[ multilineId ] += otherFeature.geometry().length()
-                mls.addGeometry( core.QgsLineString( list(otherFeature.geometry().vertices()) ) )
-                connected[ otherFeature.id() ] = multilineId
+                if core.QgsGeometry( mls.clone() ).intersects( core.QgsGeometry( currenMls.clone() ) ):
+                    for element in core.QgsGeometry( currenMls.clone() ).asGeometryCollection():
+                        mls.addGeometry( core.QgsLineString( list(element.vertices()) ) )
+                    multiGeometries[idx] = None
+            multiGeometries.append(mls)
 
-        for key in multilines:
-            self.addSink( multilines[key], lengths[key], sink_l, fields)
+        for currenMls in multiGeometries:
+            if not currenMls:
+                continue
+            self.addSink( core.QgsGeometry( currenMls.clone() ), core.QgsGeometry( currenMls.clone() ).length(), sink_l, fields)
         return {self.OUTPUT_L: sinkId_l}
 
     def addSink(self, geom, length, sink, fields):

@@ -38,7 +38,7 @@ from .snapPolygons import SnapPolygons
 from .removePoints import RemovePoints
 from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
 from .snapPolygonsInFrame import SnapPolygonsInFrame
-from .checkRelationships import CheckRelationships
+#from .checkRelationships import CheckRelationships
 from .line2Multiline import Line2Multiline
 
 class Provider(QgsProcessingProvider):
@@ -79,7 +79,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(RemovePoints())
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
         self.addAlgorithm(SnapPolygonsInFrame())
-        self.addAlgorithm(CheckRelationships())
+        #self.addAlgorithm(CheckRelationships())
         self.addAlgorithm(Line2Multiline())
 
         for model in self.modelsAlg():
