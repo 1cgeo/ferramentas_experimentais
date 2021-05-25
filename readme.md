@@ -169,8 +169,6 @@ Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vérti
 
 ### 35 - Verificar geometrias próximas
 
-### 36 - Transformar linhas conectadas em multilinha
-
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
