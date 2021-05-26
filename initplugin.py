@@ -11,6 +11,7 @@ from .copia_cola_geom.copia_cola_geom import startCopyButton, startPasteButton
 from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
 from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
+from .defaultFields import setDefaultFields, restoreFields
 
 from .processings.provider import Provider
 
@@ -72,12 +73,27 @@ class InitPlugin:
             "Filtro espacial"
         )
         self.toolBar.addAction(self.actionaSpatialFilter)
+
+        self.setDefaultFields = self.createAction(
+            "Criar mais como esse", 
+            "setDefaultFields.png", 
+            setDefaultFields, 
+            "Criar mais como esse",
+            "Criar mais como esse"
+        )
+        self.toolBar.addAction(self.setDefaultFields)
+
+        self.restoreFields = self.createAction(
+            "Restaurar camada", 
+            "restoreFields.png", 
+            restoreFields, 
+            "Restaurar camada",
+            "Restaurar camada"
+        )
+        self.toolBar.addAction(self.restoreFields)
         
         # Addprovider
         PluginAlg.initProcessing(self)
-
-    def initSignals(self):
-        pass
 
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
