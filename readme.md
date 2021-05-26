@@ -219,3 +219,5 @@ Dado um ou mais linhas selecionadas, a ferramenta corta o ínicio do linha em um
 
 ### 5- Filtro espacial
 Permite o usuário desenhar um poligono, e aplicar esse poligono como filtro espacial nas camadas.
+
+### 6- Repetir atributação da feição
