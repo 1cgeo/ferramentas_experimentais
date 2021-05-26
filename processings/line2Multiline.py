@@ -59,24 +59,28 @@ class Line2Multiline(QgsProcessingAlgorithm):
             QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
         )
         
-        multiGeometries = []
+
+
+        vl = core.QgsVectorLayer("MultiLineString", "spatialIndex", "memory")
+        vl.startEditing()
+
         features = list(lines.getFeatures())
         for currentFeature in features:
             mls = core.QgsMultiLineString()
             mls.addGeometry( core.QgsLineString( list(currentFeature.geometry().vertices()) ) )
-            for idx, currenMls in enumerate(multiGeometries):
-                if not currenMls:
-                    continue
-                if core.QgsGeometry( mls.clone() ).intersects( core.QgsGeometry( currenMls.clone() ) ):
-                    for element in core.QgsGeometry( currenMls.clone() ).asGeometryCollection():
+            featuresRequest = list( vl.getFeatures( QgsFeatureRequest().setFilterRect( mls.calculateBoundingBox() ) ) )
+            for idx, currentFeature in enumerate(featuresRequest):
+                if core.QgsGeometry( mls.clone() ).intersects( currentFeature.geometry() ):
+                    for element in currentFeature.geometry().asGeometryCollection():
                         mls.addGeometry( core.QgsLineString( list(element.vertices()) ) )
-                    multiGeometries[idx] = None
-            multiGeometries.append(mls)
+                    vl.deleteFeature( currentFeature.id() )
+            feat = QgsFeature()
+            feat.setGeometry( core.QgsGeometry( mls.clone() ) )
+            vl.addFeatures( [ feat ] )
 
-        for currenMls in multiGeometries:
-            if not currenMls:
-                continue
-            self.addSink( core.QgsGeometry( currenMls.clone() ), core.QgsGeometry( currenMls.clone() ).length(), sink_l, fields)
+        for feat in vl.getFeatures():
+            geom = feat.geometry()
+            self.addSink( geom, geom.length(), sink_l, fields)
         return {self.OUTPUT_L: sinkId_l}
 
     def addSink(self, geom, length, sink, fields):
@@ -84,11 +88,6 @@ class Line2Multiline(QgsProcessingAlgorithm):
         newFeat.setGeometry(geom)
         newFeat['length'] = length
         sink.addFeature(newFeat)
-
-    def getFeatureRequest(self, geometry, crs, distance, segment=5):
-        return QgsFeatureRequest().setFilterRect(
-            geometry.buffer(distance, segment).boundingBox()
-        )
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
