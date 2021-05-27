@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
@@ -103,8 +103,8 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         return False
   
     def outLayer(self, parameters, context, geometry, CRS, geomType):
-        newField = QgsFields()
-        newField.append(QgsField('id', QVariant.Int))
+        newField = core.QgsFields()
+        newField.append(core.QgsField('id', QVariant.Int))
 
         (sink, newLayerId) = self.parameterAsSink(
             parameters,
