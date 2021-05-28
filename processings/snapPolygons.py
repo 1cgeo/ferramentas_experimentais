@@ -126,7 +126,7 @@ class SnapPolygons(QgsProcessingAlgorithm):
                                 polygonGeometry.moveVertex(linePoint, vertexAt)
                                 self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
                                 continue
-                            if not self.closestSegment(linePoint, polygonFeature, snapDistance):
+                            if not self.closestSegment(polygonPoint, lineFeature, snapDistance):
                                 continue
                             #snap segment
                             lineGeometry = lineFeature.geometry() 
