@@ -58,7 +58,7 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         feedback.setProgressText('Procurando linhas...')
         layerList = self.parameterAsLayerList(parameters,'INPUT_LAYER_LIST', context)
         frameLayer = self.parameterAsVectorLayer(parameters,'INPUT_FRAME', context)
-        minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)**2
+        minDist = self.parameterAsDouble(parameters,'INPUT_MIN_DIST', context)
         CRSstr = iface.mapCanvas().mapSettings().destinationCrs().authid()
         CRS = QgsCoordinateReferenceSystem(CRSstr)
         
@@ -67,6 +67,11 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
         listSize = len(layerList)
         progressStep = 100/listSize if listSize else 0
         step = 0
+
+        allFramesFeature = next(self.dissolveFrame(frameLayer).getFeatures())
+        allFramesGeom = allFramesFeature.geometry()
+
+        
         for frame in frameLayer.getFeatures():
             FrameArea = frame.geometry().boundingBox()
             request = QgsFeatureRequest().setFilterRect(FrameArea)
@@ -81,9 +86,9 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
                         ptIni = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[0]))
                         lastIdx = len(geometry) - 1
                         ptFin = QgsGeometry.fromPointXY(core.QgsPointXY(geometry[lastIdx]))
-                        if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[0]))[0] < minDist:
+                        if not(multiPointGeom.intersects(ptIni)) and not( self.touchesOtherLine(layer, feature, ptIni) ) and self.isNearestPointOfFrame(ptIni, frame.geometry(), allFramesGeom, minDist):
                             points.append(geometry[0])
-                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and frame.geometry().closestSegmentWithContext(core.QgsPointXY(geometry[lastIdx]))[0] < minDist:
+                        if not(multiPointGeom.intersects(ptFin)) and not( self.touchesOtherLine(layer, feature, ptFin) ) and self.isNearestPointOfFrame(ptFin, frame.geometry(), allFramesGeom, minDist):
                             points.append(geometry[lastIdx])            
             feedback.setProgress( step * progressStep )
         returnMessage = ('Nenhuma linha encontrada!')
@@ -91,6 +96,25 @@ class IdentifyUndershootLines(QgsProcessingAlgorithm):
             newLayerId = self.outLayer(parameters, context, points, CRS, 4)
             returnMessage = newLayerId
         return{self.OUTPUT: returnMessage}
+
+    def dissolveFrame(self, layer):
+        r = processing.run(
+            'native:dissolve',
+            {   'FIELD' : [], 
+                'INPUT' : core.QgsProcessingFeatureSourceDefinition(
+                    layer.source()
+                ), 
+                'OUTPUT' : 'TEMPORARY_OUTPUT'
+            }
+        )
+        return r['OUTPUT']
+
+    def isNearestPointOfFrame(self, point, frameGeom, allFramesGeom, distance):
+        return (
+            frameGeom.closestSegmentWithContext(point.asPoint())[0] < distance ** 2 
+            and 
+            allFramesGeom.closestSegmentWithContext(point.asPoint())[0] < distance ** 2
+        )
     
     def touchesOtherLine(self, layer, feature, point):
         AreaOfInterest = feature.geometry().boundingBox()
