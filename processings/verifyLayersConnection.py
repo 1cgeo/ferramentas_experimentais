@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Optional
 from qgis import processing
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing, QgsProject, QgsProcessingAlgorithm,
@@ -39,14 +40,16 @@ class VerifyLayersConnection(QgsProcessingAlgorithm):
             QgsProcessingParameterMultipleLayers(
                 self.LAYERS_L,
                 self.tr('Line layers to be verified'),
-                layerType=QgsProcessing.TypeVectorLine
+                layerType=QgsProcessing.TypeVectorLine,
+                optional=True
             )
         )
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
                 self.LAYERS_A,
                 self.tr('Area layers to be verified'),
-                layerType=QgsProcessing.TypeVectorPolygon
+                layerType=QgsProcessing.TypeVectorPolygon,
+                optional=True
             )
         )
         self.addParameter(

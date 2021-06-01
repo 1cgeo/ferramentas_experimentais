@@ -83,9 +83,12 @@ class VerifyValleyBottom(QgsProcessingAlgorithm):
         output = self.getIntersectionOnDrainage(intersections, contourIntersections, drainageDict, p2)
 
         # Insert output in sink
-        sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, output[0].fields(), output[0].geometry().wkbType(), intersections.sourceCrs())
-        for feat in output:
-            sink.addFeature(feat)
+        if output:
+            sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, output[0].fields(), output[0].geometry().wkbType(), intersections.sourceCrs())
+            for feat in output:
+                sink.addFeature(feat)
+        else:
+            sink = output
 
         return {self.OUTPUT: sink}
 
