@@ -12,6 +12,7 @@ from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
 from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
+from .filters import filterBySelection
 
 from .processings.provider import Provider
 
@@ -91,6 +92,15 @@ class InitPlugin:
             "Restaurar camada"
         )
         self.toolBar.addAction(self.restoreFields)
+
+        self.filterBySelection = self.createAction(
+            "Filtra selecionados", 
+            "filter.svg", 
+            filterBySelection, 
+            "Filtra selecionados",
+            "Filtra selecionados"
+        )
+        self.toolBar.addAction(self.filterBySelection)
         
         # Addprovider
         PluginAlg.initProcessing(self)
