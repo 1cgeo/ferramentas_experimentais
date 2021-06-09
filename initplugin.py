@@ -13,6 +13,7 @@ from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
 from .filters import filterBySelection
+from .labelTool import LabelTool
 
 from .processings.provider import Provider
 
@@ -22,12 +23,15 @@ class InitPlugin:
         self.iface = iface
         self.cortaWidget = CortaTool( callback=cortaFundoVale )
         self.spatialFilterTool = SpatialFilter()
+        self.labelTool = LabelTool()
         self.provider = None
         self.toolBar = None
+        self.toolBar2 = None
 
     def initGui(self):
         self.toolBar = self.iface.addToolBar('Ferramentas_Experimentais')
-        
+        self.toolBar2 = self.iface.addToolBar('Ferramentas_Experimentais_2')
+
         self.toolBar.addWidget(self.cortaWidget)
 
         self.actionazm = self.createAction(
@@ -102,13 +106,15 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.filterBySelection)
         
+
+        self.toolBar2.addWidget( self.labelTool )
         # Addprovider
         PluginAlg.initProcessing(self)
 
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
         self.iface.mainWindow().removeToolBar(self.toolBar)
-
+        self.iface.mainWindow().removeToolBar(self.toolBar2)
 
     def createAction(self, text, icon, callback, whatisthis, tip):
         iconPath = self.getPluginIconPath(icon)
