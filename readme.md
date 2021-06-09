@@ -169,6 +169,8 @@ Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vérti
 
 ### 35 - Verificar geometrias próximas
 
+### 36 - Salva estilos para QML
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
@@ -221,3 +223,5 @@ Dado um ou mais linhas selecionadas, a ferramenta corta o ínicio do linha em um
 Permite o usuário desenhar um poligono, e aplicar esse poligono como filtro espacial nas camadas.
 
 ### 6- Repetir atributação da feição
+
+### 7- Filtra camada pelas feições selecionadas
