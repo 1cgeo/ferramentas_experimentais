@@ -171,6 +171,19 @@ Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vérti
 
 ### 36 - Salva estilos para QML
 
+### 37 - Verifica Hidrografia
+Verifica condições lógico espaciais envolvendo elementos de camadas de hidrografia (parâmetros).
+Parâmetros:
+- Camada de drenagem (linha)
+- Camada de barragens (linha)
+- Camada de barragens (polígono)
+- Camada de massa d'água (polígono)
+- Camada de vertedouro/sumidouro (ponto)
+- Camada de elemento hidrográfico (ponto)
+- Camada de elemento hidrográfico (linha)
+- Camada de elemento hidrográfico (polígono)
+- Camada de moldura (polígono)
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
@@ -178,7 +191,7 @@ Gera centroides de área construída baseado nos delimitadores.
 
 ### 2 - Valida Centroides
 
-Substituto temporário do processing de contruir áreas a partir de delimitador e centroide do DSGTools.
+Substituto temporário do processing de construir áreas a partir de delimitador e centroide do DSGTools.
 
 ### 3 - Ponta livre entre camadas
 
