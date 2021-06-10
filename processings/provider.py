@@ -42,6 +42,7 @@ from .snapPolygonsInFrame import SnapPolygonsInFrame
 from .line2Multiline import Line2Multiline
 from .saveLayerStylesToFile import SaveLayerStylesToFile
 from .verifyHydro import VerifyHydrography
+from .rotation import Rotation
 
 class Provider(QgsProcessingProvider):
 
@@ -85,6 +86,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(Line2Multiline())
         self.addAlgorithm(SaveLayerStylesToFile())
         self.addAlgorithm(VerifyHydrography())
+        self.addAlgorithm(Rotation())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
