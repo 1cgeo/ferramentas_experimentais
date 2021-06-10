@@ -42,6 +42,9 @@ def getBackup(layerId):
         return {}
     return json.loads(data)[layerId]
 
+def getAttributeBacklist():
+    return [ 'data_modificacao', 'controle_uuid', 'usuario_criacao', 'usuario_atualizacao']
+
 def setDefaultFields():
     try:
         layer = iface.activeLayer()
@@ -53,6 +56,7 @@ def setDefaultFields():
         attributesBackup = {}
         feature = selectedFeatures[0]
         ignore = layer.dataProvider().pkAttributeIndexes()
+        ignore += getAttributeBacklist()
         for fieldIndex in layer.attributeList():
             if fieldIndex in ignore:
                 continue
