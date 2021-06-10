@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QPushButton" name="addFeatureBtn">
      <property name="text">
-      <string>start</string>
+      <string>Rótulo de hidrografia</string>
      </property>
     </widget>
    </item>
@@ -32,17 +32,6 @@
      </item>
      <item>
       <widget class="QComboBox" name="scaleMapCb"/>
-     </item>
-    </layout>
-   </item>
-   <item row="0" column="2">
-    <layout class="QHBoxLayout" name="layerLayout">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Camada de rótulo: </string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
