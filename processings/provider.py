@@ -44,6 +44,7 @@ from .saveLayerStylesToFile import SaveLayerStylesToFile
 from .verifyHydro import VerifyHydrography
 from .rotation import Rotation
 from .verifyCountourStacking import VerifyCountourStacking
+from .damWidth import DamWidth
 
 class Provider(QgsProcessingProvider):
 
@@ -89,6 +90,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyHydrography())
         self.addAlgorithm(Rotation())
         self.addAlgorithm(VerifyCountourStacking())
+        self.addAlgorithm(DamWidth())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
