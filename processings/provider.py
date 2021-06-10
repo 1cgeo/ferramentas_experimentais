@@ -42,11 +42,8 @@ from .snapPolygonsInFrame import SnapPolygonsInFrame
 from .line2Multiline import Line2Multiline
 from .saveLayerStylesToFile import SaveLayerStylesToFile
 from .verifyHydro import VerifyHydrography
-<<<<<<< Updated upstream
 from .rotation import Rotation
-=======
 from .verifyCountourStacking import VerifyCountourStacking
->>>>>>> Stashed changes
 
 class Provider(QgsProcessingProvider):
 
