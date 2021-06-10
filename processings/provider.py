@@ -41,6 +41,7 @@ from .snapPolygonsInFrame import SnapPolygonsInFrame
 #from .checkNeighboringGeometries import CheckNeighboringGeometries
 from .line2Multiline import Line2Multiline
 from .saveLayerStylesToFile import SaveLayerStylesToFile
+from .verifyHydro import VerifyHydrography
 
 class Provider(QgsProcessingProvider):
 
@@ -83,7 +84,7 @@ class Provider(QgsProcessingProvider):
         #self.addAlgorithm(CheckRelationships())
         self.addAlgorithm(Line2Multiline())
         self.addAlgorithm(SaveLayerStylesToFile())
-
+        self.addAlgorithm(VerifyHydrography())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
