@@ -184,6 +184,14 @@ Parâmetros:
 - Camada de elemento hidrográfico (polígono)
 - Camada de moldura (polígono)
 
+### 38 - Verifica Empilhamento de Curvas de Nível
+Compara valores de cota entre curvas de nível fechadas interna a outra, de acordo com o valor de equidistância e tipo (normal ou depressão)
+Parâmetros:
+- Camada de curva de nível (linha)
+- Campo correspondente a cota
+- Campo correspondente a tipo
+- Valor da equidistância entre as cotas
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
