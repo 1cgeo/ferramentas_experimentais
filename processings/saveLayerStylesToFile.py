@@ -80,10 +80,10 @@ class SaveLayerStylesToFile(QgsProcessingAlgorithm):
         return self.tr('Exporta estilos para arquivo (QML)')
 
     def group(self):
-        return self.tr('Missoes')
+        return self.tr('Edição')
 
     def groupId(self):
-        return 'missoes'
+        return 'edicao'
 
     def shortHelpString(self):
         return self.tr("O algoritmo ...")
