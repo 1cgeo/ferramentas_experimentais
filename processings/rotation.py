@@ -26,6 +26,7 @@ class Rotation(QgsProcessingAlgorithm):
     INPUT_POINTS = 'INPUT_POINTS'
     INPUT_MIN_DIST= 'INPUT_MIN_DIST'
     INPUT_LINES = 'INPUT_LINES'
+    INPUT_AREAS = 'INPUT_AREAS'
     INPUT_FIELDS = 'INPUT_FIELDS'
     OUTPUT = 'OUTPUT'
 
@@ -63,44 +64,56 @@ class Rotation(QgsProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterMultipleLayers(
+                self.INPUT_AREAS,
+                self.tr('Selecionar áreas'),
+                QgsProcessing.TypeVectorPolygon
+            )
+        )
+
     def processAlgorithm(self, parameters, context, feedback):      
         pointLayer = self.parameterAsVectorLayer(parameters, self.INPUT_POINTS, context)
         rotationField = self.parameterAsFields(parameters, self.INPUT_FIELDS, context)[0]
         distance = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
         lineList = self.parameterAsLayerList(parameters, self.INPUT_LINES, context)
-      
+        areaList = self.parameterAsLayerList(parameters, self.INPUT_AREAS, context)
+
         for pointFeature in pointLayer.getFeatures():
             pointGeometry = pointFeature.geometry()
             point = pointGeometry.asMultiPoint()[0]
-            request = self.getFeatureRequestByPoint( pointGeometry,  distance)            
-            for step, lineLayer in enumerate(lineList):   
+            request = self.getFeatureRequestByPoint( pointGeometry,  distance)
+            nearestGeometry = None
+            shortestDistance = None     
 
-                nearestLineGeometry = None
-                shortestDistance = None
+            for layerList in [lineList, areaList]: 
+                for layer in layerList:
 
-                for lineFeature in lineLayer.getFeatures(request):
-                    lineGeometry = lineFeature.geometry()
-                    distanceFound = pointGeometry.distance( lineGeometry )
-                    if not shortestDistance:
-                        nearestLineGeometry = lineGeometry
-                        shortestDistance = distanceFound  
-                    elif distanceFound < shortestDistance:
-                        nearestLineGeometry = lineGeometry
-                        shortestDistance = distanceFound
-                    
-                if not nearestLineGeometry:
-                    continue   
-                    
-                projectedPoint = core.QgsGeometryUtils.closestPoint( 
-                    nearestLineGeometry.constGet(), 
-                    core.QgsPoint( point.x(), point.y()) 
-                )
-                angleRadian = math.atan2( projectedPoint.y() - point.y(), projectedPoint.x() - point.x() )
-                if angleRadian < 0:
-                    angleRadian += 2 * math.pi
-                angleDegrees = 360 - round( math.degrees( angleRadian ) )
-                pointFeature[ rotationField ] = angleDegrees
-                self.updateLayerFeature( pointLayer, pointFeature)
+                    for feature in layer.getFeatures(request):
+                        geometry = feature.geometry()
+                        distanceFound = pointGeometry.distance( geometry )
+                        if distanceFound > distance:
+                            continue
+                        if not shortestDistance:
+                            nearestGeometry = geometry
+                            shortestDistance = distanceFound  
+                        elif distanceFound < shortestDistance:
+                            nearestGeometry = geometry
+                            shortestDistance = distanceFound
+                        
+            if not nearestGeometry:
+                continue   
+                
+            projectedPoint = core.QgsGeometryUtils.closestPoint( 
+                nearestGeometry.constGet(), 
+                core.QgsPoint( point.x(), point.y()) 
+            )
+            angleRadian = math.atan2( projectedPoint.y() - point.y(), projectedPoint.x() - point.x() ) + math.pi/2
+            if angleRadian < 0:
+                angleRadian += 2 * math.pi
+            angleDegrees = 360 - round( math.degrees( angleRadian ) )
+            pointFeature[ rotationField ] = angleDegrees
+            self.updateLayerFeature( pointLayer, pointFeature)
         
         return {self.OUTPUT: ''}
 
