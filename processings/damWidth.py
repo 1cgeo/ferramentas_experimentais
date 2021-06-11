@@ -81,7 +81,7 @@ class DamWidth(QgsProcessingAlgorithm):
         canteiro_divisorio = highwayFeature[ 'canteiro_divisorio' ]
         revestimento = highwayFeature[ 'revestimento' ]
         trafego = highwayFeature[ 'trafego' ]
-        nr_faixas = highwayFeature[ 'nr_faixas' ]
+        nr_faixas = int(highwayFeature[ 'nr_faixas' ])
         jurisdicao = highwayFeature[ 'jurisdicao' ]
         if (
                 tipo in [2,4] 
