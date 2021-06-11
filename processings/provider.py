@@ -45,6 +45,7 @@ from .verifyHydro import VerifyHydrography
 from .rotation import Rotation
 from .verifyCountourStacking import VerifyCountourStacking
 from .damWidth import DamWidth
+from .orderEditLayers import OrderEditLayers
 
 class Provider(QgsProcessingProvider):
 
@@ -91,6 +92,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(Rotation())
         self.addAlgorithm(VerifyCountourStacking())
         self.addAlgorithm(DamWidth())
+        self.addAlgorithm(OrderEditLayers())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
