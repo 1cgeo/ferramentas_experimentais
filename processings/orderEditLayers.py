@@ -94,7 +94,7 @@ class OrderEditLayers(QgsProcessingAlgorithm):
         for stylename, styleid in self.getLayerStyles( layer ):
             if not( stylename == styleName ):
                 continue
-            qml = layer.getStyleFromDatabase( styleid )
+            qml = layer.getStyleFromDatabase( styleid )[0]
             doc = QDomDocument()
             doc.setContent( qml )
             layer.importNamedStyle( doc )
