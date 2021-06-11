@@ -192,6 +192,13 @@ Parâmetros:
 - Campo correspondente a tipo
 - Valor da equidistância entre as cotas
 
+### 39 - Consistência entre Massa d'água(Polígono) e Curva de Nível
+Detecta inconsistências lógicas entre  massas d'água e curvas de nível. Também verifica se, uma vez que a curva cruza a massa d'água, toca em algum trecho de drenagem do tipo *Dentro de polígono*.
+Parâmetros:
+- Camada de massa d'água (polígono)
+- Camada de trechos de drenagem (linha)
+- Camada de curvas de nível (linha)
+- Campo contendo as cotas das curvas de nível
 ## Modelos
 ### 1 - Gera centroide de área edificada
 

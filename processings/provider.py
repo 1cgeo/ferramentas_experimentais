@@ -45,7 +45,11 @@ from .verifyHydro import VerifyHydrography
 from .rotation import Rotation
 from .verifyCountourStacking import VerifyCountourStacking
 from .damWidth import DamWidth
+<<<<<<< HEAD
 from .orderEditLayers import OrderEditLayers
+=======
+from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
+>>>>>>> 4a29dc424c39103599dea1632013d9423b33249b
 
 class Provider(QgsProcessingProvider):
 
@@ -92,7 +96,11 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(Rotation())
         self.addAlgorithm(VerifyCountourStacking())
         self.addAlgorithm(DamWidth())
+<<<<<<< HEAD
         self.addAlgorithm(OrderEditLayers())
+=======
+        self.addAlgorithm(StreamPolygonCountourConsistency())
+>>>>>>> 4a29dc424c39103599dea1632013d9423b33249b
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
