@@ -83,8 +83,9 @@ class LabelTool(QtWidgets.QWidget):
             self.setFieldValue('classe', self.getClasseNameByType( feature['tipo'] ), labelLayer ) #if not( layer.fields().indexOf( 'tipo' ) < 0 ) else ''
             self.setFieldValue('tamanho', feature.geometry().length(), labelLayer )
             self.setFieldValue('escala', self.scaleMapCb.itemData( self.scaleMapCb.currentIndex() ), labelLayer )
-            #iface.activeLayer().startEditing()
-            #iface.actionAddFeature().trigger()
+            iface.setActiveLayer( labelLayer )
+            labelLayer.startEditing()
+            iface.actionAddFeature().trigger()
         except Exception as e:
             self.showQgisErrorMessage('Erro', str(e))
 
