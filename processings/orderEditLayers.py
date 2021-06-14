@@ -57,34 +57,40 @@ class OrderEditLayers(QgsProcessingAlgorithm):
         stylenameMap = self.parameterAsFile(parameters, self.STYLENAME_MAP, context)
         stylenameMiniMap = self.parameterAsFile(parameters, self.STYLENAME_MINIMAP, context)
         
+        iface.mapCanvas().freeze(True)
+
         jsonConfigData = self.getJSONConfig( jsonFilePath )
 
         root = core.QgsProject.instance().layerTreeRoot()
-        treeLayers = root.findLayers()
+        layers = core.QgsProject.instance().mapLayers().values()
 
         miniMapGroup = root.addGroup('carta_mini')
-        self.order( jsonConfigData['carta_mini'], stylenameMiniMap, miniMapGroup, treeLayers)
-        
         mapGroup = root.addGroup('carta')
-        self.order( jsonConfigData['carta'], stylenameMap, mapGroup, treeLayers)
+
+        self.order( jsonConfigData['carta_mini'], stylenameMiniMap, miniMapGroup, layers)
+        self.order( jsonConfigData['carta'], stylenameMap, mapGroup, layers)
+        
+        iface.mapCanvas().freeze( False )
 
         return {self.OUTPUT: ''}
 
-    def order(self, layerNames, styleName, groupLayer, treeLayers):
+    def order(self, layerNames, styleName, groupLayer, layers):
         for layerName in layerNames:
-            layer = self.getLayer(layerName, treeLayers)
+            layer = self.getLayer(layerName, layers)
             if not layer:
                 continue
             self.loadStyle( layer, styleName )
+            core.QgsProject.instance().addMapLayer( layer, False )
             groupLayer.addLayer( layer )
 
-    def getLayer(self, layerName, treeLayers):
-        for treeLayer in treeLayers:
+
+    def getLayer(self, layerName, layers):
+        for layer in layers:
             if not(
-                    treeLayer.layer().dataProvider().uri().table() == layerName
+                    layer.dataProvider().uri().table() == layerName
                 ):
                 continue 
-            return treeLayer.clone().layer()
+            return core.QgsVectorLayer( layer.source(), layer.name(),  layer.providerType() )
 
     def getJSONConfig(self, jsonFilePath):
         with open(jsonFilePath, 'r') as f:
