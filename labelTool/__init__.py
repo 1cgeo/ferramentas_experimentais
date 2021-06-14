@@ -80,7 +80,7 @@ class LabelTool(QtWidgets.QWidget):
             feature = selectedFeatures[0]
             self.setFieldValue('texto', feature['nome'], labelLayer ) #if not( layer.fields().indexOf( 'nome' ) < 0 ) else ''
             self.setFieldValue('carta_mini', False, labelLayer )
-            self.setFieldValue('classe', self.getClasseNameByType( feature['tipo'] ), labelLayer ) #if not( layer.fields().indexOf( 'tipo' ) < 0 ) else ''
+            self.setFieldValue('classe', self.getClasseNameByType( feature['situacao_em_poligono'] ), labelLayer ) #if not( layer.fields().indexOf( 'tipo' ) < 0 ) else ''
             self.setFieldValue('tamanho', feature.geometry().length(), labelLayer )
             self.setFieldValue('escala', self.scaleMapCb.itemData( self.scaleMapCb.currentIndex() ), labelLayer )
             iface.setActiveLayer( labelLayer )
