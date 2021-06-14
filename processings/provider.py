@@ -48,6 +48,7 @@ from .damWidth import DamWidth
 from .orderEditLayers import OrderEditLayers
 from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
 from .snapPointsInLines import SnapPointsInLines
+from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
 
 class Provider(QgsProcessingProvider):
 
@@ -97,6 +98,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(OrderEditLayers())
         self.addAlgorithm(StreamPolygonCountourConsistency())
         self.addAlgorithm(SnapPointsInLines())
+        self.addAlgorithm(SnapPointsInLinesIntersection())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
