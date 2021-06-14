@@ -239,7 +239,7 @@ Cria um campo na tabela de atributos da camada ativa, como armazenamento auxilia
 O propósito original dessa ferramenta é calcular o azimute de pistas de pouso no padrão do MGCP.
 
 ### 2- Copia WKT 
-Copia, para a área de transferência, a geometria das feições selecionadas em WKT.
+Copia, para a área de transferência, a geometria das feições selecionadas em WKT. O usuário escolher em qual sistema de coordenadas a geometria das feições serão copiadas.
 
 ### 3- Copia-Cola Geometria
 Botão Copiar Geometria: copia, para uma variável interna do QGIS, a geometria da feição selecionada. Botão Colar Geometria:  substitui a geometria da feição selecionada de acordo com a geometria armazenada na variável interna. A geometria só é substituída se a camada da geometria de origem for do mesmo tipo geométrico da camada de destino. Copia e substitui apenas uma feição por vez.
