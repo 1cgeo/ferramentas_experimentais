@@ -66,7 +66,7 @@ class OrderEditLayers(QgsProcessingAlgorithm):
         self.order( jsonConfigData['carta_mini'], stylenameMiniMap, miniMapGroup, treeLayers)
         
         mapGroup = root.addGroup('carta')
-        #self.order( jsonConfigData['carta'], stylenameMap, mapGroup, treeLayers)
+        self.order( jsonConfigData['carta'], stylenameMap, mapGroup, treeLayers)
 
         return {self.OUTPUT: ''}
 
