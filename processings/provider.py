@@ -49,6 +49,8 @@ from .orderEditLayers import OrderEditLayers
 from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
 from .snapPointsInLines import SnapPointsInLines
 from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
+from .loadMasks import LoadMasks
+from .saveMasks import SaveMasks
 
 class Provider(QgsProcessingProvider):
 
@@ -99,6 +101,9 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(StreamPolygonCountourConsistency())
         self.addAlgorithm(SnapPointsInLines())
         self.addAlgorithm(SnapPointsInLinesIntersection())
+        self.addAlgorithm(LoadMasks())
+        self.addAlgorithm(SaveMasks())
+        
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
