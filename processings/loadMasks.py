@@ -92,42 +92,6 @@ class LoadMasks(QgsProcessingAlgorithm):
 
         return {self.OUTPUT: ''}
 
-    def order(self, layerNames, styleName, groupLayer, layers):
-        for layerName in layerNames:
-            layer = self.getLayer(layerName, layers)
-            if not layer:
-                continue
-            self.loadStyle( layer, styleName )
-            core.QgsProject.instance().addMapLayer( layer, False )
-            groupLayer.addLayer( layer )
-
-
-    def getLayer(self, layerName, layers):
-        for layer in layers:
-            if not(
-                    layer.dataProvider().uri().table() == layerName
-                ):
-                continue 
-            return core.QgsVectorLayer( layer.source(), layer.name(),  layer.providerType() )
-
-    def getJSONConfig(self, jsonFilePath):
-        with open(jsonFilePath, 'r') as f:
-            return json.load( f )
-
-    def loadStyle(self, layer, styleName):
-        for stylename, styleid in self.getLayerStyles( layer ):
-            if not( stylename == styleName ):
-                continue
-            qml = layer.getStyleFromDatabase( styleid )[0]
-            doc = QDomDocument()
-            doc.setContent( qml )
-            layer.importNamedStyle( doc )
-            layer.triggerRepaint()
-
-    def getLayerStyles(self, layer):
-        stylesData = layer.listStylesInDatabase()
-        return zip(stylesData[2][:stylesData[0]], stylesData[1][:stylesData[0]])
-
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
 
