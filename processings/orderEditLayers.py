@@ -76,7 +76,7 @@ class OrderEditLayers(QgsProcessingAlgorithm):
 
     def order(self, layerNames, styleName, groupLayer, layers):
         for layerName in layerNames:
-            layer = self.getLayer(layerName, layers)
+            layer = self.getLayer(layerName["tabela"], layers)
             if not layer:
                 continue
             self.loadStyle( layer, styleName )
