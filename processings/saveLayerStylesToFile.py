@@ -19,19 +19,20 @@ from qgis import processing
 from qgis import core, gui
 from qgis.utils import iface
 import os
+from processing.gui.wrappers import WidgetWrapper
+from PyQt5 import QtCore, uic, QtWidgets, QtGui
 
 class SaveLayerStylesToFile(QgsProcessingAlgorithm): 
 
-    INPUT_LAYERS = 'INPUT_LAYER_LIST'
+    GROUP = 'GROUP'
     FOLDER_OUTPUT = 'FOLDER_OUTPUT'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
-            QgsProcessingParameterMultipleLayers(
-                self.INPUT_LAYERS,
-                self.tr('Selecionar camadas'),
-                QgsProcessing.TypeVectorAnyGeometry
+            ParameterGroup(
+                self.GROUP,
+                description='Grupo'
             )
         )
 
@@ -42,15 +43,25 @@ class SaveLayerStylesToFile(QgsProcessingAlgorithm):
             )
         )
 
-    def processAlgorithm(self, parameters, context, feedback):      
-        layerList = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
+    def parameterAsGroup(self, parameters, name, context):
+        return parameters[name]
+
+    def processAlgorithm(self, parameters, context, feedback):   
+        groupName = self.parameterAsGroup(parameters, self.GROUP, context)
         folderOutput = self.parameterAsFileOutput(parameters, self.FOLDER_OUTPUT, context)
 
-        listSize = len(layerList)
+        group = core.QgsProject.instance().layerTreeRoot().findGroup( groupName )
+
+        if not group:
+            raise Exception('Grupo não encontrado!')
+
+        layers = [  layerTree.layer() for layerTree in group.findLayers() ]        
+
+        listSize = len(layers)
         progressStep = 100/listSize if listSize else 0
         step = 0
 
-        for step, layer in enumerate(layerList):
+        for step, layer in enumerate(layers):
             styleName = layer.styleManager().currentStyle()
             xmlData = layer.styleManager().style( styleName ).xmlData()
             self.exportToFile(
@@ -63,7 +74,6 @@ class SaveLayerStylesToFile(QgsProcessingAlgorithm):
 
 
     def exportToFile(self, filePath, data):
-        print(filePath, data)
         with open(filePath, 'w') as f:
             f.write( data )
         
@@ -87,4 +97,69 @@ class SaveLayerStylesToFile(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return self.tr("O algoritmo ...")
+
+
+
+class GroupsWidgetWrapper(WidgetWrapper):
+    def __init__(self, *args, **kwargs):
+        super(GroupsWidgetWrapper, self).__init__(*args, **kwargs)
+    
+    def getGroupNames(self):
+        return [
+            g.name()
+            for g in  core.QgsProject.instance().layerTreeRoot().findGroups()
+        ]
+
+    def createWidget(self):
+        self.widget = QtWidgets.QComboBox()
+        self.widget.addItems( self.getGroupNames() )
+        self.widget.dialogType = self.dialogType
+        return self.widget
+    
+    def parentLayerChanged(self, layer=None):
+        pass
+    
+    def setLayer(self, layer):
+        pass
+    
+    def setValue(self, value):
+        pass
+
+    def value(self):
+        return self.widget.currentText()
+    
+    def postInitialize(self, wrappers):
+        pass
+
+class ParameterGroup(core.QgsProcessingParameterDefinition):
+
+    def __init__(self, name, description=''):
+        super().__init__(name, description)
+
+    def clone(self):
+        copy = ParameterGroup(self.name(), self.description())
+        return copy
+
+    def type(self):
+        return self.typeName()
+
+    @staticmethod
+    def typeName():
+        return 'group'
+
+    def checkValueIsAcceptable(self, value, context=None):
+        return True
+
+    def metadata(self):
+        return {'widget_wrapper': 'ferramentas_experimentais.processings.saveLayerStylesToFile.GroupsWidgetWrapper' }
+
+    def valueAsPythonString(self, value, context):
+        return str(value)
+
+    def asScriptCode(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def fromScriptCode(cls, name, description, isOptional, definition):
+        raise NotImplementedError()
     
