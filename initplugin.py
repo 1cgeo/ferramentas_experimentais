@@ -13,7 +13,7 @@ from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
 from .filters import filterBySelection
-from .labelTool import LabelTool
+from .labelTool import HydroLabelTool, HighwayLabelTool
 
 from .processings.provider import Provider
 
@@ -23,7 +23,8 @@ class InitPlugin:
         self.iface = iface
         self.cortaWidget = CortaTool( callback=cortaFundoVale )
         self.spatialFilterTool = SpatialFilter()
-        self.labelTool = LabelTool()
+        self.hydroLabelTool = HydroLabelTool()
+        self.highwayLabelTool = HighwayLabelTool()
         self.provider = None
         self.toolBar = None
         self.toolBar2 = None
@@ -107,7 +108,9 @@ class InitPlugin:
         self.toolBar.addAction(self.filterBySelection)
         
 
-        self.toolBar2.addWidget( self.labelTool )
+        self.toolBar2.addWidget( self.hydroLabelTool )
+
+        self.toolBar2.addWidget( self.highwayLabelTool )
         # Addprovider
         PluginAlg.initProcessing(self)
 
@@ -117,12 +120,18 @@ class InitPlugin:
         self.iface.mainWindow().removeToolBar(self.toolBar2)
 
     def createAction(self, text, icon, callback, whatisthis, tip):
-        iconPath = self.getPluginIconPath(icon)
-        action = QAction(
-            QIcon(iconPath),
-            text,
-            self.iface.mainWindow()
-        )
+        if icon:
+            iconPath = self.getPluginIconPath(icon)
+            action = QAction(
+                QIcon(iconPath),
+                text,
+                self.iface.mainWindow()
+            )
+        else:
+            action = QAction(
+                text,
+                self.iface.mainWindow()
+            )
         action.triggered.connect(callback)
         action.setWhatsThis(whatisthis)
         action.setStatusTip(tip)
