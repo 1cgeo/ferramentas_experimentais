@@ -71,9 +71,13 @@ class SpatialFilter:
 
             string = U"st_intersects(geom,st_geomfromewkt('SRID="+rep+";"+g+"'))"
             
-            layers = iface.mapCanvas().layers()
+            layers = core.QgsProject.instance().mapLayers().values()
+            
+            layersBacklist = self.getLayersBacklist()
             
             for layer in layers:
+                if layer.dataProvider().uri().table() in layersBacklist:
+                    continue
                 try:
                     layer.setSubsetString(string)
                 except Exception:
@@ -81,6 +85,11 @@ class SpatialFilter:
             
             self.myRubberBand.reset(core.QgsWkbTypes.PolygonGeometry)
             self.disconnect()
+
+    def getLayersBacklist(self):
+        return [
+            'aux_moldura_a'
+        ]
 
     def mouseMove( self, currentPos ):
         if self.isEditing == 1:

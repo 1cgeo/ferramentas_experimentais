@@ -12,7 +12,7 @@ from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
 from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
-from .filters import filterBySelection
+from .filters import filterSelections, cleanAllFilters, filterBySelectedGeometries
 from .labelTool import HydroLabelTool, HighwayLabelTool
 
 from .processings.provider import Provider
@@ -98,14 +98,32 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.restoreFields)
 
-        self.filterBySelection = self.createAction(
+        self.filterSelections = self.createAction(
             "Filtra selecionados", 
             "filter.svg", 
-            filterBySelection, 
+            filterSelections, 
             "Filtra selecionados",
             "Filtra selecionados"
         )
-        self.toolBar.addAction(self.filterBySelection)
+        self.toolBar.addAction(self.filterSelections)
+
+        self.filterBySelectedGeometries = self.createAction(
+            "Filtra Todos por geometria de selecionadas", 
+            "filterByGeomtries.png", 
+            filterBySelectedGeometries, 
+            "",
+            ""
+        )
+        self.toolBar.addAction(self.filterBySelectedGeometries)
+
+        self.removeSpatialFilter = self.createAction(
+            "Remove filtros", 
+            "removeSpatialFilter.png", 
+            cleanAllFilters, 
+            "",
+            ""
+        )
+        self.toolBar.addAction(self.removeSpatialFilter)
         
 
         self.toolBar2.addWidget( self.hydroLabelTool )
