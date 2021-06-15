@@ -63,13 +63,14 @@ class LoadMasks(QgsProcessingAlgorithm):
 
         layers = [  layerTree.layer() for layerTree in group.findLayers() ]
 
-        mapId = {layer.name() : layer.id() for layer in layers}
+        mapId = {layer.dataProvider().uri().table() : layer.id() for layer in layers}
 
         for layer in layers:
-            if not layer.name() in mask_dict:
+            layerName = layer.dataProvider().uri().table()
+            if not layerName in mask_dict:
                 continue
             labels = layer.labeling()
-            for provider in mask_dict[layer.name()]:
+            for provider in mask_dict[layerName]:
                 if provider == '--SINGLE--RULE--':
                     label_settings=labels.settings()
                 else:
@@ -78,7 +79,7 @@ class LoadMasks(QgsProcessingAlgorithm):
                 label_format = label_settings.format()
                 masks = label_format.mask()
                 new_symbol_mask = []
-                for symbol in mask_dict[layer.name()][provider]:
+                for symbol in mask_dict[layerName][provider]:
                     symbol_id = core.QgsSymbolLayerId(symbol[1], symbol[2])
                     reference = core.QgsSymbolLayerReference(mapId[symbol[0]], symbol_id)
                     new_symbol_mask.append(reference)

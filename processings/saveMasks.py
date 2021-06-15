@@ -44,6 +44,7 @@ class SaveMasks(QgsProcessingAlgorithm):
         layers = core.QgsProject.instance().mapLayers().values()
         mask_dict = {}
         for layer in layers:
+            layerName = layer.dataProvider().uri().table()
             if not layer.type() == core.QgsMapLayer.VectorLayer:
                 continue
             labels = layer.labeling()
@@ -67,11 +68,11 @@ class SaveMasks(QgsProcessingAlgorithm):
                 if masks.enabled():
                     symbols = masks.maskedSymbolLayers()
                     for symbol in symbols:
-                        if not layer.name() in mask_dict:
-                            mask_dict[layer.name()] = {}
-                        if not providerMap[provider] in mask_dict[layer.name()]:
-                            mask_dict[layer.name()][providerMap[provider]] = []
-                        mask_dict[layer.name()][providerMap[provider]].append([symbol.layerId()[:-37], symbol.symbolLayerId().symbolKey(), symbol.symbolLayerId().symbolLayerIndexPath()])
+                        if not layerName in mask_dict:
+                            mask_dict[layerName] = {}
+                        if not providerMap[provider] in mask_dict[layerName]:
+                            mask_dict[layerName][providerMap[provider]] = []
+                        mask_dict[layerName][providerMap[provider]].append([symbol.layerId()[:-37], symbol.symbolLayerId().symbolKey(), symbol.symbolLayerId().symbolLayerIndexPath()])
         with open('{0}'.format( fileOutput ), 'w') as f:
             json.dump(mask_dict, f)
         return {self.OUTPUT: ''}
