@@ -5,13 +5,13 @@ from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
-                       QgsProcessingParameterBoolean,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterField,
                        QgsProcessingParameterNumber,
                        QgsFeature,
                        QgsField,
-                       QgsProcessingFeatureSourceDefinition
+                       QgsProcessingFeatureSourceDefinition,
+                       QgsFeatureRequest
                        )
 from qgis import processing
 
@@ -70,14 +70,20 @@ class VerifyCountourStacking(QgsProcessingAlgorithm):
         levelsField = self.parameterAsFields( parameters,'INPUT_LEVES_FIELD', context )[0]
         levelGap = self.parameterAsDouble (parameters,'INPUT_LEVEL_GAP', context)
         isDepressionField = self.parameterAsFields (parameters,'INPUT_IS_DEPRESSION_FIELD', context)[0]
-        countourLayerPolyHoles = self.lineToPolygons(countourLayer,context, feedback)
-        countourLayerPoly = self.fillHoles(countourLayerPolyHoles, context, feedback)
-        countourLayerFeatures = self.createFeaturesArray(countourLayer)
-        countourLayerPolyFeatures = self.createFeaturesArray(countourLayerPoly)
-        outputPolygons = []
         feedback.setProgressText('Verificando inconsistencias ')
-        self.fillField(levelsField, countourLayerFeatures, countourLayerPolyFeatures)
-        self.compareLevel(levelsField, levelGap, isDepressionField, countourLayerPolyFeatures, outputPolygons)
+        step =1
+        progressStep = 100/4
+        countourLayerPolyHoles = self.lineToPolygons(countourLayer,context, feedback)
+        step +=1
+        feedback.setProgress( step * progressStep )
+        countourLayerPoly = self.fillHoles(countourLayerPolyHoles, context, feedback)
+        step +=1
+        feedback.setProgress( step * progressStep )
+        outputPolygons = []
+        self.fillField(countourLayer, countourLayerPoly)
+        step +=1
+        feedback.setProgress( step * progressStep )
+        self.compareLevel(levelsField, levelGap, isDepressionField, countourLayerPoly, outputPolygons, feedback, step, progressStep)
         if outputPolygons:
             newLayer = self.outLayer(parameters, context, outputPolygons, countourLayer)
         else: 
@@ -116,22 +122,43 @@ class VerifyCountourStacking(QgsProcessingAlgorithm):
             feedback = feedback
         )
         return r['OUTPUT']  
-    def fillField(self, levelsField, countourLayerFeatures, countourLayerPolyFeatures):
-        for feature1 in countourLayerFeatures:
-            for feature2 in countourLayerPolyFeatures:
-                if feature1.geometry().touches(feature2.geometry()):
-                    for field in feature1.fields():
-                        feature2[field.name()] =  feature1[field.name()]
+    def fillField(self, countourLayer, countourLayerPoly):
+        countourLayerPoly.startEditing()
+        pr = countourLayerPoly.dataProvider()
+        updateMap = {}
+        for feature1 in pr.getFeatures():
+            AreaOfInterest = feature1.geometry().boundingBox()
+            request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
+            for feature2 in countourLayer.getFeatures(request):
+                if feature2.geometry().touches(feature1.geometry()):
+                    fv = {}
+                    for field in feature2.fields():
+                        fieldIdx = pr.fields().indexFromName( field.name())
+                        fv[fieldIdx] = feature2[field.name()]
+                        
+                        feature1[field.name()] =  feature2[field.name()]
+                    updateMap[feature1.id()] = fv
+        pr.changeAttributeValues( updateMap )
+        countourLayerPoly.commitChanges()
         return False
-
-    def compareLevel(self, levelsField, levelGap, isDepressionField, countourLayerPolyFeatures, outputPolygons):
+    def compareLevel(self, levelsField, levelGap, isDepressionField, countourLayerPoly, outputPolygons, feedback, step, progressStep):
         isDep = 1
-        isNotDep = 0        
-        for feature1 in countourLayerPolyFeatures:
+        isNotDep = 0  
+        auxstep = 0
+        AUXCOUNT = 0
+        auxProgressStep = countourLayerPoly.featureCount()
+        for feature1 in countourLayerPoly.getFeatures():
+            AUXCOUNT += 1
+            auxcount=0
+            auxstep+=1
+            feedback.setProgress( step*(1+(auxstep/auxProgressStep)) * progressStep )
             toCompare = []
             areaComp = []
             skip = True
-            for feature2 in countourLayerPolyFeatures:
+            AreaOfInterest = feature1.geometry().boundingBox()
+            request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
+            for feature2 in countourLayerPoly.getFeatures(request):
+                auxcount+=1
                 if str(feature1.geometry())==str(feature2.geometry()):
                     continue
                 if feature1.geometry().within(feature2.geometry()):
