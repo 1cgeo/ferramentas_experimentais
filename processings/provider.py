@@ -53,12 +53,9 @@ from .loadMasks import LoadMasks
 from .saveMasks import SaveMasks
 from .snapLineInAnchor import SnapLineInAnchor
 from .removeDuplicatePoints import RemoveDuplicatePoints
-<<<<<<< HEAD
 from .bridgeAndManholeWidth import BridgeAndManholeWidth
 from .bridgeAndManholeRotation import BridgeAndManholeRotation
-=======
 from .verifyTransports import VerifyTransports
->>>>>>> 5cc91dac4408baffc7ac993785d29c64c6a99f4e
 
 class Provider(QgsProcessingProvider):
 
@@ -113,13 +110,10 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(SaveMasks())
         self.addAlgorithm(SnapLineInAnchor())
         self.addAlgorithm(RemoveDuplicatePoints())
-<<<<<<< HEAD
         self.addAlgorithm(BridgeAndManholeWidth())
         self.addAlgorithm(BridgeAndManholeRotation())
         
-=======
         self.addAlgorithm(VerifyTransports())
->>>>>>> 5cc91dac4408baffc7ac993785d29c64c6a99f4e
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
