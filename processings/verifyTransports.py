@@ -173,11 +173,11 @@ class VerifyTransports(QgsProcessingAlgorithm):
             auxstep = count+1
             for road in roadslayerFeatures:
                 DRintersect = dam.geometry().intersection(road.geometry())
-                if dam['em_via_des']==1:
+                if dam['em_via_deslocamento']==1:
                     if not (DRintersect.isNull() or DRintersect.isEmpty()):
                         if not DRintersect.within(road.geometry()):
                             outputLines.append([dam.geometry(), 5])
-                if dam['em_via_des']==2:
+                if dam['em_via_deslocamento']==2:
                     if dam.geometry().crosses(road.geometry()) or dam.geometry().within(road.geometry()) or dam.geometry().overlaps(road.geometry()):
                         outputLines.append([dam.geometry(), 6])
             feedback.setProgress( step*(1+((auxstep)/len(damLineFeatures))) * progressStep )

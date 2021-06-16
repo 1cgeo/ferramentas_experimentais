@@ -213,8 +213,9 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                     break
                 if river.geometry().within(waterBody.geometry()):
                     outsideWaterbody = False
+
             if outsideWaterbody and not crossedWaterbody:
-                if not river['situacao_e']==1:
+                if not river['situacao_em_poligono']==1:
                     outputLines.append([river.geometry(), 5])
                     returnNow = True
         return returnNow
@@ -243,7 +244,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             for damPoly in damPolyFeatures:
                 if river.geometry().intersects(damPoly.geometry()) and not (river.geometry().intersection(damPoly.geometry()).equals(ptIni) or river.geometry().intersection(damPoly.geometry()).equals(ptFin)):
                     outputLines.append([river.geometry(), 11])
-            if river['situacao_e'] in [1,2,4]:
+            if river['situacao_em_poligono'] in [1,2,4]:
                 self.verifyStretchs(river, streamLayerFeatures, waterBodyFeatures,ptIni, ptFin, points, outputLines, index)
             initRiverOptions = waterBodyFeatures + spillwayFeatures
             if len(lineTouched) == 0:
@@ -286,23 +287,23 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             if river == anotherRiver:
                 continue
             if ptIni.intersects(anotherRiver.geometry()):
-                if anotherRiver['situacao_e' ] ==1:
+                if anotherRiver['situacao_em_poligono' ] ==1:
                     iniIntersectedOutsideRiver = True
-                if anotherRiver['situacao_e' ] ==2:
+                if anotherRiver['situacao_em_poligono' ] ==2:
                     iniIntersectedPrimaryRiver = True
-                if anotherRiver['situacao_e' ] ==3:
+                if anotherRiver['situacao_em_poligono' ] ==3:
                     iniIntersectedSecondaryRiver = True
             if ptFin.intersects(anotherRiver.geometry()):
                 finIntersectedAnyRiver = True
-                if anotherRiver['situacao_e' ] ==1:
+                if anotherRiver['situacao_em_poligono' ] ==1:
                     finIntersectedOutsideRiver = True
-                if anotherRiver['situacao_e' ] ==2:
+                if anotherRiver['situacao_em_poligono' ] ==2:
                     finIntersectedPrimaryRiver += 1
-                if anotherRiver['situacao_e' ] ==3:
+                if anotherRiver['situacao_em_poligono' ] ==3:
                     finIntersectedSecondaryRiver += 1
-                if anotherRiver['situacao_e' ] ==4:
+                if anotherRiver['situacao_em_poligono' ] ==4:
                     finIntersectedSharedRiver = True
-        if river['situacao_e'] == 2 or river['situacao_e'] == 1 or river['situacao_e'] == 4:
+        if river['situacao_em_poligono'] == 2 or river['situacao_em_poligono'] == 1 or river['situacao_em_poligono'] == 4:
             for waterBody in waterBodyFeatures:
                 if ptIni.intersects(waterBody.geometry()):
                     if waterBody['tipo'] in Flow:
@@ -318,12 +319,12 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                 if ptIni.touches(waterBody.geometry()):
                     if waterBody['tipo'] in Flow:
                         iniTouchedFlow +=1
-                if river['situacao_e'] == 4:
+                if river['situacao_em_poligono'] == 4:
                     continue
                 if river.geometry().within(waterBody.geometry()):
                     if not river['nome']==waterBody['nome']:
                         outputLines.append([river.geometry(), 19])
-        if river['situacao_e'] == 4:
+        if river['situacao_em_poligono'] == 4:
             if (not iniIntersectedFlow) or (not finIntersectedFlow):
                 outputLines.append([river.geometry(), 33])
             if (not iniIntersectedOutsideRiver) and iniTouchedFlow==1:
@@ -336,7 +337,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                 points.append([ptIni, 31])
             if finTouchedFlow>0 and not(finIntersectedPrimaryRiver>1 or finIntersectedSecondaryRiver>1 or finIntersectedOutsideRiver):
                 points.append([ptFin, 31])
-        if river['situacao_e'] == 2:
+        if river['situacao_em_poligono'] == 2:
             if finTouchedNoFlow:
                 if finIntersectedAnyRiver:
                     points.append([ptFin, 16])
@@ -347,7 +348,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                 points.append([ptFin, 14])
             if (not iniIntersectedOutsideRiver) and (not iniIntersectedPrimaryRiver):
                 points.append([ptIni, 17])
-        if river['situacao_e'] == 1:
+        if river['situacao_em_poligono'] == 1:
             if finTouchedFlow>0:
                 if (finIntersectedPrimaryRiver<1) and (not finIntersectedSharedRiver):
                     points.append([ptFin, 18])
@@ -387,7 +388,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                     ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
                 if river.geometry().within(waterBody.geometry()):
                     containsRiver = True
-                    if river['situacao_e']==2:
+                    if river['situacao_em_poligono']==2:
                         containsPrimaryRiver = True
                 if waterBody.geometry().intersects(ptIni):
                     intersectsIni = True
@@ -493,7 +494,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             if hydroPoint['tipo'] ==12:
                 for river in streamLayerFeatures:
                     if hydroPoint.geometry().intersects(river.geometry()):
-                        if river['situacao_e']==1:
+                        if river['situacao_em_poligono']==1:
                             intersectsOutsideRiver = True
                             break
                 if not intersectsOutsideRiver:
@@ -514,7 +515,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                     continue
                 if not insideWaterbody:
                     for river in streamLayerFeatures:
-                        if river['situacao_e']==1:
+                        if river['situacao_em_poligono']==1:
                             if hydroLine.geometry().within(river.geometry()):
                                 withinOutsideRiver = True
                                 break
@@ -530,10 +531,10 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                         if (not inters.type()==0) or inters.isMultipart():
                             outputLines.append([hydroLine.geometry(), 23])
                             continue
-                        if not (river['situacao_e']==2 or river['situacao_e']==3):
+                        if not (river['situacao_em_poligono']==2 or river['situacao_em_poligono']==3):
                             outputLines.append([hydroLine.geometry(), 24])
                             continue
-                        if river['situacao_e']==2:
+                        if river['situacao_em_poligono']==2:
                             intersectsPrimaryRiver +=1
                     if intersectsPrimaryRiver >1:
                         outputLines.append([hydroLine.geometry(), 25])        
