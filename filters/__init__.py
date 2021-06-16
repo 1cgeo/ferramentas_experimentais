@@ -46,9 +46,9 @@ def filterSelections():
     layer = iface.activeLayer()
     if not layer:
         return
-    selectedFeatureIds = layer.selectedFeatureIds()
-    if not selectedFeatureIds:
+    selectedFeatures = layer.selectedFeatures()
+    if not selectedFeatures:
         return
     primaryKeyIndex = layer.primaryKeyAttributes()[0]
-    primaryKeyName = layer.fields().names()[ primaryKeyIndex ]
-    layer.setSubsetString( '"{0}" in ({1})'.format( primaryKeyName, ','.join([ str(i) for i in selectedFeatureIds]) ) )
+    primaryKeyName = layer.fields().names()[ primaryKeyIndex ] #FIX ME for integer id
+    layer.setSubsetString( '"{0}" in ({1})'.format( primaryKeyName, ','.join([ "'{}'".format(str(i[primaryKeyName])) for i in selectedFeatures]) ) )
