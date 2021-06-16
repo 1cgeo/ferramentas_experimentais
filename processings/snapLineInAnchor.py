@@ -60,7 +60,7 @@ class SnapLineInAnchor(QgsProcessingAlgorithm):
         lineAnchorLayer = self.parameterAsVectorLayer(parameters, self.INPUT_ANCHOR, context)
         snapDistance = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
         self.snapLineInAnchor( lineLayer, lineAnchorLayer, snapDistance)
-        self.snapLineInAnchor( lineAnchorLayer, lineLayer, snapDistance)
+        self.snapAnchorInLine( lineLayer, lineAnchorLayer, snapDistance)
         return {self.OUTPUT_P: ''}
 
     def snapLineInAnchor(self, lineLayer, lineAnchorLayer, snapDistance):
@@ -90,6 +90,33 @@ class SnapLineInAnchor(QgsProcessingAlgorithm):
                         continue
                     lineGeometry.moveVertex( projectedPoint, linePointIdx )
                     self.updateLayerFeature(lineLayer, lineFeature, lineGeometry)
+
+    def snapAnchorInLine(self, lineLayer, lineAnchorLayer, snapDistance):
+        for lineFeature in lineLayer.getFeatures():
+            lineGeometry = lineFeature.geometry()
+            request = self.getFeatureRequest( lineGeometry , snapDistance )
+            lineAnchorFeatures = lineAnchorLayer.getFeatures( request )
+            for lineAnchorFeature in lineAnchorFeatures:
+                lineAnchorGeometry = lineAnchorFeature.geometry()
+                lineAnchorVertices = list(lineAnchorFeature.geometry().vertices())
+                for lineAnchorPointIdx, lineAnchorPoint in enumerate(lineAnchorVertices):                
+                    vertex, vertexId = self.closestVertex(lineAnchorPoint, lineFeature, snapDistance)
+                    if vertex:
+                        #snap vertex
+                        projectedPoint = vertex
+                    elif self.closestSegment(lineAnchorPoint, lineFeature, snapDistance):
+                        #snap segment
+                        projectedPoint = core.QgsGeometryUtils.closestPoint( 
+                            lineGeometry.constGet().clone(), 
+                            core.QgsPoint(lineAnchorPoint.x(), lineAnchorPoint.y()) 
+                        )
+                        distance, p, after, orient = lineGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
+                        lineGeometry.insertVertex( projectedPoint, after )
+                        self.updateLayerFeature(lineLayer, lineFeature, lineGeometry)
+                    else:
+                        continue
+                    lineAnchorGeometry.moveVertex( projectedPoint, lineAnchorPointIdx )
+                    self.updateLayerFeature(lineAnchorLayer, lineAnchorFeature, lineAnchorGeometry)
 
     def closestVertex(self, point, otherFeature, snapDistance):
         vertex, vertexId = core.QgsGeometryUtils.closestVertex( 
