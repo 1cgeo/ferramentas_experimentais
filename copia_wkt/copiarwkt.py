@@ -13,7 +13,12 @@ class GetCrsDialog(QDialog):
         super(GetCrsDialog, self).__init__()
         uic.loadUi(self.getUiPath(), self)
         self.buttonBox.addButton("Sim", QDialogButtonBox.AcceptRole)
-        self.buttonBox.addButton("Não", QDialogButtonBox.RejectRole)
+        self.buttonBox.addButton("Não mudar", QDialogButtonBox.RejectRole)
+        
+
+    def setCrsValue(self, value):
+        self.selectCRS.setCrs( value)
+
     def getUiPath(self):
         return os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
@@ -28,8 +33,8 @@ class GetCrsDialog(QDialog):
 
 def copywkt():
     layer = iface.activeLayer()
-    getCrsDialog = GetCrsDialog()
-    result, destCrs = callDialog()
+    
+    result, destCrs = callDialog(layer.crs())
     wktcoord = []
     for feature in layer.getSelectedFeatures():
         geom = feature.geometry()
@@ -41,19 +46,13 @@ def copywkt():
         '\n'.join(wktcoord)
     )
     iface.messageBar().pushMessage("Executado",
-                                    u" As coordenadas das feições selecionadas foram copiadas em WKT", level=Qgis.Success, duration=5)
-def getUiPath(self):
-        return os.path.join(
-            os.path.abspath(os.path.dirname(__file__)),
-            '..',
-            'ui',
-            'changeCRS.ui'
-        )
-def callDialog():
+                                    u" As coordenadas das feições selecionadas foram copiadas em WKT para o sistema {}".format(destCrs.authid()), level=Qgis.Success, duration=5)
+
+def callDialog(crsvalue):
     getCrsDialog = GetCrsDialog()
+    getCrsDialog.setCrsValue(crsvalue)
     result = getCrsDialog.exec_()
     crs = getCrsDialog.getCrs()
-    retry = False
     if result and not crs.isValid():
         errorAction()
         return callDialog()
