@@ -91,7 +91,7 @@ class RemoveDuplicatePoints(QgsProcessingAlgorithm):
         return 'removeduplicatepoints'
 
     def displayName(self):
-        return self.tr('Remover Pontos Duplicados')
+        return self.tr('Remover Vértices Duplicados')
 
     def group(self):
         return self.tr('Missoes')
