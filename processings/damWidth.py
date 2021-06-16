@@ -42,7 +42,7 @@ class DamWidth(QgsProcessingAlgorithm):
                 self.tr('Selecionar o atributo de largura'), 
                 type=core.QgsProcessingParameterField.Any, 
                 parentLayerParameterName=self.INPUT_DAM,
-                allowMultiple=True
+                allowMultiple=False
             )
         )
         self.addParameter(
@@ -81,7 +81,7 @@ class DamWidth(QgsProcessingAlgorithm):
         canteiro_divisorio = highwayFeature[ 'canteiro_divisorio' ]
         revestimento = highwayFeature[ 'revestimento' ]
         trafego = highwayFeature[ 'trafego' ]
-        nr_faixas = int(highwayFeature[ 'nr_faixas' ])
+        nr_faixas = int(highwayFeature[ 'nr_faixas' ]) if highwayFeature[ 'nr_faixas' ] else False
         jurisdicao = highwayFeature[ 'jurisdicao' ]
         if (
                 tipo in [2,4] 
