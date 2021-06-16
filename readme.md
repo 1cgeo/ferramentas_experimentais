@@ -199,6 +199,15 @@ Parâmetros:
 - Camada de trechos de drenagem (linha)
 - Camada de curvas de nível (linha)
 - Campo contendo as cotas das curvas de nível
+
+### 40 - Verifica Transporte
+Verifica inconsistências lógicas em elementos viários (bueiro, ponte, vau) e barragem, quando comparados a camadas de vias de deslocamento e drenagem.
+Parâmetros:
+- Camada de drenagem (linha)
+- Camada de elementos viários (ponto)
+- Camada de elementos viários (linha)
+- Camada de vias de deslocamento (linha)
+- Camada de barragens (linha)
 ## Modelos
 ### 1 - Gera centroide de área edificada
 

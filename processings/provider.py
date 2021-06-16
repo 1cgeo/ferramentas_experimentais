@@ -53,6 +53,7 @@ from .loadMasks import LoadMasks
 from .saveMasks import SaveMasks
 from .snapLineInAnchor import SnapLineInAnchor
 from .removeDuplicatePoints import RemoveDuplicatePoints
+from .verifyTransports import VerifyTransports
 
 class Provider(QgsProcessingProvider):
 
@@ -107,7 +108,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(SaveMasks())
         self.addAlgorithm(SnapLineInAnchor())
         self.addAlgorithm(RemoveDuplicatePoints())
-
+        self.addAlgorithm(VerifyTransports())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
