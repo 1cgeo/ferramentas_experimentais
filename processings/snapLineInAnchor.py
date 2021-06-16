@@ -60,6 +60,7 @@ class SnapLineInAnchor(QgsProcessingAlgorithm):
         lineAnchorLayer = self.parameterAsVectorLayer(parameters, self.INPUT_ANCHOR, context)
         snapDistance = self.parameterAsDouble(parameters, self.INPUT_MIN_DIST, context)
         self.snapLineInAnchor( lineLayer, lineAnchorLayer, snapDistance)
+        self.snapLineInAnchor( lineAnchorLayer, lineLayer, snapDistance)
         return {self.OUTPUT_P: ''}
 
     def snapLineInAnchor(self, lineLayer, lineAnchorLayer, snapDistance):
