@@ -52,6 +52,7 @@ from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
 from .loadMasks import LoadMasks
 from .saveMasks import SaveMasks
 from .snapLineInAnchor import SnapLineInAnchor
+from .removeDuplicatePoints import RemoveDuplicatePoints
 
 class Provider(QgsProcessingProvider):
 
@@ -105,6 +106,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(LoadMasks())
         self.addAlgorithm(SaveMasks())
         self.addAlgorithm(SnapLineInAnchor())
+        self.addAlgorithm(RemoveDuplicatePoints())
 
         for model in self.modelsAlg():
             self.addAlgorithm(model)
