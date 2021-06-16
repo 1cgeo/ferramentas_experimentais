@@ -51,6 +51,7 @@ from .snapPointsInLines import SnapPointsInLines
 from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
 from .loadMasks import LoadMasks
 from .saveMasks import SaveMasks
+from .snapLineInAnchor import SnapLineInAnchor
 
 class Provider(QgsProcessingProvider):
 
@@ -103,7 +104,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(SnapPointsInLinesIntersection())
         self.addAlgorithm(LoadMasks())
         self.addAlgorithm(SaveMasks())
-        
+        self.addAlgorithm(SnapLineInAnchor())
+
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
