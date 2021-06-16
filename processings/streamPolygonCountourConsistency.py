@@ -125,7 +125,7 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
                     intersectedRiver = False
                     for stream in streamLayerFeatures:
                         if intersectionCW.intersects(stream.geometry()):
-                            if stream['situacao_e'] in insidePoly:
+                            if stream['situacao_em_poligono'] in insidePoly:
                                 intersectedRiver = True
                                 continue
                     if not intersectedRiver:
