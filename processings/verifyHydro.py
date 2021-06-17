@@ -228,7 +228,6 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             for geometry in river.geometry().constGet():
                 ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
                 ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
-                lineTouched = self.linesTouched(streamLayerInput, river, ptIni)
             for waterBody in waterBodyFeatures:
                 if waterBody.geometry().intersects(ptIni) and (river['tipo'] not in waterBodyRiverTypes):
                     points.append([ptIni, 35])
@@ -247,6 +246,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             if river['situacao_em_poligono'] in [1,2,4]:
                 self.verifyStretchs(river, streamLayerFeatures, waterBodyFeatures,ptIni, ptFin, points, outputLines, index)
             initRiverOptions = waterBodyFeatures + spillwayFeatures
+            lineTouched = self.linesTouched(streamLayerInput, river, ptIni)
             if len(lineTouched) == 0:
                 intersectedWaterbodyOrSpillway = False
                 for feature in initRiverOptions:
@@ -255,12 +255,16 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                         break
                 if (not river['tipo']==3) and not intersectedWaterbodyOrSpillway:
                     points.append([ptIni, 37])
-                        
             else: 
-                if river['tipo']==3:
-                    for line in lineTouched:
+                touchedPrimary = 0
+                for line in lineTouched:
+                    if river['tipo']==3:
                         if not line['tipo'] ==3:
                             points.append([ptIni, 38])
+                    if line['situacao_em_poligono']==2 and river['situacao_em_poligono']==2:
+                        touchedPrimary+=1
+                        if touchedPrimary>1:
+                            points.append([ptIni, 39])
             feedback.setProgress( (step +(auxStep*auxProgress)) * progressStep )
             if feedback.isCanceled():
                 return {self.OUTPUT: 'execução cancelada pelo usuário'}
@@ -371,9 +375,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
     def verifyWaterBodyVsRiverAndDam(self, streamLayerFeatures, waterBodyFeatures, damLineFeatures,  damPolyFeatures, outputLines, outputPolygons, feedback, step, progressStep):
         Flow = [1,2,9,10]
         NoFlow = [3, 4, 5, 6, 7, 11]
-        riversInWaterbody = []
         containsRiver = False
-        containsPrimaryRiver = False
         auxProgressGeneral = 1/3
         auxStepGeneral = 0
         auxProgressSub = len(waterBodyFeatures)
@@ -382,6 +384,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             auxStepSub+=1
             intersectsIni = False
             intersectsFin = False
+            containsPrimaryRiver =False
             for river in streamLayerFeatures:
                 for geometry in river.geometry().constGet():
                     ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
@@ -389,7 +392,7 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                 if river.geometry().within(waterBody.geometry()):
                     containsRiver = True
                     if river['situacao_em_poligono']==2:
-                        containsPrimaryRiver = True
+                        containsPrimaryRiver =True
                 if waterBody.geometry().intersects(ptIni):
                     intersectsIni = True
                 if waterBody.geometry().intersects(ptFin):
@@ -403,14 +406,9 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             if not containsRiver:
                 if waterBody['tipo'] in Flow:
                     outputPolygons.append([waterBody.geometry(), 7])
-            '''
-            if containsRiver:
-                if not waterBody['tipo'] in Flow:
-                    outputPolygons.append([waterBody.geometry(), 6])
-                else:
-                    if not containsPrimaryRiver:
-                        outputPolygons.append([waterBody.geometry(), 8])
-            '''
+            if waterBody['tipo'] in Flow:
+                if not containsPrimaryRiver:
+                    outputPolygons.append([waterBody.geometry(), 8])
             feedback.setProgress( (step +((auxStepGeneral+(auxStepSub*auxProgressSub))*auxProgressGeneral)) * progressStep )
         auxStepGeneral += 1
         feedback.setProgress( (step +(auxStepGeneral*auxProgressGeneral)) * progressStep )
@@ -698,7 +696,8 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             35:'rio começa em massa d\'água, mas não é do tipo Rio, Canal nem Canal encoberto',
             36:'rio começa em vertedouro, mas não é tipo Rio',
             37:'rio não intersecta outro rio, nem massa d\'água, nem vertedouro, mas não é pluvial',
-            38:'rio pluvial toca em outro rio que não é pluvial'
+            38:'rio pluvial toca em outro rio que não é pluvial',
+            39:'intersecção de 3 rios principais'
         }
         for geom in geometry:
             newFeat = QgsFeature()
