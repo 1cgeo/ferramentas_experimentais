@@ -60,6 +60,7 @@ from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
 from .mergeRivers import MergeRivers
 from .highestSpotOnTheFrame import HighestSpotOnTheFrame
 from .generalizeBuildings import GeneralizeBuildings
+from .defineEditTextField import DefineEditTextField
 
 class Provider(QgsProcessingProvider):
 
@@ -121,6 +122,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(MergeRivers())
         self.addAlgorithm(HighestSpotOnTheFrame())
         self.addAlgorithm(GeneralizeBuildings())
+        self.addAlgorithm(DefineEditTextField())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
