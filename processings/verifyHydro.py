@@ -329,8 +329,10 @@ class VerifyHydrography(QgsProcessingAlgorithm):
                     if not river['nome']==waterBody['nome']:
                         outputLines.append([river.geometry(), 19])
         if river['situacao_em_poligono'] == 4:
-            if (not iniIntersectedFlow) or (not finIntersectedFlow):
+            if not iniIntersectedFlow:
                 outputLines.append([river.geometry(), 33])
+            if not finIntersectedFlow:
+                outputLines.append([river.geometry(), 40])
             if (not iniIntersectedOutsideRiver) and iniTouchedFlow==1:
                 points.append([ptIni, 12])
             if iniTouchedFlow==2 and not (iniIntersectedPrimaryRiver or iniIntersectedSecondaryRiver):
@@ -691,13 +693,14 @@ class VerifyHydrography(QgsProcessingAlgorithm):
             30:'relacionamento incorreto entre barragem (linha) e massa d\'água',
             31:'rio compartilhado (saindo) não inicia em rio primário ou secundário',
             32:'rio compartilhado (saindo) não termina em rio principais, secundários ou fora de polígono',
-            33:'rio compartilhado deve iniciar e terminar em massa d\'água com fluxo',
+            33:'ponto inicial de rio compartilhado estar dentro de massa d\'água com fluxo',
             34:'rio compartilhado entre 2 massas d\'água não inicia em rio principal nem secundário',
             35:'rio começa em massa d\'água, mas não é do tipo Rio, Canal nem Canal encoberto',
             36:'rio começa em vertedouro, mas não é tipo Rio',
             37:'rio não intersecta outro rio, nem massa d\'água, nem vertedouro, mas não é pluvial',
             38:'rio pluvial toca em outro rio que não é pluvial',
-            39:'intersecção de 3 rios principais'
+            39:'intersecção de 3 rios principais',
+            40:'ponto final de rio compartilhado estar dentro de massa d\'água com fluxo'
         }
         for geom in geometry:
             newFeat = QgsFeature()
