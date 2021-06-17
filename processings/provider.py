@@ -58,6 +58,7 @@ from .bridgeAndManholeRotation import BridgeAndManholeRotation
 from .verifyTransports import VerifyTransports
 from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
 from .highestQuotaOnTheFrame import HighestQuotaOnTheFrame
+from .mergeRivers import MergeRivers
 
 class Provider(QgsProcessingProvider):
 
@@ -117,6 +118,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(RapidsAndWaterfallRotation())
         self.addAlgorithm(VerifyTransports())
         self.addAlgorithm(HighestQuotaOnTheFrame())
+        self.addAlgorithm(MergeRivers())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
