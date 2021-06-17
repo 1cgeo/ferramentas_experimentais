@@ -75,7 +75,7 @@ class BridgeAndManholeRotation(QgsProcessingAlgorithm):
             rotationField, 
             highwayLayer, 
             distance,
-            [201,202,203.204,501]
+            [201,202,203,204,501]
         )
 
         return {self.OUTPUT: ''}

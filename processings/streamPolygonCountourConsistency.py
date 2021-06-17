@@ -7,15 +7,12 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSink,
                        QgsPointXY,
                        QgsGeometry,
-                       QgsProcessingParameterBoolean,
-                       QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterField,
-                       QgsProcessingParameterNumber,
+                       QgsFields,
                        QgsFeature,
                        QgsField
                        )
-from qgis import processing
 
 class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
 
@@ -73,16 +70,22 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
         levelsField = self.parameterAsFields( parameters,'INPUT_LEVES_FIELD', context )[0]
 
         outputLines = []
+        outputPoints = []
 
         streamLayerFeatures = self.createFeaturesArray(streamLayerInput)
         countourLayerFeatures = self.createFeaturesArray(countourLayer)
         waterbodyLayerFeatures = self.createFeaturesArray(waterbodyLayerInput)
         feedback.setProgressText('Verificando inconsistencias ')
-        self.checkFeatures(streamLayerFeatures, countourLayerFeatures, waterbodyLayerFeatures, levelsField, outputLines)
+        self.checkFeatures(streamLayerFeatures, countourLayerFeatures, waterbodyLayerFeatures, levelsField, outputLines, outputPoints)
         
+        allOK = True
         if not len(outputLines)==0:
-            newLayer = self.outLayer(parameters, context, outputLines, countourLayer)
-        else: 
+            newLayer = self.outLayer(parameters, context, outputLines, countourLayer, 5)
+            allOK = False
+        if not len(outputPoints)==0:
+            newLayer = self.outLayer(parameters, context, outputPoints, countourLayer, 1)
+            allOK = False
+        if allOK:
             newLayer = 'nenhuma inconsistência verificada'
         return {self.OUTPUT: newLayer}
 
@@ -95,7 +98,7 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
 
         return arrayFeatures
 
-    def checkFeatures(self, streamLayerFeatures, countourLayerFeatures, waterbodyLayerFeatures, levelsField, outputLines):
+    def checkFeatures(self, streamLayerFeatures, countourLayerFeatures, waterbodyLayerFeatures, levelsField, outputLines, outputPoints):
         NoFlow = [3, 4, 5, 6, 7, 11]
         insidePoly = [2, 3, 4]
         for waterbody in waterbodyLayerFeatures:
@@ -104,24 +107,31 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
                 if countour.geometry().touches(waterbody.geometry()):
                     continue
                 if countour.geometry().crosses(waterbody.geometry()):
-                    if waterbody['tipo'] in NoFlow:
-                        outputLines.append([countour, 1])
-                        continue
                     intersectionCW = waterbody.geometry().intersection(countour.geometry())
                     if intersectionCW.isMultipart():
-                        outputLines.append([countour, 2])
+                        for inter in intersectionCW.asGeometryCollection():
+                            if inter.type():
+                                if waterbody['tipo'] in NoFlow:
+                                    outputLines.append([inter, 1])
+                                    continue
+                                outputLines.append([inter, 2])
                         continue
                     else:
+                        if waterbody['tipo'] in NoFlow:
+                            outputLines.append([intersectionCW, 1])
+                            continue
                         vertices = intersectionCW.asPolyline()
                         if len(vertices)>2:
-                            outputLines.append([countour, 3])
+                            outputLines.append([intersectionCW, 3])
                             continue
                     for geometry in countour.geometry().constGet():
                         ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
                         ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
-                    if ptIni.within(waterbody.geometry()) or ptFin.within(waterbody.geometry()):
-                        outputLines.append([countour, 4])
-                        continue
+                    if ptIni.within(waterbody.geometry()) or outputPoints.append([ptFin, 4]):
+                        if ptIni.within(waterbody.geometry()) :
+                            outputPoints.append([ptIni, 4])
+                        if ptFin.within(waterbody.geometry()):
+                            outputPoints.append([ptFin, 4])
                     intersectedRiver = False
                     for stream in streamLayerFeatures:
                         if intersectionCW.intersects(stream.geometry()):
@@ -129,20 +139,20 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
                                 intersectedRiver = True
                                 continue
                     if not intersectedRiver:
-                        outputLines.append([countour, 5])
+                        outputLines.append([intersectionCW, 5])
                         continue
                     if not len(levelsIntersected) == 0:
                         for levelI in levelsIntersected:
                             if levelI[1]==countour[levelsField]:
-                                outputLines.append([countour, 6])
+                                outputLines.append([intersectionCW, 6])
                                 outputLines.append([levelI[0], 6])
-                    levelsIntersected.append([countour, countour[levelsField]])
+                    levelsIntersected.append([intersectionCW, countour[levelsField]])
                     
 
                     
 
-    def outLayer(self, parameters, context, outputLines, countourLayer):
-        newFields = outputLines[0][0].fields()
+    def outLayer(self, parameters, context, output, countourLayer, geomtype):
+        newFields = QgsFields()
         newFields.append(QgsField('erro', QVariant.String))
         
         (sink, newLayer) = self.parameterAsSink(
@@ -150,7 +160,7 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
             self.OUTPUT,
             context,
             newFields,
-            2, #line
+            geomtype, #2line #1point
             countourLayer.sourceCrs()
         )
         dicterro = {
@@ -161,12 +171,10 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
             5: "Curva de nível em massa d\'água deve cruzar trecho de drenagem dentro de polígono",
             6: "Massa d\'água não pode intersectar mais de uma curva de nível com a mesma cota"
         }
-        for line in outputLines:
+        for line in output:
             newFeat = QgsFeature()
-            newFeat.setGeometry(line[0].geometry())
+            newFeat.setGeometry(line[0])
             newFeat.setFields(newFields)
-            for field in  range(len(line[0].fields())):
-                newFeat.setAttribute((field), line[0].attribute((field)))
             newFeat['erro'] = dicterro[line[1]]
             sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
         
