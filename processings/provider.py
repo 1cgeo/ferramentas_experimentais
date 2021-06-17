@@ -59,6 +59,7 @@ from .verifyTransports import VerifyTransports
 from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
 from .mergeRivers import MergeRivers
 from .highestSpotOnTheFrame import HighestSpotOnTheFrame
+from .generalizeBuildings import GeneralizeBuildings
 
 class Provider(QgsProcessingProvider):
 
@@ -119,6 +120,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyTransports())
         self.addAlgorithm(MergeRivers())
         self.addAlgorithm(HighestSpotOnTheFrame())
+        self.addAlgorithm(GeneralizeBuildings())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
