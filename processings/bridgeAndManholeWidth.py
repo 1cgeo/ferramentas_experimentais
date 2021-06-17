@@ -85,14 +85,14 @@ class BridgeAndManholeWidth(QgsProcessingAlgorithm):
             pointLayer, 
             pointWidthField, 
             highwayLayer, 
-            [201,202,203.204,501]
+            [201,202,203,204,501]
         )
 
         self.setWidthFieldOnLayer( 
             lineLayer, 
             lineWidthField, 
             highwayLayer, 
-            [201,202,203.204]
+            [201,202,203,204]
         )
         return {self.OUTPUT: ''}
 
