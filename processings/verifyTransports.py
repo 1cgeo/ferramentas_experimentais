@@ -163,7 +163,6 @@ class VerifyTransports(QgsProcessingAlgorithm):
                         interFin = True
             if elemType == vau:
                 if not(interIni and interFin):
-                    print(roadElemLine['tipo'])
                     outputLines.append([roadElemLine.geometry(), 4])
             feedback.setProgress( step*(1+((auxstep+len(roadElemPointLayerFeatures))/auxProgressStep)) * progressStep )
         return False
@@ -174,8 +173,8 @@ class VerifyTransports(QgsProcessingAlgorithm):
             for road in roadslayerFeatures:
                 DRintersect = dam.geometry().intersection(road.geometry())
                 if dam['em_via_deslocamento']==1:
-                    if not (DRintersect.isNull() or DRintersect.isEmpty()):
-                        if not DRintersect.within(road.geometry()):
+                    if not (DRintersect.isNull() or DRintersect.isEmpty() or DRintersect.type() in [1,4]):
+                        if not dam.geometry().within(road.geometry()):
                             outputLines.append([dam.geometry(), 5])
                 if dam['em_via_deslocamento']==2:
                     if dam.geometry().crosses(road.geometry()) or dam.geometry().within(road.geometry()) or dam.geometry().overlaps(road.geometry()):
@@ -215,8 +214,8 @@ class VerifyTransports(QgsProcessingAlgorithm):
             2:'Ponte não está exatamente sobre uma via de deslocamento',
             3:'Vau não deve sobrepor uma via de deslocamento',
             4:'Vau deve intersectar vias de deslocamento em pontos finais e iniciais',
-            5:'Barragem em_via_deslocamento deve estar sobre uma via de deslocamento',
-            6:'Barragem não deve sobrepor uma via de deslocamento'
+            5:'Barragem em_via_deslocamento = sim(1) deve estar completamente sobre uma via de deslocamento',
+            6:'Barragem com em_via_deslocamento =não(2) não deve sobrepor uma via de deslocamento'
         }
         for geom in geometry:
             newFeat = QgsFeature()
