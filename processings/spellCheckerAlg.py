@@ -115,7 +115,7 @@ class SpellCheckerAlg(ProcessingAlg):
         auxFields = auxLayer.fields()
         for feature in layer.getFeatures():
             if feedback.isCanceled():
-                return {self.OUTPUT: output_dest_id}
+                return {self.OUTPUT: ''}
             attributeValue = feature[attributeIndex]
             if not attributeValue:
                 continue
