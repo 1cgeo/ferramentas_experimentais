@@ -46,7 +46,7 @@ import re
 
 class SpellCheckerAlg(ProcessingAlg):
 
-    INPUT_LAYERS = 'INPUT_LAYERS'
+    INPUT_LAYER = 'INPUT_LAYER'
     ATTRIBUTE_NAME = 'ATTRIBUTE_NAME'
     OUTPUT = 'OUTPUT'
 
@@ -55,10 +55,10 @@ class SpellCheckerAlg(ProcessingAlg):
 
     def initAlgorithm(self, config):
         self.addParameter(
-            QgsProcessingParameterMultipleLayers(
-                self.INPUT_LAYERS,
-                self.tr('Camadas'),
-                QgsProcessing.TypeVectorAnyGeometry
+            QgsProcessingParameterVectorLayer(
+                self.INPUT_LAYER,
+                self.tr('Selecionar a camada'),
+                [QgsProcessing.TypeVectorAnyGeometry]
             )
         )
 
@@ -77,9 +77,9 @@ class SpellCheckerAlg(ProcessingAlg):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        inputLyrList = self.parameterAsLayerList(
+        layer = self.parameterAsVectorLayer(
             parameters,
-            self.INPUT_LAYERS,
+            self.INPUT_LAYER,
             context
         )
         attributeName = self.parameterAsFile(
@@ -90,48 +90,45 @@ class SpellCheckerAlg(ProcessingAlg):
         spellchecker = SpellCheckerCtrl('pt-BR')
         errors = []
         output_dest_id = ''
-        listSize = len(inputLyrList)
-        progressStep = 100/listSize if listSize else 0
+        
         errorFieldName = '{}_erro'.format(attributeName)
         #field = core.QgsField('{}_erro'.format(attributeName))
         fieldRelation = core.QgsField('id', QVariant.Double)
-        for step, layer in enumerate(inputLyrList):
-            if not layer.isEditable():
-                raise Exception('Todas as camadas de entrada devem está com a edição ativa!')
-            attributeIndex = self.getAttributeIndex(attributeName, layer)
-            if attributeIndex < 0:
+        layer.startEditing()
+        attributeIndex = self.getAttributeIndex(attributeName, layer)
+        if attributeIndex < 0:
+            return {self.OUTPUT: ''}
+        auxLayer = core.QgsAuxiliaryStorage().createAuxiliaryLayer(fieldRelation, layer)
+        #layer.setAuxiliaryLayer(auxlayer)
+        #auxLayer = layer.auxiliaryLayer()
+        vdef = core.QgsPropertyDefinition(
+            errorFieldName,
+            core.QgsPropertyDefinition.DataType.DataTypeString,
+            "",
+            "",
+            ""
+        )
+        auxLayer.addAuxiliaryField(vdef)
+        layer.setAuxiliaryLayer(auxLayer)
+        idx = layer.fields().indexOf('auxiliary_storage__{}'.format(errorFieldName))
+        layer.setFieldAlias(idx, errorFieldName)
+        auxFields = auxLayer.fields()
+        for feature in layer.getFeatures():
+            if feedback.isCanceled():
+                return {self.OUTPUT: output_dest_id}
+            attributeValue = feature[attributeIndex]
+            if not attributeValue:
                 continue
-            auxlayer = core.QgsAuxiliaryStorage().createAuxiliaryLayer(fieldRelation, layer)
-            layer.setAuxiliaryLayer(auxlayer)
-            auxLayer = layer.auxiliaryLayer()
-            vdef = core.QgsPropertyDefinition(
-                errorFieldName,
-                core.QgsPropertyDefinition.DataType.DataTypeString,
-                "",
-                "",
-                ""
-            )
-            auxLayer.addAuxiliaryField(vdef)
-            idx = layer.fields().indexOf('auxiliary_storage__{}'.format(errorFieldName))
-            layer.setFieldAlias(idx, errorFieldName)
-            auxFields = auxLayer.fields()
-            for feature in layer.getFeatures():
-                if feedback.isCanceled():
-                    return {self.OUTPUT: output_dest_id}
-                attributeValue = feature[attributeIndex]
-                if not attributeValue:
-                    continue
-                attributeValue = ''.join(e for e in attributeValue if not(e in [',', ';', '&', '.'] or e.isdigit()))
-                wordlist = re.split(' |/', attributeValue)
-                wordlist = [ w for w in wordlist if not w in ['-'] ]
-                wrongWords = [ word for word in wordlist if not spellchecker.hasWord(word.lower())]
-                if len(wrongWords) == 0:
-                    continue
-                auxFeature = QgsFeature(auxFields)
-                auxFeature['ASPK'] = feature['id']
-                auxFeature['_{}'.format(errorFieldName)] = ';'.join(wrongWords)
-                auxLayer.addFeature(auxFeature)
-            feedback.setProgress(step*progressStep)
+            attributeValue = ''.join(e for e in attributeValue if not(e in [',', ';', '&', '.'] or e.isdigit()))
+            wordlist = re.split(' |/', attributeValue)
+            wordlist = [ w for w in wordlist if not w in ['-'] ]
+            wrongWords = [ word for word in wordlist if not spellchecker.hasWord(word.lower())]
+            if len(wrongWords) == 0:
+                continue
+            auxFeature = QgsFeature(auxFields)
+            auxFeature['ASPK'] = feature['id']
+            auxFeature['_{}'.format(errorFieldName)] = ';'.join(wrongWords)
+            auxLayer.addFeature(auxFeature)
         return {self.OUTPUT: ''}
 
     def getFlagWkbType(self):
