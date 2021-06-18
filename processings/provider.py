@@ -165,6 +165,14 @@ class Provider(QgsProcessingProvider):
                 True
             )
         )
+        ProcessingConfig.addSetting(Setting(
+            ProcessingConfig.tr('General'),
+            ProcessingConfig.RESULTS_GROUP_NAME,
+            ProcessingConfig.tr("Results group name"),
+            "results",
+            valuetype=Setting.STRING,
+            placeholder=ProcessingConfig.tr("Leave blank to avoid loading results in a predetermined group")
+        ))
         ProcessingConfig.readSettings()
         self.refreshAlgorithms()
         return True
