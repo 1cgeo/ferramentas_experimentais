@@ -127,7 +127,7 @@ class DefineEditTextField(QgsProcessingAlgorithm):
                 for feature in layer.getFeatures():
                     if not( feature['tipo'] in [401,402] ):
                         continue
-                    feature[ 'texto_edicao' ] = 'Val'
+                    feature[ 'texto_edicao' ] = 'Vau'
                     self.updateLayerFeature( layer, feature)
 
 
