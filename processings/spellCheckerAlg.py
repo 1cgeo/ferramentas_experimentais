@@ -96,8 +96,7 @@ class SpellCheckerAlg(ProcessingAlg):
         #field = core.QgsField('{}_erro'.format(attributeName))
         fieldRelation = core.QgsField('id', QVariant.Double)
         for step, layer in enumerate(inputLyrList):
-            if not layer.isEditable():
-                raise Exception('Todas as camadas de entrada devem está com a edição ativa!')
+            layer.startEditing()
             attributeIndex = self.getAttributeIndex(attributeName, layer)
             if attributeIndex < 0:
                 continue
