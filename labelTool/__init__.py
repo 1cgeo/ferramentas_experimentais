@@ -171,7 +171,11 @@ class HighwayLabelTool(QtWidgets.QWidget):
             feature = selectedFeatures[0]
             if not self.isValidAttributes( feature ):
                 raise Exception('Os atributos não atendem os pré-requisitos!')
-            self.setFieldValue('sigla', feature['sigla'], labelLayer )
+            self.setFieldValue(
+                'sigla', 
+                feature['sigla'].split('-')[-1] if not( ';' in feature['sigla'] ) else '|'.join([ s.split('-')[-1] for s in feature['sigla'].split(';') ]), 
+                labelLayer 
+            )
             self.setFieldValue('jurisdicao', feature['jurisdicao'], labelLayer )
             iface.setActiveLayer( labelLayer )
             labelLayer.startEditing()
