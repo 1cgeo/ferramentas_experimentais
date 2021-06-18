@@ -119,8 +119,15 @@ class DefineEditTextField(QgsProcessingAlgorithm):
                 for feature in layer.getFeatures():
                     if feature['tipo'] == 1218:
                         feature[ 'texto_edicao' ] = 'Curral'
+                    else:
+                        feature[ 'texto_edicao' ] = feature[ 'nome' ]
+                    self.updateLayerFeature( layer, feature)
+
+            elif tableName in [ 'elemento_viario_p', 'elemento_viario_l' ]:
+                for feature in layer.getFeatures():
+                    if not( feature['tipo'] in [401,402] ):
                         continue
-                    feature[ 'texto_edicao' ] = feature[ 'nome' ]
+                    feature[ 'texto_edicao' ] = 'Val'
                     self.updateLayerFeature( layer, feature)
 
 
