@@ -91,6 +91,9 @@ class SnapPointsInLines(QgsProcessingAlgorithm):
                     hasVertexTarget = hasVertex
                     currentVertexOrSegment = vertexOrSegment 
                     currentMinDistance = minDistance 
+                
+                if not currentVertexOrSegment:
+                    continue
 
                 self.snapPoint(
                     point,
