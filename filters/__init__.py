@@ -50,5 +50,13 @@ def filterSelections():
     if not selectedFeatures:
         return
     primaryKeyIndex = layer.primaryKeyAttributes()[0]
-    primaryKeyName = layer.fields().names()[ primaryKeyIndex ] #FIX ME for integer id
-    layer.setSubsetString( '"{0}" in ({1})'.format( primaryKeyName, ','.join([ "'{}'".format(str(i[primaryKeyName])) for i in selectedFeatures]) ) )
+    primaryKeyName = layer.fields().names()[ primaryKeyIndex ]
+    layer.setSubsetString( 
+        '"{0}" in ({1})'.format( 
+            primaryKeyName, 
+            ','.join([ 
+                "'{}'".format(str(i[primaryKeyName])) if not isinstance(i[primaryKeyName], int) else str(i[primaryKeyName])
+                for i in selectedFeatures
+            ]) 
+        ) 
+    )
