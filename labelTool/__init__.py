@@ -8,11 +8,16 @@ class HydroLabelTool(QtWidgets.QWidget):
     def __init__(self):
         super(HydroLabelTool, self).__init__()
         uic.loadUi(self.getUiPath(), self)
-        self.addFeatureAction = self.createAction(
+        self.addRioAction = self.createAction(
             'start', 
-            self.addFeatureBtn.click
+            self.addRioBtn.click
         )
-        iface.registerMainWindowAction(self.addFeatureAction, '')
+        self.addLagoAction = self.createAction(
+            'start', 
+            self.addLagoBtn.click
+        )
+        iface.registerMainWindowAction(self.addRioAction, '')
+        iface.registerMainWindowAction(self.addLagoAction, '')
         self.loadScales()
 
     def getUiPath(self):
@@ -63,20 +68,21 @@ class HydroLabelTool(QtWidgets.QWidget):
         )
 
     @QtCore.pyqtSlot(bool)
-    def on_addFeatureBtn_clicked(self):
+    def on_addRioBtn_clicked(self):
         try:
             layer = iface.activeLayer()
             if not layer:
                 raise Exception('Selecione uma feição!')
-            targetLayerName = self.getTargetLayerName()
+            targetLayerName = 'elemnat_trecho_drenagem_l'
             if not( layer.dataProvider().uri().table() == targetLayerName ):
                 raise Exception('Selecione uma feição da camada "{0}" !'.format( targetLayerName ) )
             selectedFeatures = layer.selectedFeatures()
             if not len(selectedFeatures) == 1:
                 raise Exception('Selecione apenas uma feição!')
-            labelLayer = self.getLabelLayer()
+            labelLayerName = 'edicao_simb_hidrografia_l'
+            labelLayer = self.getLabelLayer(labelLayerName)
             if not labelLayer:
-                raise Exception('Carregue a camada de rótulo "{0}"!'.format( self.getLabelLayerName() ))
+                raise Exception('Carregue a camada de rótulo "{0}"!'.format( labelLayerName ))
             feature = selectedFeatures[0]
             self.setFieldValue('texto', feature['nome'], labelLayer ) #if not( layer.fields().indexOf( 'nome' ) < 0 ) else ''
             self.setFieldValue('carta_mini', False, labelLayer )
@@ -89,26 +95,47 @@ class HydroLabelTool(QtWidgets.QWidget):
         except Exception as e:
             self.showQgisErrorMessage('Erro', str(e))
 
-    def getTargetLayerName(self):
-        return 'elemnat_trecho_drenagem_l'
+    @QtCore.pyqtSlot(bool)
+    def on_addLagoBtn_clicked(self):
+        try:
+            layer = iface.activeLayer()
+            if not layer:
+                raise Exception('Selecione uma feição!')
+            targetLayerName = 'cobter_massa_dagua_a'
+            if not( layer.dataProvider().uri().table() == targetLayerName ):
+                raise Exception('Selecione uma feição da camada "{0}" !'.format( targetLayerName ) )
+            selectedFeatures = layer.selectedFeatures()
+            if not len(selectedFeatures) == 1:
+                raise Exception('Selecione apenas uma feição!')
+            labelLayerName = 'edicao_simb_hidrografia_p'
+            labelLayer = self.getLabelLayer(labelLayerName)
+            if not labelLayer:
+                raise Exception('Carregue a camada de rótulo "{0}"!'.format( labelLayerName ))
+            feature = selectedFeatures[0]
+            self.setFieldValue('texto', feature['nome'], labelLayer )
+            self.setFieldValue('carta_mini', False, labelLayer )
+            self.setFieldValue('classe', 'cobter_massa_dagua_a', labelLayer ) 
+            self.setFieldValue('tamanho', feature.geometry().area(), labelLayer )
+            self.setFieldValue('escala', self.scaleMapCb.itemData( self.scaleMapCb.currentIndex() ), labelLayer )
+            iface.setActiveLayer( labelLayer )
+            labelLayer.startEditing()
+            iface.actionAddFeature().trigger()
+        except Exception as e:
+            self.showQgisErrorMessage('Erro', str(e))
 
     def getClasseNameByType(self, typeValue):
         if typeValue == 1:
             return 'elemnat_trecho_drenagem_l'
         return 'cobter_massa_dagua_a'
 
-    def getLabelLayer(self):
+    def getLabelLayer(self, labelLayerName):
         loadedLayers = core.QgsProject.instance().mapLayers().values()
-        labelLayerName = self.getLabelLayerName()
         for layer in loadedLayers:
             if not(
                     layer.dataProvider().uri().table() == labelLayerName
                 ):
                 continue
             return layer
-
-    def getLabelLayerName(self):
-        return 'edicao_simb_hidrografia_l'
 
     def setFieldValue(self, fieldName, fieldValue, layer):
         fieldIndex = layer.fields().indexOf( fieldName )
