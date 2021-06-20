@@ -170,15 +170,26 @@ class VerifyTransports(QgsProcessingAlgorithm):
     def verifDamRoad(self, roadslayerFeatures, damLineFeatures, outputLines, feedback, step, progressStep):
         for count,dam in enumerate(damLineFeatures):
             auxstep = count+1
+            damWithinRoad = False
             for road in roadslayerFeatures:
                 DRintersect = dam.geometry().intersection(road.geometry())
                 if dam['em_via_deslocamento']==1:
-                    if not (DRintersect.isNull() or DRintersect.isEmpty() or DRintersect.type() in [1,4]):
-                        if not dam.geometry().within(road.geometry()):
-                            outputLines.append([dam.geometry(), 5])
+                    print(DRintersect.isNull())
+                    print(DRintersect.isEmpty())
+                    print(DRintersect.wkbType())
+                    print(DRintersect)
+                    print(dam.geometry().within(road.geometry()))
+                    if not (DRintersect.isNull() or DRintersect.isEmpty() or DRintersect.wkbType() in [1,4]):
+                        if dam.geometry().within(road.geometry()):
+                            print('okok')
+                            damWithinRoad = True
                 if dam['em_via_deslocamento']==2:
                     if dam.geometry().crosses(road.geometry()) or dam.geometry().within(road.geometry()) or dam.geometry().overlaps(road.geometry()):
-                        outputLines.append([dam.geometry(), 6])
+                        if not DRintersect.wkbType() in [1,4]:
+                            outputLines.append([dam.geometry(), 6])
+            if dam['em_via_deslocamento']==1:
+                if not damWithinRoad:
+                    outputLines.append([dam.geometry(), 5])
             feedback.setProgress( step*(1+((auxstep)/len(damLineFeatures))) * progressStep )
         return False
     def roadStreamIntersection(self, roadslayer, streamLayerInput, context, feedback):
