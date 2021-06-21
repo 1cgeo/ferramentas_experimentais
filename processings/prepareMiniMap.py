@@ -159,9 +159,7 @@ class PrepareMiniMap(QgsProcessingAlgorithm):
             newFeat['texto_edicao'] = feature['nome']
             pointsToAdd.append(newFeat)
         edicao_texto_generico_p_layer.startEditing()
-        data_provider = edicao_texto_generico_p_layer.dataProvider()
-        data_provider.addFeatures(pointsToAdd)
-        edicao_texto_generico_p_layer.commitChanges()
+        edicao_texto_generico_p_layer.addFeatures(pointsToAdd)
         step +=1
         feedback.setProgress( step * progressStep )
         
@@ -189,9 +187,7 @@ class PrepareMiniMap(QgsProcessingAlgorithm):
                 feature['tamanho_txt'] = tamanho_txt
             features.append(feature)
         layer.startEditing()
-        data_provider = layer.dataProvider()
-        data_provider.addFeatures(features)
-        layer.commitChanges()
+        layer.addFeatures(features)
         return False
         
     
