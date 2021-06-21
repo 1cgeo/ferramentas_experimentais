@@ -275,3 +275,6 @@ Permite o usuário desenhar um poligono, e aplicar esse poligono como filtro esp
 ### 6- Repetir atributação da feição
 
 ### 7- Filtra camada pelas feições selecionadas
+
+### 8- Copia feições para camada Temporária
+Cria nova camada temporaria 'camada_nome_temp' com as feições selecionadas de 'camada_nome'.

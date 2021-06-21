@@ -14,7 +14,7 @@ from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
 from .filters import filterSelections, cleanAllFilters, filterBySelectedGeometries
 from .labelTool import HydroLabelTool, HighwayLabelTool
-
+from .copy_to_temp_layer.copyToTempLayer import copyToTempLayer
 from .processings.provider import Provider
 
 class InitPlugin:
@@ -70,6 +70,15 @@ class InitPlugin:
             "Cola a geometria"
         )
         self.toolBar.addAction(self.actioncopiageom)
+
+        self.actioncopyToTempLayer = self.createAction(
+            "Copia Feições Para Camada Temporária", 
+            "tempLayer.png", 
+            copyToTempLayer, 
+            "Copia Feições Selecionadas Para Camada Temporária",
+            "Copia Feições Selecionadas Para Camada Temporária"
+        )
+        self.toolBar.addAction(self.actioncopyToTempLayer)
 
         self.actionaSpatialFilter = self.createAction(
             "Filtro espacial", 
