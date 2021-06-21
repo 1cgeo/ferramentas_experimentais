@@ -61,6 +61,7 @@ from .mergeRivers import MergeRivers
 from .highestSpotOnTheFrame import HighestSpotOnTheFrame
 from .generalizeBuildings import GeneralizeBuildings
 from .defineEditTextField import DefineEditTextField
+from .prepareMiniMap import PrepareMiniMap
 
 class Provider(QgsProcessingProvider):
 
@@ -123,6 +124,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(HighestSpotOnTheFrame())
         self.addAlgorithm(GeneralizeBuildings())
         self.addAlgorithm(DefineEditTextField())
+        self.addAlgorithm(PrepareMiniMap())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 

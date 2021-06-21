@@ -208,6 +208,19 @@ Parâmetros:
 - Camada de elementos viários (linha)
 - Camada de vias de deslocamento (linha)
 - Camada de barragens (linha)
+
+### 41 - Prepara Carta Mini
+Cria uma cópia das feições com carta_mini = **false**, modificando outros atributos a depender da camada. Nas feições do tipo linha, a cópia tem apenas o ponto inicial e final. Da camada de polígono extrai-se uma cópia do centroide,preenche-se atributos dessa cópia e adiciona à camada edicao_texto_generico_p.
+Parâmetros:
+- identificador_trecho_rod_p (ponto)
+- llp_localidade_p (ponto)
+- edicao_simb_hidrografia_p (ponto)
+- edicao_simb_hidrografia_l (linha)
+- elemnat_toponimo_fisiografico_natural_p (ponto)
+- elemnat_toponimo_fisiografico_natural_l (linha)
+- edicao_texto_generico_p (ponto)
+- edicao_texto_generico_l (linha)
+- llp_limite_especial_a (polígono)
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
