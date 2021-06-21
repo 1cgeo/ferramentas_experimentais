@@ -74,7 +74,7 @@ class HydroLabelTool(QtWidgets.QWidget):
             if not layer:
                 raise Exception('Selecione uma feição!')
             targetLayerName = 'elemnat_trecho_drenagem_l'
-            if not( layer.dataProvider().uri().table() == targetLayerName ):
+            if not( layer.name() == targetLayerName ):
                 raise Exception('Selecione uma feição da camada "{0}" !'.format( targetLayerName ) )
             selectedFeatures = layer.selectedFeatures()
             if not len(selectedFeatures) == 1:
