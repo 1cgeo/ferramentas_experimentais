@@ -79,8 +79,11 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
 
         streamLayerInput = self.parameterAsVectorLayer( parameters,'INPUT_STREAM', context )
+        try:
+            streamLayerOrdered = self.orderAndAddFieldToLayer(context, feedback, streamLayerInput)
+        except:
+            return {self.OUTPUT: 'Problema ao ordenar drenagem. Verificar direcionamento dos rios.'}
         
-        streamLayerOrdered = self.orderAndAddFieldToLayer(context, feedback, streamLayerInput)
         outputPoints = []
         streamIdField = self.parameterAsFields( parameters,'INPUT_STREAM_ID_FIELD', context )[0]
         countourLayer = self.parameterAsVectorLayer( parameters,'INPUT_COUNTOUR_LINES', context )
