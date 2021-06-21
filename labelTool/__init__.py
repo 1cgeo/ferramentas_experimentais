@@ -84,7 +84,7 @@ class HydroLabelTool(QtWidgets.QWidget):
             if not labelLayer:
                 raise Exception('Carregue a camada de rótulo "{0}"!'.format( labelLayerName ))
             feature = selectedFeatures[0]
-            self.setFieldValue('texto', feature['nome'], labelLayer ) #if not( layer.fields().indexOf( 'nome' ) < 0 ) else ''
+            self.setFieldValue('texto_edicao', feature['nome'], labelLayer ) #if not( layer.fields().indexOf( 'nome' ) < 0 ) else ''
             self.setFieldValue('carta_mini', False, labelLayer )
             self.setFieldValue('classe', self.getClasseNameByType( feature['situacao_em_poligono'] ), labelLayer ) #if not( layer.fields().indexOf( 'tipo' ) < 0 ) else ''
             self.setFieldValue('tamanho', feature.geometry().length(), labelLayer )
@@ -112,7 +112,7 @@ class HydroLabelTool(QtWidgets.QWidget):
             if not labelLayer:
                 raise Exception('Carregue a camada de rótulo "{0}"!'.format( labelLayerName ))
             feature = selectedFeatures[0]
-            self.setFieldValue('texto', feature['nome'], labelLayer )
+            self.setFieldValue('texto_edicao', feature['nome'], labelLayer )
             self.setFieldValue('carta_mini', False, labelLayer )
             self.setFieldValue('classe', 'cobter_massa_dagua_a', labelLayer ) 
             self.setFieldValue('tamanho', feature.geometry().area(), labelLayer )
