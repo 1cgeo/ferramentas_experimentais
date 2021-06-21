@@ -6,14 +6,12 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
                        QgsPointXY,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterBoolean,
-                       QgsProcessingRegistry,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterField,
                        QgsProcessingParameterNumber,
                        QgsFeature,
-                       QgsField
+                       QgsField,
+                       QgsFields
                        )
 from qgis import processing
 
@@ -198,8 +196,8 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
                     continue
                 diff = pointList[position-1][levelsField] - pointList[position][levelsField]
                 if not ( diff == levelGap):    
-                    outputPoints.append(pointList[position-1])
-                    outputPoints.append(pointList[position])
+                    outputPoints.append([pointList[position-1], 1])
+                    outputPoints.append([pointList[position], 2])
             lastIntersectionPoint = pointList[-1]
             self.addToPointsList(streamLayerFeatures, lines, intersectionPoints, lastIntersectionPoint, streamIdField, levelsField, outputPoints)
         return True
@@ -219,8 +217,8 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
             if not (str(newPoint.geometry())==str(point.geometry())):
                 continue
             if not newPoint[levelsField] == point[levelsField]:
-                outputPoints.append(point)
-                outputPoints.append(pointToAdd)
+                outputPoints.append([point, 3])
+                #outputPoints.append([pointToAdd, 3])
                 continue
             alreadyInList  = True
 
@@ -246,7 +244,9 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
         return False
 
     def outLayer(self, parameters, context, points, streamLayer):
-        newFields = points[0].fields()
+        newFields = QgsFields()
+        newFields.append(QgsField('id', QVariant.Int))
+        newFields.append(QgsField('erro', QVariant.String))
 
         (sink, newLayer) = self.parameterAsSink(
             parameters,
@@ -256,15 +256,20 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
             1, #point
             streamLayer.sourceCrs()
         )
-        
+        idcounter = 1
+        dicterro = {
+            1:'Diferença de cota diferente em relação ao ponto seguinte',
+            2:'Diferença de cota diferente em relação ao ponto anterior',
+            3:'Encontro de drenagens cujo último ponto de cota conhecida de cada uma é diferente da outra'
+        }
         for point in points:
             newFeat = QgsFeature()
-            newFeat.setGeometry(point.geometry())
+            newFeat.setGeometry(point[0].geometry())
             newFeat.setFields(newFields)
-            for field in  range(len(point.fields())):
-                newFeat.setAttribute((field), point.attribute((field)))
+            newFeat['id'] = idcounter
+            newFeat['erro'] = dicterro[point[1]]
             sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
-        
+            idcounter +=1
         return newLayer
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
