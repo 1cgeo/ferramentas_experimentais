@@ -8,7 +8,8 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterVectorLayer,
                        QgsFeature,
                        QgsField,
-                       QgsFields
+                       QgsFields,
+                       QgsFeatureRequest
                        )
 
 class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
@@ -50,16 +51,19 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
 
         feedback.setProgressText('Verificando inconsistencias ')
 
-        for countour in countourLayer.getFeatures():
-            for river in streamLayerInput.getFeatures():
-                intersection = countour.geometry().intersection(river.geometry())
+        for river in streamLayerInput.getFeatures():
+            AreaOfInterest = river.geometry().boundingBox()
+            request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
+            for countour in countourLayer.getFeatures(request):
+                intersection = river.geometry().intersection(countour.geometry())
                 if intersection.isEmpty():
                     continue
-                if not intersection.wkbType()==1:
-                    if intersection.wkbType() ==4:
-                        outputPoints.append(intersection)
-                    if intersection.wkbType() ==2 or intersection.wkbType() ==5:
-                        outputLines.append(intersection)
+                if intersection.wkbType()==1:
+                    continue
+                if intersection.wkbType() ==4:
+                    outputPoints.append(intersection)
+                if intersection.wkbType() ==2 or intersection.wkbType() ==5:
+                    outputLines.append(intersection)
         AllOK = True
         if outputPoints:
             newLayer = self.outLayer(parameters, context, outputPoints, streamLayerInput, 1)
