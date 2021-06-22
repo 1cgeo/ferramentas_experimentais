@@ -3,16 +3,18 @@ from qgis.utils import iface
 from PyQt5 import QtCore, uic, QtWidgets, QtGui
 import os
 
+
 class LabelTool(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, menuActions):
         super(LabelTool, self).__init__()
+        self.menuActions = menuActions
     
     def createAction(self, text, callback):
         action = QtWidgets.QAction(
-            text,
-            iface.mainWindow()
+            text
         )
-        action.triggered.connect(callback)
+        action.triggered.connect( callback )
+        self.menuActions.addAction( action )
         return action
 
     def showQgisErrorMessage(self, title, text):
@@ -58,15 +60,15 @@ class LabelTool(QtWidgets.QWidget):
 
 class HydroLabelTool(LabelTool):
 
-    def __init__(self):
-        super(HydroLabelTool, self).__init__()
+    def __init__(self, menuActions):
+        super(HydroLabelTool, self).__init__(menuActions=menuActions)
         uic.loadUi(self.getUiPath(), self)
         self.addRioAction = self.createAction(
-            'start', 
+            'Rótulo Rio', 
             self.addRioBtn.click
         )
         self.addLagoAction = self.createAction(
-            'start', 
+            'Rótulo Lago', 
             self.addLagoBtn.click
         )
         iface.registerMainWindowAction(self.addRioAction, '')
@@ -171,11 +173,11 @@ class HydroLabelTool(LabelTool):
 
 class HighwayLabelTool(LabelTool):
 
-    def __init__(self):
-        super(HighwayLabelTool, self).__init__()
+    def __init__(self, menuActions):
+        super(HighwayLabelTool, self).__init__(menuActions=menuActions)
         uic.loadUi(self.getUiPath(), self)
         self.addFeatureAction = self.createAction(
-            'start', 
+            'Rótulo Rodovia', 
             self.addFeatureBtn.click
         )
         iface.registerMainWindowAction(self.addFeatureAction, '')
