@@ -15,13 +15,6 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QPushButton" name="addFeatureBtn">
-     <property name="text">
-      <string>Rótulo de hidrografia</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="label">
@@ -34,6 +27,20 @@
       <widget class="QComboBox" name="scaleMapCb"/>
      </item>
     </layout>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="addRioBtn">
+     <property name="text">
+      <string>Rótulo de Rio</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="addLagoBtn">
+     <property name="text">
+      <string>Rótulo de Lago</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

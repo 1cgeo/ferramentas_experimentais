@@ -11,7 +11,8 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterField,
                        QgsFields,
                        QgsFeature,
-                       QgsField
+                       QgsField,
+                       QgsWkbTypes
                        )
 
 class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
@@ -120,6 +121,11 @@ class StreamPolygonCountourConsistency(QgsProcessingAlgorithm):
                         if waterbody['tipo'] in NoFlow:
                             outputLines.append([intersectionCW, 1])
                             continue
+
+                        if intersectionCW.type() == QgsWkbTypes.PointGeometry:
+                            outputPoints.append([intersectionCW, 3])
+                            continue
+
                         vertices = intersectionCW.asPolyline()
                         if len(vertices)>2:
                             outputLines.append([intersectionCW, 3])

@@ -16,7 +16,6 @@ from qgis.core import (QgsProcessing,
                        QgsExpression,
                        QgsFields
                        )
-from qgis import processing
 import math
 class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm): 
 
@@ -79,7 +78,7 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
         pointsAndFields= []
         for feature in allFeatures:
             if feedback.isCanceled():
-                return {self.OUTPUT: pointsAndfields}
+                return {self.OUTPUT: "cancelado pelo usuário"}
             featgeom = feature.geometry()
             for geometry in featgeom.constGet():
                 ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
