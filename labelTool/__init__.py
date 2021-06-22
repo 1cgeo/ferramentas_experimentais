@@ -74,9 +74,10 @@ class HydroLabelTool(QtWidgets.QWidget):
             selectedFeatures = layer.selectedFeatures()
             if not len(selectedFeatures) == 1:
                 raise Exception('Selecione apenas uma feição!')
-            labelLayer = self.getLabelLayer()
+            labelLayerName = self.getLabelLayerName()
+            labelLayer = self.getLayer( labelLayerName )
             if not labelLayer:
-                raise Exception('Carregue a camada de rótulo "{0}"!'.format( self.getLabelLayerName() ))
+                raise Exception('Carregue a camada de rótulo "{0}"!'.format( labelLayerName ))
             feature = selectedFeatures[0]
             self.setFieldValue('texto', feature['nome'], labelLayer ) #if not( layer.fields().indexOf( 'nome' ) < 0 ) else ''
             self.setFieldValue('carta_mini', False, labelLayer )
@@ -85,9 +86,19 @@ class HydroLabelTool(QtWidgets.QWidget):
             self.setFieldValue('escala', self.scaleMapCb.itemData( self.scaleMapCb.currentIndex() ), labelLayer )
             iface.setActiveLayer( labelLayer )
             labelLayer.startEditing()
+            try:
+                labelLayer.featureAdded.disconnect( self.returnTargetLayer )
+            except:
+                pass
+            finally:
+                labelLayer.featureAdded.connect( self.returnTargetLayer )
             iface.actionAddFeature().trigger()
         except Exception as e:
             self.showQgisErrorMessage('Erro', str(e))
+
+    def returnTargetLayer(self):
+        targetLayer = self.getLayer( self.getTargetLayerName() )
+        iface.setActiveLayer( targetLayer )
 
     def getTargetLayerName(self):
         return 'elemnat_trecho_drenagem_l'
@@ -97,12 +108,11 @@ class HydroLabelTool(QtWidgets.QWidget):
             return 'elemnat_trecho_drenagem_l'
         return 'cobter_massa_dagua_a'
 
-    def getLabelLayer(self):
+    def getLayer(self, layerName):
         loadedLayers = core.QgsProject.instance().mapLayers().values()
-        labelLayerName = self.getLabelLayerName()
         for layer in loadedLayers:
             if not(
-                    layer.dataProvider().uri().table() == labelLayerName
+                    layer.dataProvider().uri().table() == layerName
                 ):
                 continue
             return layer
