@@ -221,6 +221,12 @@ Parâmetros:
 - edicao_texto_generico_p (ponto)
 - edicao_texto_generico_l (linha)
 - llp_limite_especial_a (polígono)
+
+### 42 - Identifica Múltiplas Interseções Entre Curva de Nível e Drenagem
+Retorna as interseções entre uma drenagem e uma curva de nível que se intersectam mais de uma vez (qualquer interseção não vazia diferente de apenas 1 ponto).
+Parâmetros:
+- Camada de drenagem (linha)
+- Camada de curva de nível (linha)
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
