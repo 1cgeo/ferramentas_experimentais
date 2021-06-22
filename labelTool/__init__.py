@@ -38,7 +38,6 @@ class LabelTool(QtWidgets.QWidget):
         return self.layerTargetName
 
     def returnTargetLayer(self):
-        print( self.getTargetLabelName() )
         targetLayer = self.getLayer( self.getTargetLabelName() )
         iface.setActiveLayer( targetLayer )
 
@@ -46,7 +45,7 @@ class LabelTool(QtWidgets.QWidget):
         loadedLayers = core.QgsProject.instance().mapLayers().values()
         for layer in loadedLayers:
             if not(
-                    layer.dataProvider().uri().table() == layerName
+                    layer.name() == layerName
                 ):
                 continue
             return layer
