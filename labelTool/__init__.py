@@ -47,7 +47,7 @@ class LabelTool(QtWidgets.QWidget):
         loadedLayers = core.QgsProject.instance().mapLayers().values()
         for layer in loadedLayers:
             if not(
-                    layer.dataProvider().uri().table() == layerName
+                    layer.name() == layerName
                 ):
                 continue
             return layer
