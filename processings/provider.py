@@ -63,6 +63,7 @@ from .generalizeBuildings import GeneralizeBuildings
 from .defineEditTextField import DefineEditTextField
 from .prepareMiniMap import PrepareMiniMap
 from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
+from .mergeHighway import MergeHighway
 
 class Provider(QgsProcessingProvider):
 
@@ -127,6 +128,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(DefineEditTextField())
         self.addAlgorithm(PrepareMiniMap())
         self.addAlgorithm(IdentifyCountourStreamIntersection())
+        self.addAlgorithm(MergeHighway())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
