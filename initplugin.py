@@ -11,6 +11,7 @@ from .copia_cola_geom.copia_cola_geom import startCopyButton, startPasteButton
 from .corta_fundo_vale.corta_fundo_vale import cortaFundoVale
 from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
+from .labelTool.hydroLabelV2 import HydroLabelV2
 from .defaultFields import setDefaultFields, restoreFields
 from .filters import filterSelections, cleanAllFilters, filterBySelectedGeometries
 from .labelTool import HydroLabelTool, HighwayLabelTool
@@ -25,6 +26,7 @@ class InitPlugin:
         self.spatialFilterTool = SpatialFilter()
         self.hydroLabelTool = HydroLabelTool()
         self.highwayLabelTool = HighwayLabelTool()
+        self.hydroLabelToolV2 = HydroLabelV2(iface.mapCanvas())
         self.provider = None
         self.toolBar = None
         self.toolBar2 = None
@@ -133,7 +135,15 @@ class InitPlugin:
             ""
         )
         self.toolBar.addAction(self.removeSpatialFilter)
-        
+
+        self.hydroLabelToolV2Action = self.createAction(
+            "Tool V2", 
+            "editSymbolHydro.png", 
+            self.hydroLabelToolV2.start, 
+            "Insere geometria para label de hidrografia",
+            "Insere geometria para label de hidrografia"
+        )
+        self.toolBar.addAction(self.hydroLabelToolV2Action)
 
         self.toolBar2.addWidget( self.hydroLabelTool )
 
