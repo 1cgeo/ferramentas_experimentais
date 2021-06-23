@@ -72,7 +72,6 @@ class MergeRivers(QgsProcessingAlgorithm):
             if not( drainageFeature['tipo'] in [1,2] ):
                 continue
             mergeKey = '{0}_{1}'.format( drainageFeature['nome'].lower(), drainageFeature['tipo'])
-            mergeKey = drainageFeature['nome'].lower()
             if not( mergeKey in merge):
                 merge[ mergeKey ] = []
             merge[ mergeKey ].append( drainageFeature )
