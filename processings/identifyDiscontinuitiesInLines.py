@@ -84,20 +84,25 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
                 ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
                 lineTouched = self.linesTouched(layer, feature, ptFin)
             if len(lineTouched) == 0:
-                continue 
-            for line in lineTouched:
-                fieldsChanged = []
-                if self.anglesBetweenLines(feature, line, ptFin) < (180 + angle) and self.anglesBetweenLines(feature, line, ptFin) > (180 - angle):
-                    fieldsChanged = self.changedFields(inputFields, feature, line)
-                    nameOfFields = self.fieldsName(fieldsChanged, feature, line)
-                    if len(fieldsChanged) == 0:
-                        continue
-                    if [ptFin,nameOfFields] not in pointsAndFields:
-                        pointsAndFields.append([ptFin, nameOfFields])
-                
-        if len(pointsAndFields)==0:
+                continue
+            smallerAngle = 360
+            for lineToBeSelected in lineTouched:
+                angMinus180 = abs(self.anglesBetweenLines(feature, lineToBeSelected, ptFin)-180)
+                if angMinus180<smallerAngle:
+                    smallerAngle=angMinus180
+                    line = lineToBeSelected
+            fieldsChanged = []
+            if self.anglesBetweenLines(feature, line, ptFin) < (180 + angle) and self.anglesBetweenLines(feature, line, ptFin) > (180 - angle):
+                fieldsChanged = self.changedFields(inputFields, feature, line)
+                nameOfFields = self.fieldsName(fieldsChanged, feature, line)
+                if len(fieldsChanged) == 0:
+                    continue
+                if [ptFin,nameOfFields] not in pointsAndFields:
+                    pointsAndFields.append([ptFin, nameOfFields])
+        newPoints = self.getLinesWithSmallerAngle(pointsAndFields, layer, inputFields)
+        if len(newPoints)==0:
             return{self.OUTPUT: 'nenhuma descontinuidade encontrada'}
-        newLayer = self.outLayer(parameters, context, pointsAndFields, layer, 4)
+        newLayer = self.outLayer(parameters, context, newPoints, layer, 4)
         return{self.OUTPUT: newLayer}
 
     def linesTouched(self, layer, feature, point):
@@ -129,8 +134,6 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
 
         return abs(angle)
 
-
-    
     def changedFields(self, inputFields, feature1, feature2):
         equalFields = []
         for field in inputFields:
@@ -148,6 +151,36 @@ class IdentifyDiscontinuitiesInLines(QgsProcessingAlgorithm):
             else:
                 text += ', ' + str(field) + ": " + str(value1) + " e " + str(value2)
         return text
+    def getLinesWithSmallerAngle(self, pointsAndFields, lineLayer, inputFields):
+        pointsToBeRemoved = []
+        for point in pointsAndFields:
+            linesArray = []
+            for line in lineLayer.getFeatures():
+                for geometry in line.geometry().constGet():
+                    ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
+                    ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
+                if ptFin.intersects(point[0]):
+                    linesArray.append([line, ptFin])
+                if ptIni.intersects(point[0]):
+                    linesArray.append([line, ptIni])
+            smallerAngle = 360
+            for i in range(len(linesArray)):
+                if i == len(linesArray)-1:
+                    continue
+                lineA = linesArray[i][0]
+                for j in range(i+1, len(linesArray)):
+                    lineB = linesArray[j][0]
+                    angMinus180 = abs(self.anglesBetweenLines(lineA, lineB, linesArray[i][1])-180)
+                    if angMinus180<smallerAngle:
+                        smallerAngle=angMinus180
+                        line1 = lineA
+                        line2 = lineB
+            fieldsChanged = []
+            fieldsChanged = self.changedFields(inputFields, line1, line2)
+            if len(fieldsChanged) == 0:
+                pointsToBeRemoved.append(point)
+        newPoints = [pt for pt in pointsAndFields if pt not in pointsToBeRemoved]
+        return newPoints
     def outLayer(self, parameters, context, pointsAndFields, layer, geomType):
         newField = QgsFields()
         newField.append(QgsField('Campos que Mudaram', QVariant.String))
