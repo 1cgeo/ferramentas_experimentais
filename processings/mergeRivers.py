@@ -24,7 +24,8 @@ import math
 class MergeRivers(QgsProcessingAlgorithm): 
 
     INPUT_LAYER_L = 'INPUT_LAYER_L'
-    OUTPUT = 'OUTPUT'
+    INPUT_FRAME_A = 'INPUT_FRAME_A'
+    OUTPUT_LAYER_L = 'OUTPUT_LAYER_L'
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -35,11 +36,37 @@ class MergeRivers(QgsProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterVectorLayer(
+                self.INPUT_FRAME_A,
+                self.tr('Selecionar camada de moldura'),
+                [QgsProcessing.TypeVectorPolygon]
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.OUTPUT_LAYER_L,
+                self.tr('drenagem_mesclada')
+            )
+        ) 
+
     def processAlgorithm(self, parameters, context, feedback):      
         drainageLayer = self.parameterAsVectorLayer(parameters, self.INPUT_LAYER_L, context)
+        frameLayer = self.parameterAsVectorLayer(parameters, self.INPUT_FRAME_A, context)
 
+        (sink_l, sinkId_l) = self.parameterAsSink(
+            parameters,
+            self.OUTPUT_LAYER_L,
+            context,
+            drainageLayer.fields(),
+            core.QgsWkbTypes.MultiLineString,
+            QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
+        )
+
+        cloneDrainageLayer = drainageLayer.clone()
         merge = {}
-        for drainageFeature in drainageLayer.getFeatures():
+        for drainageFeature in cloneDrainageLayer.getFeatures():
             if not drainageFeature['nome']:
                 continue
             if not( drainageFeature['tipo'] in [1,2] ):
@@ -49,10 +76,20 @@ class MergeRivers(QgsProcessingAlgorithm):
             if not( mergeKey in merge):
                 merge[ mergeKey ] = []
             merge[ mergeKey ].append( drainageFeature )
-
         for mergeKey in merge:
-            self.mergeLineFeatures( merge[ mergeKey ], drainageLayer )
-        return {self.OUTPUT: ''}
+            self.mergeLineFeatures( merge[ mergeKey ], cloneDrainageLayer )
+
+        clippedDrainageLayer = self.clipLayer( cloneDrainageLayer, frameLayer)
+
+        for feature in clippedDrainageLayer.getFeatures():
+            self.addSink( feature, sink_l)
+        return {self.OUTPUT_LAYER_L: sinkId_l}
+    
+    def addSink(self, feature, sink):
+        newFeature = QgsFeature( feature.fields() )
+        newFeature.setAttributes( feature.attributes() )
+        newFeature.setGeometry( feature.geometry() )
+        sink.addFeature( newFeature )
 
     def mergeLineFeatures(self, features, layer):
         layer.startEditing()
@@ -73,6 +110,19 @@ class MergeRivers(QgsProcessingAlgorithm):
                 layer.updateFeature( featureA )
                 idsToRemove.append( featureBId )
         layer.deleteFeatures( idsToRemove )
+
+    def clipLayer(self, layer, frame):
+        r = processing.run(
+            'native:clip',
+            {   'FIELD' : [], 
+                'INPUT' : core.QgsProcessingFeatureSourceDefinition(
+                    layer.source()
+                ), 
+                'OVERLAY' : frame,
+                'OUTPUT' : 'TEMPORARY_OUTPUT'
+            }
+        )
+        return r['OUTPUT']
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
