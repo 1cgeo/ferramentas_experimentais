@@ -64,9 +64,10 @@ class MergeRivers(QgsProcessingAlgorithm):
             QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
         )
 
-        cloneDrainageLayer = drainageLayer.clone()
+        clippedDrainageLayer = self.clipLayer( drainageLayer, frameLayer)
+
         merge = {}
-        for drainageFeature in cloneDrainageLayer.getFeatures():
+        for drainageFeature in clippedDrainageLayer.getFeatures():
             if not drainageFeature['nome']:
                 continue
             if not( drainageFeature['tipo'] in [1,2] ):
@@ -75,10 +76,9 @@ class MergeRivers(QgsProcessingAlgorithm):
             if not( mergeKey in merge):
                 merge[ mergeKey ] = []
             merge[ mergeKey ].append( drainageFeature )
-        for mergeKey in merge:
-            self.mergeLineFeatures( merge[ mergeKey ], cloneDrainageLayer )
 
-        clippedDrainageLayer = self.clipLayer( cloneDrainageLayer, frameLayer)
+        for mergeKey in merge:
+            self.mergeLineFeatures( merge[ mergeKey ], clippedDrainageLayer )
 
         for feature in clippedDrainageLayer.getFeatures():
             self.addSink( feature, sink_l)
@@ -109,6 +109,7 @@ class MergeRivers(QgsProcessingAlgorithm):
                 layer.updateFeature( featureA )
                 idsToRemove.append( featureBId )
         layer.deleteFeatures( idsToRemove )
+        #layer.commitChanges()
 
     def clipLayer(self, layer, frame):
         r = processing.run(

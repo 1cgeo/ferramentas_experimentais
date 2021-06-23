@@ -64,9 +64,10 @@ class MergeHighway(QgsProcessingAlgorithm):
             QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
         )
 
-        cloneHighwayLayer = highwayLayer.clone()
+        clippedHighwayLayer = self.clipLayer( highwayLayer, frameLayer)
+
         merge = {}
-        for highwayFeature in cloneHighwayLayer.getFeatures():
+        for highwayFeature in clippedHighwayLayer.getFeatures():
             if not highwayFeature['sigla']:
                 continue
             mergeKey = '{0}'.format( highwayFeature['sigla'].lower() )
@@ -74,9 +75,7 @@ class MergeHighway(QgsProcessingAlgorithm):
                 merge[ mergeKey ] = []
             merge[ mergeKey ].append( highwayFeature )
         for mergeKey in merge:
-            self.mergeLineFeatures( merge[ mergeKey ], cloneHighwayLayer )
-
-        clippedHighwayLayer = self.clipLayer( cloneHighwayLayer, frameLayer)
+            self.mergeLineFeatures( merge[ mergeKey ], clippedHighwayLayer )
 
         for feature in clippedHighwayLayer.getFeatures():
             self.addSink( feature, sink_l)
