@@ -62,6 +62,7 @@ from .highestSpotOnTheFrame import HighestSpotOnTheFrame
 from .generalizeBuildings import GeneralizeBuildings
 from .defineEditTextField import DefineEditTextField
 from .prepareMiniMap import PrepareMiniMap
+from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
 
 class Provider(QgsProcessingProvider):
 
@@ -125,6 +126,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(GeneralizeBuildings())
         self.addAlgorithm(DefineEditTextField())
         self.addAlgorithm(PrepareMiniMap())
+        self.addAlgorithm(IdentifyCountourStreamIntersection())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 

@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import QAction, QMenu
 from PyQt5.QtGui import QIcon
 from qgis.core import QgsApplication
-
+from PyQt5 import QtCore, uic, QtWidgets, QtGui
 from .processings.plugin_alg import PluginAlg
 from .calcula_azimute.calcazimute import calazim
 from .copia_wkt.copiarwkt import copywkt
@@ -24,8 +24,15 @@ class InitPlugin:
         self.iface = iface
         self.cortaWidget = CortaTool( callback=cortaFundoVale )
         self.spatialFilterTool = SpatialFilter()
-        self.hydroLabelTool = HydroLabelTool()
-        self.highwayLabelTool = HighwayLabelTool()
+
+        self.menuActions = QtWidgets.QMenu( iface.mainWindow() )
+        self.menuActions.setObjectName('ferramentas_experimentais')
+        self.menuActions.setTitle('ferramentas_experimentais')
+        iface.mainWindow().menuBar().insertMenu( iface.firstRightStandardMenu().menuAction(), self.menuActions )
+
+
+        self.hydroLabelTool = HydroLabelTool( self.menuActions )
+        self.highwayLabelTool = HighwayLabelTool( self.menuActions )
         self.hydroLabelToolV2 = HydroLabelV2(iface.mapCanvas())
         self.provider = None
         self.toolBar = None
@@ -155,6 +162,7 @@ class InitPlugin:
         QgsApplication.processingRegistry().removeProvider(self.provider)
         self.iface.mainWindow().removeToolBar(self.toolBar)
         self.iface.mainWindow().removeToolBar(self.toolBar2)
+        self.menuActions.deleteLater()
 
     def createAction(self, text, icon, callback, whatisthis, tip):
         if icon:

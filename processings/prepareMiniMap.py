@@ -156,7 +156,7 @@ class PrepareMiniMap(QgsProcessingAlgorithm):
             newFeat['tamanho_txt'] = 6
             newFeat['cor'] = '#000000'
             newFeat['estilo_fonte'] = 'Condensed Light'
-            newFeat['texto_edicao'] = feature['nome']
+            newFeat['texto_edicao'] = feature['nome'].upper()
             pointsToAdd.append(newFeat)
         edicao_texto_generico_p_layer.startEditing()
         edicao_texto_generico_p_layer.addFeatures(pointsToAdd)
@@ -168,7 +168,7 @@ class PrepareMiniMap(QgsProcessingAlgorithm):
     def editLayer(self, layer, changeEscala, escala_input, changeEspacamento, espacamento, changeTamanho, tamanho_txt, verifyTipo, isLine):
         exp = QgsExpression('carta_mini IS False')
         if verifyTipo:
-            exp = QgsExpression('carta_mini is False AND (tipo = 8 OR tipo=9 OR tipo=10)')
+            exp = QgsExpression('carta_mini is False AND NOT (tipo = 8 OR tipo=9 OR tipo=10)')
         request = QgsFeatureRequest(exp)
         features = []
         for feature in layer.getFeatures(request):
