@@ -143,7 +143,7 @@ class HydroLabelTool(LabelTool):
             if not layer:
                 raise Exception('Selecione uma feição!')
             targetLayerName = 'cobter_massa_dagua_a'
-            if not( layer.dataProvider().uri().table() == targetLayerName ):
+            if not( layer.name() == targetLayerName ):
                 raise Exception('Selecione uma feição da camada "{0}" !'.format( targetLayerName ) )
             selectedFeatures = layer.selectedFeatures()
             if not len(selectedFeatures) == 1:
@@ -197,7 +197,7 @@ class HighwayLabelTool(LabelTool):
             if not layer:
                 raise Exception('Selecione uma feição!')
             targetLayerName = self.getTargetLayerName()
-            if not( layer.dataProvider().uri().table() == targetLayerName ):
+            if not( layer.name() == targetLayerName ):
                 raise Exception('Selecione uma feição da camada "{0}" !'.format( targetLayerName ) )
             selectedFeatures = layer.selectedFeatures()
             if not len(selectedFeatures) == 1:
