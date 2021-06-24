@@ -215,8 +215,7 @@ Parâmetros:
 - Camada de drenagem (linha)
 - Camada de curva de nível (linha)
 
-
-
+### 42 - Remove vértices duplicados
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
