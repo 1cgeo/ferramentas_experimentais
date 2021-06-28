@@ -16,6 +16,7 @@ from .filters import filterSelections, cleanAllFilters, filterBySelectedGeometri
 from .labelTool import HydroLabelTool, HighwayLabelTool
 from .copy_to_temp_layer.copyToTempLayer import copyToTempLayer
 from .processings.provider import Provider
+from .expressionFunctions import loadExpressionFunctions
 
 class InitPlugin:
 
@@ -146,6 +147,8 @@ class InitPlugin:
         self.toolBar2.addWidget( self.highwayLabelTool )
         # Addprovider
         PluginAlg.initProcessing(self)
+
+        loadExpressionFunctions()
 
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
