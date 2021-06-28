@@ -9,10 +9,9 @@ def getFunctionsFolderPath():
 
 def loadExpressionFunctions():
     functionsFolderPath = getFunctionsFolderPath()
-    wd = gui.QgsExpressionBuilderWidget()
     for fileName in os.listdir( functionsFolderPath ):
         codeFilePath = os.path.join( functionsFolderPath, fileName )
         with open(codeFilePath, 'r') as f:
             code = f.read()
-            wd.loadFunctionCode(  code )
+            gui.QgsExpressionBuilderWidget().loadFunctionCode(  code )
         core.QgsPythonRunner.run( code )

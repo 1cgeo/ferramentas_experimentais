@@ -8,7 +8,7 @@ def getSirgarAuthIdByPointLatLong(lat, long, feature, parent):
     Calculates SIRGAS 2000 epsg.
     <h2>Example usage:</h2>
     <ul>
-      <li>Found: getSirgarAuthIdByPointLatLong(lat, long) -> 'ESPG:31982'</li>
+      <li>Found: getSirgarAuthIdByPointLatLong(-8.05389, -34.881111) -> 'ESPG:31985'</li>
       <li>Not found: getSirgarAuthIdByPointLatLong(lat, long) -> ''</li>
     </ul>
     """
@@ -19,7 +19,7 @@ def getSirgarAuthIdByPointLatLong(lat, long, feature, parent):
         zone_letter = 'S'
     return getSirgasEpsg('{0}{1}'.format(zone_number, zone_letter))
 
-def getSirgasEpsg(self, key):
+def getSirgasEpsg(key):
     options = {
         "11N" : "EPSG:31965", 
         "12N" : "EPSG:31966", 
