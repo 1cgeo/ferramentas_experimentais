@@ -209,24 +209,14 @@ Parâmetros:
 - Camada de vias de deslocamento (linha)
 - Camada de barragens (linha)
 
-### 41 - Prepara Carta Mini
-Cria uma cópia das feições com carta_mini = **false**, modificando outros atributos a depender da camada. Nas feições do tipo linha, a cópia tem apenas o ponto inicial e final. Da camada de polígono extrai-se uma cópia do centroide,preenche-se atributos dessa cópia e adiciona à camada edicao_texto_generico_p.
-Parâmetros:
-- identificador_trecho_rod_p (ponto)
-- llp_localidade_p (ponto)
-- edicao_simb_hidrografia_p (ponto)
-- edicao_simb_hidrografia_l (linha)
-- elemnat_toponimo_fisiografico_natural_p (ponto)
-- elemnat_toponimo_fisiografico_natural_l (linha)
-- edicao_texto_generico_p (ponto)
-- edicao_texto_generico_l (linha)
-- llp_limite_especial_a (polígono)
-
-### 42 - Identifica Múltiplas Interseções Entre Curva de Nível e Drenagem
+### 41 - Identifica Múltiplas Interseções Entre Curva de Nível e Drenagem
 Retorna as interseções entre uma drenagem e uma curva de nível que se intersectam mais de uma vez (qualquer interseção não vazia diferente de apenas 1 ponto).
 Parâmetros:
 - Camada de drenagem (linha)
 - Camada de curva de nível (linha)
+
+### 42 - Remove vértices duplicados
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
@@ -284,3 +274,55 @@ Permite o usuário desenhar um poligono, e aplicar esse poligono como filtro esp
 
 ### 8- Copia feições para camada Temporária
 Cria nova camada temporaria 'camada_nome_temp' com as feições selecionadas de 'camada_nome'.
+
+### 9- Filtra todas as camadas pelos poligonos selecionados
+
+### 10- Remove o filtro de todas as camadas
+
+## Processings de edição
+
+### 1- Salvar máscaras
+Salva mascaras de simbologia em um arquivo JSON
+
+### 2- Carrega máscaras
+Aplica mascaras de simbologia a partir de um arquivo JSON
+
+### 3- Definir cota mais alta por moldura
+
+### 4- Definir largura ponte e bueiro
+
+### 5- Definir largura simbolo de barragem
+
+### 6- Definir rotação de edificações
+
+### 7- Definir rotação de corredeira e queda dágua
+
+### 8- Definir rotação de ponte e bueiro
+
+### 9 - Generaliza edificações
+
+### 10 - Mescla rios
+
+### 11 - Ordenar camadas de edição
+
+### 12 - Exporta estilos para arquivo QML
+
+### 13 - Definir campo texto_edicao
+
+### 14 - Prepara Carta Mini
+Cria uma cópia das feições com carta_mini = **false**, modificando outros atributos a depender da camada. Nas feições do tipo linha, a cópia tem apenas o ponto inicial e final. Da camada de polígono extrai-se uma cópia do centroide,preenche-se atributos dessa cópia e adiciona à camada edicao_texto_generico_p.
+Parâmetros:
+- identificador_trecho_rod_p (ponto)
+- llp_localidade_p (ponto)
+- edicao_simb_hidrografia_p (ponto)
+- edicao_simb_hidrografia_l (linha)
+- elemnat_toponimo_fisiografico_natural_p (ponto)
+- elemnat_toponimo_fisiografico_natural_l (linha)
+- edicao_texto_generico_p (ponto)
+- edicao_texto_generico_l (linha)
+- llp_limite_especial_a (polígono)
+
+## Ferramentas de edição
+
+### 1- Ferramentas de rótulo
+Permite a criação rápida de rótulos de rio, lagos e identificador trecho rodoviário.
