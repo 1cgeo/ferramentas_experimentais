@@ -14,7 +14,8 @@ from qgis.core import (
                         QgsFeatureRequest,
                         QgsProcessingParameterNumber,
                         QgsGeometry,
-                        QgsPointXY
+                        QgsPointXY,
+                        QgsProcessingParameterEnum
                     )
 from qgis import processing
 from qgis import core, gui
@@ -26,8 +27,8 @@ from qgis.PyQt.QtXml import QDomDocument
 class OrderEditLayers(QgsProcessingAlgorithm): 
 
     JSON_FILE = 'JSON_FILE'
-    STYLENAME_MAP = 'STYLENAME_MAP'
-    STYLENAME_MINIMAP = 'STYLENAME_MINIMAP'
+    STYLENAME = 'STYLENAME'
+    MODE = 'MODE'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
@@ -40,63 +41,67 @@ class OrderEditLayers(QgsProcessingAlgorithm):
         )
         self.addParameter(
             core.QgsProcessingParameterString(
-                self.STYLENAME_MAP,
-                self.tr('Digitar nome do estilo da carta')
+                self.STYLENAME,
+                self.tr('Digitar nome do estilo')
             )
         )
+
+        self.modes = [
+            self.tr('carta'),
+            self.tr('carta_mini'),
+        ]
 
         self.addParameter(
-            core.QgsProcessingParameterString(
-                self.STYLENAME_MINIMAP,
-                self.tr('Digite o nome do estilo da carta mini')
+            QgsProcessingParameterEnum(
+                self.MODE,
+                self.tr('Modo'),
+                options=self.modes,
+                defaultValue=0
             )
         )
 
-    def processAlgorithm(self, parameters, context, feedback):      
+    def processAlgorithm(self, parameters, context, feedback): 
         jsonFilePath = self.parameterAsFile(parameters, self.JSON_FILE, context)
-        stylenameMap = self.parameterAsFile(parameters, self.STYLENAME_MAP, context)
-        stylenameMiniMap = self.parameterAsFile(parameters, self.STYLENAME_MINIMAP, context)
-        
-        iface.mapCanvas().freeze(True)
-
+        stylename = self.parameterAsFile(parameters, self.STYLENAME, context)
+        mode = self.parameterAsEnum(
+            parameters,
+            self.MODE,
+            context
+        )
         jsonConfigData = self.getJSONConfig( jsonFilePath )
-
-        root = core.QgsProject.instance().layerTreeRoot()
-        layers = core.QgsProject.instance().mapLayers().values()
-
-        miniMapGroup = root.addGroup('carta_mini')
-        mapGroup = root.addGroup('carta')
-
-        self.order( jsonConfigData['carta_mini'], stylenameMiniMap, miniMapGroup, layers)
-        self.order( jsonConfigData['carta'], stylenameMap, mapGroup, layers)
-        
-        iface.mapCanvas().freeze( False )
-
+        iface.mapCanvas().freeze(True)
+        groupName = self.modes[ mode ]
+        self.order( [ i['tabela'] for i in jsonConfigData[ groupName ] ], stylename, context)   
+        iface.mapCanvas().freeze(False) 
         return {self.OUTPUT: ''}
 
-    def order(self, layerNames, styleName, groupLayer, layers):
-        for layerName in layerNames:
-            layer = self.getLayer(layerName["tabela"], layers)
-            if not layer:
-                continue
-            self.loadStyle( layer, styleName )
-            core.QgsProject.instance().addMapLayer( layer, False )
-            groupLayer.addLayer( layer )
-
-
-    def getLayer(self, layerName, layers):
+    def order(self, layerNames, styleName, context):
+        project = core.QgsProject.instance()
+        layers = project.mapLayers().values()
+        order = []
         for layer in layers:
-            if not(
-                    layer.dataProvider().uri().table() == layerName
-                ):
-                continue 
-            return core.QgsVectorLayer( layer.source(), layer.name(),  layer.providerType() )
+            layerName = layer.dataProvider().uri().table()
+            
+            if not( layerName in layerNames ):
+                project.removeMapLayer( layer.id() )
+                continue
+            loaded = self.loadStyle( layer, styleName )
+            if not loaded:
+                project.removeMapLayer( layer.id() )
+                continue    
+            order.insert( 
+                layerNames.index( layerName ), 
+                layer
+            )
+        project.layerTreeRoot().setHasCustomLayerOrder(True)
+        project.layerTreeRoot().setCustomLayerOrder( order )
 
     def getJSONConfig(self, jsonFilePath):
         with open(jsonFilePath, 'r') as f:
             return json.load( f )
 
     def loadStyle(self, layer, styleName):
+        loaded = False
         for stylename, styleid in self.getLayerStyles( layer ):
             if not( stylename == styleName ):
                 continue
@@ -104,7 +109,9 @@ class OrderEditLayers(QgsProcessingAlgorithm):
             doc = QDomDocument()
             doc.setContent( qml )
             layer.importNamedStyle( doc )
-            layer.triggerRepaint()
+            #layer.triggerRepaint()
+            loaded =  True
+        return loaded
 
     def getLayerStyles(self, layer):
         stylesData = layer.listStylesInDatabase()
