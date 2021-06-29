@@ -169,7 +169,7 @@ Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vérti
 
 ### 35 - Verificar geometrias próximas
 
-### 36 - Salva estilos para QML
+### 36 - Remove vértices duplicados
 
 ### 37 - Verifica Hidrografia
 Verifica condições lógico espaciais envolvendo elementos de camadas de hidrografia (parâmetros).
@@ -214,8 +214,6 @@ Retorna as interseções entre uma drenagem e uma curva de nível que se interse
 Parâmetros:
 - Camada de drenagem (linha)
 - Camada de curva de nível (linha)
-
-### 42 - Remove vértices duplicados
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
