@@ -125,7 +125,7 @@ class UuidCheckerAlg(ProcessingAlg):
                 [
                     errors.append({
                         'geometry': self.getFlagGeometry(feature),
-                        'fields' : {'erro': descr}
+                        'fields' : {'erro': descr, 'classe': layer.name(), 'feature_id': feature['id']}
                     })
                     for descr, hasError in [
                         ('uuid inválido', not isValidUuid),
@@ -148,6 +148,8 @@ class UuidCheckerAlg(ProcessingAlg):
     def getFlagFields(self):
         sinkFields = QgsFields()
         sinkFields.append(QgsField('erro', QVariant.String))
+        sinkFields.append(QgsField('classe', QVariant.String))
+        sinkFields.append(QgsField('feature_id', QVariant.Int))
         return sinkFields
 
     def hasDuplicateValues(self, value, valueList):
