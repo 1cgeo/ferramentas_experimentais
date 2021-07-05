@@ -44,36 +44,43 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
 
         streamLayerInput = self.parameterAsVectorLayer( parameters,'INPUT_STREAM', context )
         
-        outputLines = []
-        outputPoints = []
+        outputLinesSet, outputPointsSet = set(), set()
         countourLayer = self.parameterAsVectorLayer( parameters,'INPUT_COUNTOUR_LINES', context )
-
+        total = 100.0 / streamLayerInput.featureCount() if streamLayerInput.featureCount() else 0
 
         feedback.setProgressText('Verificando inconsistencias ')
+        
+        def buildOutputs(countour, riverGeom, feedback):
+            if feedback.isCanceled():
+                return
+            countourGeom = countour.geometry()
+            if not countourGeom.intersects(riverGeom):
+                return
+            intersection = countourGeom.intersection(riverGeom)
+            if intersection.isEmpty() or intersection.wkbType() == 1:
+                return
+            if intersection.wkbType() == 4:
+                outputPointsSet.add(intersection)
+            if intersection.wkbType() in [2, 5]:
+                outputLinesSet.add(intersection)
 
-        for river in streamLayerInput.getFeatures():
+        for current, river in enumerate(streamLayerInput.getFeatures()):
+            if feedback is not None and feedback.isCanceled():
+                break
             riverGeom = river.geometry()
             AreaOfInterest = riverGeom.boundingBox()
             request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
-            for countour in countourLayer.getFeatures(request):
-                countourGeom = countour.geometry()
-                if not countourGeom.intersects(riverGeom):
-                    continue
-                intersection = countourGeom.intersection(riverGeom)
-                if intersection.isEmpty():
-                    continue
-                if intersection.wkbType()==1:
-                    continue
-                if intersection.wkbType() ==4:
-                    outputPoints.append(intersection)
-                if intersection.wkbType() ==2 or intersection.wkbType() ==5:
-                    outputLines.append(intersection)
+            buildOutputsLambda = lambda x: buildOutputs(x, riverGeom, feedback)
+            list(map(buildOutputsLambda, countourLayer.getFeatures(request)))
+            if feedback is not None:
+                feedback.setProgress(int(current * total))
+                
         AllOK = True
-        if outputPoints:
-            newLayer = self.outLayer(parameters, context, outputPoints, streamLayerInput, 1)
+        if outputPointsSet != set() :
+            newLayer = self.outLayer(parameters, context, outputPointsSet, streamLayerInput, 1)
             AllOK = False
-        if outputLines:
-            newLayer = self.outLayer(parameters, context, outputLines, streamLayerInput, 2)
+        if outputLinesSet != set():
+            newLayer = self.outLayer(parameters, context, outputLinesSet, streamLayerInput, 2)
             AllOK = False
         if AllOK: 
             newLayer = 'nenhuma inconsistência verificada'
