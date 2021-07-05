@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
 import processing
+
+import concurrent.futures
 
 from qgis.core import (QgsFeature, QgsFeatureRequest, QgsFeatureSink, QgsField,
                        QgsFields, QgsProcessing, QgsProcessingAlgorithm,
@@ -56,7 +59,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         if feedback is not None and feedback.isCanceled():
             return
         spatialIdx.addFeature(feat)
-        idDict[feat.id()] = feat
+        idDict[feat['id']] = feat
         if feedback is not None:
             feedback.setProgress(size * current)
         
@@ -73,7 +76,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback = QgsProcessingMultiStepFeedback(3, feedback)
         multiStepFeedback.setCurrentStep(0)
         multiStepFeedback.pushInfo("Construindo estruturas auxiliares.")
-        idDict = {feat['id']: feat for feat in countourLayer.getFeatures()}
+        spatialIdx, idDict = self.buildSpatialIndexAndIdDict(countourLayer, feedback=multiStepFeedback)
         
         multiStepFeedback.setCurrentStep(1)
         multiStepFeedback.pushInfo("Realizando join espacial")
@@ -82,7 +85,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback.setCurrentStep(2)
         multiStepFeedback.pushInfo("Procurando problemas.")
         
-        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, idDict)
+        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, spatialIdx, idDict)
                 
         AllOK = True
         if outputPointsSet != set() :
@@ -104,7 +107,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
                 'PREDICATE': [0],
                 'JOIN_FIELDS': [],
                 'METHOD': 0,
-                'DISCARD_NONMATCHING': False,
+                'DISCARD_NONMATCHING': True,
                 'PREFIX': '',
                 'OUTPUT': 'TEMPORARY_OUTPUT' 
             },
@@ -112,12 +115,15 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         )
         return output['OUTPUT']
 
-    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, idDict):
+    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, spatialIdx, idDict):
         total = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
-        def buildOutputs(countour, riverGeom, feedback):
+        def buildOutputs(riverFeat, feedback):
             if feedback.isCanceled():
                 return
-            countourGeom = countour.geometry()
+            riverGeom = riverFeat.geometry()
+            if riverFeat['id_2'] not in idDict:
+                return
+            countourGeom = idDict[riverFeat['id_2']].geometry()
             if not countourGeom.intersects(riverGeom):
                 return
             intersection = countourGeom.intersection(riverGeom)
@@ -127,20 +133,23 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
                 outputPointsSet.add(intersection)
             if intersection.wkbType() in [2, 5]:
                 outputLinesSet.add(intersection)
-
-        for current, feat in enumerate(inputLyr.getFeatures()):
+        
+        buildOutputsLambda = lambda x: buildOutputs(x, feedback)
+        
+        pool = concurrent.futures.ThreadPoolExecutor(os.cpu_count())
+        futures = set()
+        current_idx = 0
+        
+        for feat in inputLyr.getFeatures():
             if feedback is not None and feedback.isCanceled():
                 break
-            geom = feat.geometry()
-            if feat['id_2'] not in idDict:
-                feedback.setProgress(int(current * total))
-                continue
-            candidateContour = idDict[feat['id_2']]
-            buildOutputs(candidateContour, geom, feedback)
-            if feedback is not None:
-                feedback.setProgress(int(current * total))
-
-
+            futures.add(pool.submit(buildOutputsLambda, feat))
+        
+        for x in concurrent.futures.as_completed(futures):
+            if feedback is not None and feedback.isCanceled():
+                break
+            feedback.setProgress(current_idx * total)
+            current_idx += 1
 
     def outLayer(self, parameters, context, geometry, streamLayer, geomtype):
         newFields = QgsFields()
