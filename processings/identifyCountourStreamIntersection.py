@@ -40,29 +40,6 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
                 self.tr('Flag Interseções Curva de Nível e Drenagem')
             )
         )
-    
-    def buildSpatialIndexAndIdDict(self, inputLyr, feedback=None):
-        """
-        creates a spatial index for the centroid layer
-        """
-        spatialIdx = QgsSpatialIndex()
-        idDict = {}
-        size = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
-        buildLambda = lambda x: self.buildSpatialIndexAndIdDictEntry(
-            x[0], x[1], spatialIdx, idDict, size, feedback)
-        list(
-            map(buildLambda, enumerate(inputLyr.getFeatures()))
-        )
-        return spatialIdx, idDict
-
-    def buildSpatialIndexAndIdDictEntry(self, current, feat, spatialIdx, idDict, size, feedback):
-        if feedback is not None and feedback.isCanceled():
-            return
-        spatialIdx.addFeature(feat)
-        idDict[feat['id']] = feat
-        if feedback is not None:
-            feedback.setProgress(size * current)
-        
 
     def processAlgorithm(self, parameters, context, feedback):
 
@@ -76,7 +53,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback = QgsProcessingMultiStepFeedback(3, feedback)
         multiStepFeedback.setCurrentStep(0)
         multiStepFeedback.pushInfo("Construindo estruturas auxiliares.")
-        spatialIdx, idDict = self.buildSpatialIndexAndIdDict(countourLayer, feedback=multiStepFeedback)
+        idDict = {feat['id']: feat for feat in countourLayer.getFeatures()}
         
         multiStepFeedback.setCurrentStep(1)
         multiStepFeedback.pushInfo("Realizando join espacial")
@@ -85,7 +62,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback.setCurrentStep(2)
         multiStepFeedback.pushInfo("Procurando problemas.")
         
-        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, spatialIdx, idDict)
+        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, idDict)
                 
         AllOK = True
         if outputPointsSet != set() :
@@ -115,7 +92,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         )
         return output['OUTPUT']
 
-    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, spatialIdx, idDict):
+    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, idDict):
         total = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
         def buildOutputs(riverFeat, feedback):
             if feedback.isCanceled():
