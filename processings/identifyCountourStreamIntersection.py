@@ -50,16 +50,26 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
 
         feedback.setProgressText('Verificando inconsistencias ')
         
-        multiStepFeedback = QgsProcessingMultiStepFeedback(3, feedback)
+        multiStepFeedback = QgsProcessingMultiStepFeedback(7, feedback)
         multiStepFeedback.setCurrentStep(0)
         multiStepFeedback.pushInfo("Construindo estruturas auxiliares.")
-        idDict = {feat['id']: feat for feat in countourLayer.getFeatures()}
-        
+
+        auxStreamLayerInput = self.runAddCount(streamLayerInput, feedback=multiStepFeedback)
         multiStepFeedback.setCurrentStep(1)
-        multiStepFeedback.pushInfo("Realizando join espacial")
-        spatialJoinOutput = self.runSpatialJoin(streamLayerInput, countourLayer, feedback=multiStepFeedback)
+        self.runCreateSpatialIndex(auxStreamLayerInput, feedback=multiStepFeedback)
         
         multiStepFeedback.setCurrentStep(2)
+        auxCountourLayer = self.runAddCount(countourLayer, feedback=multiStepFeedback)
+        multiStepFeedback.setCurrentStep(3)
+        self.runCreateSpatialIndex(auxStreamLayerInput, feedback=multiStepFeedback)
+        multiStepFeedback.setCurrentStep(4)
+        idDict = {feat['AUTO']: feat for feat in auxCountourLayer.getFeatures()}
+        
+        multiStepFeedback.setCurrentStep(5)
+        multiStepFeedback.pushInfo("Realizando join espacial")
+        spatialJoinOutput = self.runSpatialJoin(auxStreamLayerInput, auxCountourLayer, feedback=multiStepFeedback)
+        
+        multiStepFeedback.setCurrentStep(6)
         multiStepFeedback.pushInfo("Procurando problemas.")
         
         self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, idDict)
@@ -91,6 +101,30 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             feedback=feedback
         )
         return output['OUTPUT']
+    
+    def runAddCount(self, inputLyr, feedback):
+        output = processing.run(
+            "native:addautoincrementalfield",
+            {
+                'INPUT':inputLyr,
+                'FIELD_NAME':'AUTO',
+                'START':0,
+                'GROUP_FIELDS':[],
+                'SORT_EXPRESSION':'',
+                'SORT_ASCENDING':False,
+                'SORT_NULLS_FIRST':False,
+                'OUTPUT':'TEMPORARY_OUTPUT'
+            },
+            feedback=feedback
+        )
+        return output['OUTPUT']
+
+    def runCreateSpatialIndex(self, inputLyr, feedback):
+        processing.run(
+            "native:createspatialindex",
+            {'INPUT':inputLyr},
+            feedback=feedback
+        )
 
     def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, idDict):
         total = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
@@ -98,9 +132,9 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             if feedback.isCanceled():
                 return
             riverGeom = riverFeat.geometry()
-            if riverFeat['id_2'] not in idDict:
+            if riverFeat['AUTO_2'] not in idDict:
                 return
-            countourGeom = idDict[riverFeat['id_2']].geometry()
+            countourGeom = idDict[riverFeat['AUTO_2']].geometry()
             if not countourGeom.intersects(riverGeom):
                 return
             intersection = countourGeom.intersection(riverGeom)
