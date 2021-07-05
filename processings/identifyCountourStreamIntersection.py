@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import (QCoreApplication, QVariant)
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingAlgorithm,
+from qgis.core import (QgsFeature, QgsFeatureRequest, QgsFeatureSink, QgsField,
+                       QgsFields, QgsProcessing, QgsProcessingAlgorithm,
+                       QgsProcessingMultiStepFeedback,
                        QgsProcessingParameterFeatureSink,
-                       QgsProcessingParameterVectorLayer,
-                       QgsFeature,
-                       QgsField,
-                       QgsFields,
-                       QgsFeatureRequest
-                       )
+                       QgsProcessingParameterVectorLayer, QgsSpatialIndex, QgsGeometry)
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
+
 
 class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
 
@@ -38,7 +34,30 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
                 self.OUTPUT,
                 self.tr('Flag Interseções Curva de Nível e Drenagem')
             )
-        ) 
+        )
+    
+    def buildSpatialIndexAndIdDict(self, inputLyr, feedback=None):
+        """
+        creates a spatial index for the centroid layer
+        """
+        spatialIdx = QgsSpatialIndex()
+        idDict = {}
+        size = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
+        buildLambda = lambda x: self.buildSpatialIndexAndIdDictEntry(
+            x[0], x[1], spatialIdx, idDict, size, feedback)
+        list(
+            map(buildLambda, enumerate(inputLyr.getFeatures()))
+        )
+        return spatialIdx, idDict
+
+    def buildSpatialIndexAndIdDictEntry(self, current, feat, spatialIdx, idDict, size, feedback):
+        if feedback is not None and feedback.isCanceled():
+            return
+        spatialIdx.addFeature(feat)
+        idDict[feat.id()] = feat
+        if feedback is not None:
+            feedback.setProgress(size * current)
+        
 
     def processAlgorithm(self, parameters, context, feedback):
 
@@ -50,6 +69,29 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
 
         feedback.setProgressText('Verificando inconsistencias ')
         
+        multiStepFeedback = QgsProcessingMultiStepFeedback(2, feedback)
+        multiStepFeedback.setCurrentStep(0)
+        multiStepFeedback.pushInfo("Construindo estruturas auxiliares.")
+        
+        spatialIdx, idDict = self.buildSpatialIndexAndIdDict(countourLayer, feedback=multiStepFeedback)
+        
+        multiStepFeedback.setCurrentStep(1)
+        multiStepFeedback.pushInfo("Procurando problemas.")
+        
+        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, streamLayerInput, spatialIdx, idDict, total)
+                
+        AllOK = True
+        if outputPointsSet != set() :
+            newLayer = self.outLayer(parameters, context, outputPointsSet, streamLayerInput, 1)
+            AllOK = False
+        if outputLinesSet != set():
+            newLayer = self.outLayer(parameters, context, outputLinesSet, streamLayerInput, 2)
+            AllOK = False
+        if AllOK: 
+            newLayer = 'nenhuma inconsistência verificada'
+        return {self.OUTPUT: newLayer}
+
+    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, spatialIdx, idDict, total):
         def buildOutputs(countour, riverGeom, feedback):
             if feedback.isCanceled():
                 return
@@ -64,27 +106,21 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             if intersection.wkbType() in [2, 5]:
                 outputLinesSet.add(intersection)
 
-        for current, river in enumerate(streamLayerInput.getFeatures()):
+        for current, feat in enumerate(inputLyr.getFeatures()):
             if feedback is not None and feedback.isCanceled():
                 break
-            riverGeom = river.geometry()
-            AreaOfInterest = riverGeom.boundingBox()
-            request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
-            buildOutputsLambda = lambda x: buildOutputs(x, riverGeom, feedback)
-            list(map(buildOutputsLambda, countourLayer.getFeatures(request)))
+            geom = feat.geometry()
+            geomBB = geom.boundingBox()
+            engine = QgsGeometry.createGeometryEngine(geom.constGet())
+            engine.prepareGeometry()
+            featList = [
+                idDict[id] for id in spatialIdx.intersects(geomBB) \
+                    if engine.intersects(idDict[id].geometry().constGet())
+            ]
+            buildOutputsLambda = lambda x: buildOutputs(x, geom, feedback)
+            list(map(buildOutputsLambda, featList))
             if feedback is not None:
                 feedback.setProgress(int(current * total))
-                
-        AllOK = True
-        if outputPointsSet != set() :
-            newLayer = self.outLayer(parameters, context, outputPointsSet, streamLayerInput, 1)
-            AllOK = False
-        if outputLinesSet != set():
-            newLayer = self.outLayer(parameters, context, outputLinesSet, streamLayerInput, 2)
-            AllOK = False
-        if AllOK: 
-            newLayer = 'nenhuma inconsistência verificada'
-        return {self.OUTPUT: newLayer}
 
 
 
