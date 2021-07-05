@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import processing
+
 from qgis.core import (QgsFeature, QgsFeatureRequest, QgsFeatureSink, QgsField,
                        QgsFields, QgsProcessing, QgsProcessingAlgorithm,
                        QgsProcessingMultiStepFeedback,
@@ -65,20 +67,22 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         
         outputLinesSet, outputPointsSet = set(), set()
         countourLayer = self.parameterAsVectorLayer( parameters,'INPUT_COUNTOUR_LINES', context )
-        total = 100.0 / streamLayerInput.featureCount() if streamLayerInput.featureCount() else 0
 
         feedback.setProgressText('Verificando inconsistencias ')
         
-        multiStepFeedback = QgsProcessingMultiStepFeedback(2, feedback)
+        multiStepFeedback = QgsProcessingMultiStepFeedback(3, feedback)
         multiStepFeedback.setCurrentStep(0)
         multiStepFeedback.pushInfo("Construindo estruturas auxiliares.")
-        
-        spatialIdx, idDict = self.buildSpatialIndexAndIdDict(countourLayer, feedback=multiStepFeedback)
+        idDict = {feat['id']: feat for feat in countourLayer.getFeatures()}
         
         multiStepFeedback.setCurrentStep(1)
+        multiStepFeedback.pushInfo("Realizando join espacial")
+        spatialJoinOutput = self.runSpatialJoin(streamLayerInput, countourLayer, feedback=multiStepFeedback)
+        
+        multiStepFeedback.setCurrentStep(2)
         multiStepFeedback.pushInfo("Procurando problemas.")
         
-        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, streamLayerInput, spatialIdx, idDict, total)
+        self.findProblems(multiStepFeedback, outputPointsSet, outputLinesSet, spatialJoinOutput, idDict)
                 
         AllOK = True
         if outputPointsSet != set() :
@@ -91,7 +95,25 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             newLayer = 'nenhuma inconsistência verificada'
         return {self.OUTPUT: newLayer}
 
-    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, spatialIdx, idDict, total):
+    def runSpatialJoin(self, streamLayerInput, countourLayer, feedback):
+        output = processing.run(
+            'native:joinattributesbylocation',
+            {
+                'INPUT': streamLayerInput,
+                'JOIN': countourLayer,
+                'PREDICATE': [0],
+                'JOIN_FIELDS': [],
+                'METHOD': 0,
+                'DISCARD_NONMATCHING': False,
+                'PREFIX': '',
+                'OUTPUT': 'TEMPORARY_OUTPUT' 
+            },
+            feedback=feedback
+        )
+        return output['OUTPUT']
+
+    def findProblems(self, feedback, outputPointsSet, outputLinesSet, inputLyr, idDict):
+        total = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
         def buildOutputs(countour, riverGeom, feedback):
             if feedback.isCanceled():
                 return
@@ -110,15 +132,11 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             if feedback is not None and feedback.isCanceled():
                 break
             geom = feat.geometry()
-            geomBB = geom.boundingBox()
-            engine = QgsGeometry.createGeometryEngine(geom.constGet())
-            engine.prepareGeometry()
-            featList = [
-                idDict[id] for id in spatialIdx.intersects(geomBB) \
-                    if engine.intersects(idDict[id].geometry().constGet())
-            ]
-            buildOutputsLambda = lambda x: buildOutputs(x, geom, feedback)
-            list(map(buildOutputsLambda, featList))
+            if feat['id_2'] not in idDict:
+                feedback.setProgress(int(current * total))
+                continue
+            candidateContour = idDict[feat['id_2']]
+            buildOutputs(candidateContour, geom, feedback)
             if feedback is not None:
                 feedback.setProgress(int(current * total))
 
