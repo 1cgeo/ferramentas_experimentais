@@ -52,10 +52,14 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         feedback.setProgressText('Verificando inconsistencias ')
 
         for river in streamLayerInput.getFeatures():
-            AreaOfInterest = river.geometry().boundingBox()
+            riverGeom = river.geometry()
+            AreaOfInterest = riverGeom.boundingBox()
             request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
             for countour in countourLayer.getFeatures(request):
-                intersection = river.geometry().intersection(countour.geometry())
+                countourGeom = countour.geometry()
+                if not countourGeom.intersects(riverGeom):
+                    continue
+                intersection = countourGeom.intersection(riverGeom)
                 if intersection.isEmpty():
                     continue
                 if intersection.wkbType()==1:
