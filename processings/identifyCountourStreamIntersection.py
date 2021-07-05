@@ -61,7 +61,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback.setCurrentStep(2)
         auxCountourLayer = self.runAddCount(countourLayer, feedback=multiStepFeedback)
         multiStepFeedback.setCurrentStep(3)
-        self.runCreateSpatialIndex(auxStreamLayerInput, feedback=multiStepFeedback)
+        self.runCreateSpatialIndex(auxCountourLayer, feedback=multiStepFeedback)
         multiStepFeedback.setCurrentStep(4)
         idDict = {feat['AUTO']: feat for feat in auxCountourLayer.getFeatures()}
         
