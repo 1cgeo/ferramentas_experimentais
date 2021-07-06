@@ -87,7 +87,7 @@ class Line2Multiline(QgsProcessingAlgorithm):
         newFeat = QgsFeature(fields)
         newFeat.setGeometry(geom)
         newFeat['length'] = length
-        sink.addFeature(newFeat)
+        sink.addFeature(newFeat, QgsFeatureSink.FastInsert)
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)

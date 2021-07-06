@@ -61,7 +61,7 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
         multiStepFeedback.setCurrentStep(2)
         auxCountourLayer = self.runAddCount(countourLayer, feedback=multiStepFeedback)
         multiStepFeedback.setCurrentStep(3)
-        self.runCreateSpatialIndex(auxStreamLayerInput, feedback=multiStepFeedback)
+        self.runCreateSpatialIndex(auxCountourLayer, feedback=multiStepFeedback)
         multiStepFeedback.setCurrentStep(4)
         idDict = {feat['AUTO']: feat for feat in auxCountourLayer.getFeatures()}
         
@@ -135,8 +135,6 @@ class IdentifyCountourStreamIntersection(QgsProcessingAlgorithm):
             if riverFeat['AUTO_2'] not in idDict:
                 return
             countourGeom = idDict[riverFeat['AUTO_2']].geometry()
-            if not countourGeom.intersects(riverGeom):
-                return
             intersection = countourGeom.intersection(riverGeom)
             if intersection.isEmpty() or intersection.wkbType() == 1:
                 return
