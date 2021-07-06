@@ -11,6 +11,8 @@ from qgis.core import (QgsProcessing,
                        QgsField,
                        QgsFields,
                        QgsGeometry,
+                       QgsFeatureRequest,
+                       QgsProcessingParameterDistance,
                        NULL
                        )
 from qgis import processing
@@ -22,41 +24,55 @@ class VerifyTransports(QgsProcessingAlgorithm):
     INPUT_ROADS = 'INPUT_ROADS'
     INPUT_ROADS_ELEM_POINT = 'INPUT_ROADS_ELEM_POINT'
     INPUT_ROADS_ELEM_LINE = 'INPUT_ROADS_ELEM_LINE'
+    BUFFER_DIST = 'BUFFER_DIST'
     OUTPUT = 'OUTPUT'
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 'INPUT_STREAM',
                 self.tr('Selecione a camada contendo os trechos de drenagem'),
-                types=[QgsProcessing.TypeVectorLine]
+                types=[QgsProcessing.TypeVectorLine],
+                defaultValue = "elemnat_trecho_drenagem_l"
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 'INPUT_ROADS_ELEM_POINT',
                 self.tr('Selecione a camada contendo os elementos viários (pontos)'), 
-                types=[QgsProcessing.TypeVectorPoint]
+                types=[QgsProcessing.TypeVectorPoint],
+                defaultValue = "elemento_viario"
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 'INPUT_ROADS_ELEM_LINE',
                 self.tr('Selecione a camada contendo os elementos viários (linhas)'), 
-                types=[QgsProcessing.TypeVectorLine]
+                types=[QgsProcessing.TypeVectorLine],
+                defaultValue = "elemento_viario_l"
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 'INPUT_ROADS',
                 self.tr('Selecione a camada contendo as vias de deslocamento'), 
-                types=[QgsProcessing.TypeVectorLine]
+                types=[QgsProcessing.TypeVectorLine],
+                defaultValue = "viadedeslocamento"
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 'INPUT_DAM_LINE',
                 self.tr('Selecione a camada contendo as barragens'),
-                types=[QgsProcessing.TypeVectorLine]
+                types=[QgsProcessing.TypeVectorLine],
+                defaultValue = "infra_barragem_l"
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterDistance(
+                'BUFFER_DIST',
+                self.tr('Distância limite de bueiro/ponte/vau para trecho de drenagem'),
+                defaultValue = 5.0,
+                parentParameterName='INPUT_ROADS_ELEM_POINT'
             )
         )
         
@@ -72,6 +88,7 @@ class VerifyTransports(QgsProcessingAlgorithm):
         streamLayerInput = self.parameterAsVectorLayer( parameters,'INPUT_STREAM', context )
         outputPoints = []
         outputLines = []
+        bufferdist = self.parameterAsDouble(parameters, 'BUFFER_DIST', context)
         roadslayer = self.parameterAsVectorLayer( parameters,'INPUT_ROADS', context )
         roadElemPointLayer = self.parameterAsVectorLayer( parameters,'INPUT_ROADS_ELEM_POINT', context )
         roadElemLineLayer = self.parameterAsVectorLayer( parameters,'INPUT_ROADS_ELEM_LINE', context )
@@ -82,10 +99,30 @@ class VerifyTransports(QgsProcessingAlgorithm):
         roadElemLineLayerFeatures = self.createFeaturesArray(roadElemLineLayer)
         feedback.setProgressText('Verificando inconsistencias ')
         step =1
-        progressStep = 100/3
+        progressStep = 100/4
         RSintersections = self.roadStreamIntersection(roadslayer, streamLayerInput, context, feedback)
         feedback.setProgress( step * progressStep )
-        self.verifRoadElem(roadslayerFeatures, roadElemPointLayerFeatures, roadElemLineLayerFeatures, RSintersections, outputPoints, outputLines, feedback, step, progressStep)
+        
+        bufferedLayer = processing.run(
+                    'native:buffer',
+                    {
+                        'INPUT': roadElemPointLayer,
+                        'OUTPUT': 'memory:',
+                        'DISTANCE': bufferdist,
+                        'SEGMENTS': 10,
+                        'DISSOLVE': False,
+                        'END_CAP_STYLE': 0,
+                        'JOIN_STYLE': 0,
+                        'MITER_LIMIT': 10
+                    },
+                    is_child_algorithm=True,
+                    context=context,
+                    feedback=feedback)
+        bufferedPointsLayer = context.takeResultLayer(bufferedLayer['OUTPUT'])  
+        self.verifRoadElem(roadslayerFeatures, roadElemPointLayerFeatures, roadElemLineLayerFeatures, bufferedPointsLayer, streamLayerInput, RSintersections, outputPoints, outputLines, feedback, step, progressStep)
+        step +=1
+        feedback.setProgress( step * progressStep )
+        self.verifBridgesRoad(roadElemLineLayerFeatures, roadslayer, outputLines, feedback, step, progressStep)
         step +=1
         feedback.setProgress( step * progressStep )
         self.verifDamRoad(roadslayerFeatures, damLineFeatures, outputLines, feedback, step, progressStep)
@@ -95,6 +132,7 @@ class VerifyTransports(QgsProcessingAlgorithm):
             return {self.OUTPUT: 'execução cancelada pelo usuário'}
         
         allOK = True
+        
         if not len(outputPoints)==0 :
             newLayer = self.outLayer(parameters, context, outputPoints, streamLayerInput, 1)
             allOK = False
@@ -117,8 +155,8 @@ class VerifyTransports(QgsProcessingAlgorithm):
             arrayFeatures.append(feature)
             
         return arrayFeatures
-
-    def verifRoadElem(self, roadslayerFeatures, roadElemPointLayerFeatures, roadElemLineLayerFeatures, RSintersections, outputPoints, outputLines,feedback, step, progressStep):
+    
+    def verifRoadElem(self, roadslayerFeatures, roadElemPointLayerFeatures, roadElemLineLayerFeatures, bufferedPointsLayer, streamLayerInput, RSintersections, outputPoints, outputLines, feedback, step, progressStep):
         ponte = 200
         bueiro = 500
         vau = 400
@@ -136,7 +174,18 @@ class VerifyTransports(QgsProcessingAlgorithm):
                     if roadElemPoint.geometry().intersects(inter.geometry()):
                         isOnIntersection = True
                 if not isOnIntersection:
-                    outputPoints.append([roadElemPoint.geometry(), 1])
+                    riverNextToPoint = False
+                    request = QgsFeatureRequest().setFilterExpression('"id" is ' + str(roadElemPoint['id']))
+                    for point in bufferedPointsLayer.getFeatures(request):
+                        pointGeom = point.geometry()
+                        AreaOfInterest = pointGeom.boundingBox()
+                        request2 = QgsFeatureRequest().setFilterRect(AreaOfInterest)
+                        for river in streamLayerInput.getFeatures(request2):
+                            if river.geometry().intersects(pointGeom):
+                                riverNextToPoint = True
+                                break
+                    if riverNextToPoint:
+                        outputPoints.append([roadElemPoint.geometry(), 1])
             feedback.setProgress( step*(1+(auxstep/auxProgressStep)) * progressStep )
         for count,roadElemLine in enumerate(roadElemLineLayerFeatures):
             auxstep = count+1
@@ -150,10 +199,6 @@ class VerifyTransports(QgsProcessingAlgorithm):
                 ptIni = QgsGeometry.fromPointXY(QgsPointXY(geometry[0]))
                 ptFin = QgsGeometry.fromPointXY(QgsPointXY(geometry[-1]))
             for road in roadslayerFeatures:
-                if elemType == ponte:
-                    if road.geometry().intersects(roadElemLine.geometry()):
-                        if not roadElemLine.geometry().within(road.geometry()):
-                            outputLines.append([roadElemLine.geometry(), 2])
                 if elemType == vau:        
                     if roadElemLine.geometry().crosses(road.geometry()) or roadElemLine.geometry().within(road.geometry()) or roadElemLine.geometry().overlaps(road.geometry()):
                         outputLines.append([roadElemLine.geometry(), 3])
@@ -166,7 +211,27 @@ class VerifyTransports(QgsProcessingAlgorithm):
                     outputLines.append([roadElemLine.geometry(), 4])
             feedback.setProgress( step*(1+((auxstep+len(roadElemPointLayerFeatures))/auxProgressStep)) * progressStep )
         return False
-    
+    def verifBridgesRoad(self, roadElemLineLayerFeatures, roadslayer, outputLines, feedback, step, progressStep):
+        ponte = 200
+        for count, roadElemLine in enumerate(roadElemLineLayerFeatures):
+            auxstep = count+1
+            if roadElemLine['tipo'] ==NULL:
+                feedback.setProgress( step*(1+((auxstep)/len(roadElemLineLayerFeatures))) * progressStep )
+                continue
+            elemType = roadElemLine['tipo']-((roadElemLine['tipo'])%100)
+            if not elemType == ponte:
+                feedback.setProgress( step*(1+((auxstep)/len(roadElemLineLayerFeatures))) * progressStep )
+                continue
+            AreaOfInterest = roadElemLine.geometry().boundingBox()
+            request = QgsFeatureRequest().setFilterRect(AreaOfInterest)
+            bridgeWithinRoad = False
+            for road in roadslayer.getFeatures(request):
+                if roadElemLine.geometry().within(road.geometry()):
+                    bridgeWithinRoad = True
+            if not bridgeWithinRoad:
+                    outputLines.append([roadElemLine.geometry(), 2])
+            feedback.setProgress( step*(1+((auxstep)/len(roadElemLineLayerFeatures))) * progressStep )
+        return False
     def verifDamRoad(self, roadslayerFeatures, damLineFeatures, outputLines, feedback, step, progressStep):
         for count,dam in enumerate(damLineFeatures):
             auxstep = count+1
@@ -174,14 +239,8 @@ class VerifyTransports(QgsProcessingAlgorithm):
             for road in roadslayerFeatures:
                 DRintersect = dam.geometry().intersection(road.geometry())
                 if dam['em_via_deslocamento']==1:
-                    print(DRintersect.isNull())
-                    print(DRintersect.isEmpty())
-                    print(DRintersect.wkbType())
-                    print(DRintersect)
-                    print(dam.geometry().within(road.geometry()))
                     if not (DRintersect.isNull() or DRintersect.isEmpty() or DRintersect.wkbType() in [1,4]):
                         if dam.geometry().within(road.geometry()):
-                            print('okok')
                             damWithinRoad = True
                 if dam['em_via_deslocamento']==2:
                     if dam.geometry().crosses(road.geometry()) or dam.geometry().within(road.geometry()) or dam.geometry().overlaps(road.geometry()):
