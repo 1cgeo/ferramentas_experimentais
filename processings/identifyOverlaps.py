@@ -103,7 +103,7 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
             if feat1['AUTO_2'] not in idDict:
                 return
             feat2Geom = idDict[feat1['AUTO_2']].geometry()
-            if feat1geom.intersects(feat2geom) and (i!=j or (i==j and feat1['AUTO_2'] > feat1['AUTO'])):
+            if (i!=j or (i==j and feat1['AUTO_2'] > feat1['AUTO'])) and feat1geom.intersects(feat2geom):
                 intersections = feat1geom.intersection(feat2geom)
                 if intersections.type() == geomType:
                     if intersections.isMultipart():
