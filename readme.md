@@ -215,6 +215,12 @@ Parâmetros:
 - Camada de drenagem (linha)
 - Camada de curva de nível (linha)
 
+### 42 - Identifica Feições Próximas
+Retorna feições cuja distância entre si é menor que o definido na tabela CSV para cada camada, no caso de 2 camadas de linha, também é definda a tolerância, que é o tamanho total de uma linha que está contida no *buffer* de outra linha.
+Parâmetros:
+- Tabela CSV
+- Tolerância
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
