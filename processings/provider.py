@@ -65,7 +65,7 @@ from .prepareMiniMap import PrepareMiniMap
 from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
 from .mergeHighway import MergeHighway
 from .identifyCloseFeatures import IdentifyCloseFeatures
-
+from .elevationPointGeneralization import ElevationPointsGeneralization
 class Provider(QgsProcessingProvider):
 
     def __init__(self):
@@ -131,6 +131,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifyCountourStreamIntersection())
         self.addAlgorithm(MergeHighway())
         self.addAlgorithm(IdentifyCloseFeatures())
+        self.addAlgorithm(ElevationPointsGeneralization())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 

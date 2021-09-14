@@ -221,6 +221,19 @@ Parâmetros:
 - Tabela CSV
 - Tolerância
 
+### 43 - Generalização de ponto cotado
+Retorna apenas os pontos cotados mantidos de acordo com o critério.
+Critério:
+- Em cada quadricula serão mantidos os pontos cotados nas curvas de nivel mais internas. Se há mais de um ponto na mesma curva de nivel mais interna, usa-se o ponto de maior altitude nas curvas normais e os pontos de menores altitudes nas curvas de depressão. 
+- Se não há ponto cotado nas curvas de nível mais internas, mantém-se apenas o ponto de menor cota da quadricula.
+
+Parâmetros:
+- Escala
+- Camada dos pontos cotados
+- Camada das curvas de nível
+- Campo indicando se a curva é depressão ou normal
+
+
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
