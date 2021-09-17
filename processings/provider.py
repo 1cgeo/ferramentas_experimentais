@@ -62,6 +62,7 @@ from .highestSpotOnTheFrame import HighestSpotOnTheFrame
 from .generalizeBuildings import GeneralizeBuildings
 from .defineEditTextField import DefineEditTextField
 from .prepareMiniMap import PrepareMiniMap
+from .prepareOrtho import PrepareOrtho
 from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
 from .mergeHighway import MergeHighway
 from .identifyCloseFeatures import IdentifyCloseFeatures
@@ -128,6 +129,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(GeneralizeBuildings())
         self.addAlgorithm(DefineEditTextField())
         self.addAlgorithm(PrepareMiniMap())
+        self.addAlgorithm(PrepareOrtho())
         self.addAlgorithm(IdentifyCountourStreamIntersection())
         self.addAlgorithm(MergeHighway())
         self.addAlgorithm(IdentifyCloseFeatures())
