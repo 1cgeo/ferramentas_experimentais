@@ -38,10 +38,6 @@ class PrepareOrtho(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):      
         layers = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
 
-        #sobreposto em llp_area_pub_militar_l, llp_limite_legal_l, llp_terra_indigena_l, llp_unidade_conservacao_l
-        #edicao_simb_torre_energia_p
-        #edicao_identificador_trecho_rod_p
-
         attrDefault = {
             'constr_extracao_mineral_p': {
                 'texto_edicao': 'nome',
@@ -78,12 +74,10 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 'justificativa_txt': 1
             },
             'infra_obstaculo_vertical_p': {
-                'texto_edicao': 'nome', # '"nome" || \'\\n\' || "altitude" || \'\\n\' || \'(\' || "altura" || \')\' ',
                 'visivel': 1,
                 'justificativa_txt': 1
             },
             'infra_pista_pouso_p': {
-                'texto_edicao': 'nome', # aqui é outro padr"ao Nome \n (situacaofiscia) \n revestimento \n altitude
                 'justificativa_txt': 2
             },
             'llp_aglomerado_rural_p': {
@@ -101,7 +95,6 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 'justificativa_txt': 2
             },
             'elemnat_curva_nivel_l': {
-                'texto_edicao': 'nome', #replace de 0 para ZERO
                 'visivel': 1
             },
             'elemnat_elemento_hidrografico_l': {
@@ -129,7 +122,6 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 'simbolizar_carta_mini': 1
             },
             'infra_pista_pouso_l': {
-                'texto_edicao': 'nome', # aqui é outro padr"ao Nome \n (situacaofiscia) \n revestimento \n altitude
                 'justificativa_txt': 2
             },
             'infra_via_deslocamento_l': {
@@ -158,7 +150,7 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 'rotular_carta_mini': 1
             },
             'cobter_massa_dagua_a': {
-                'texto_edicao': 'nome'
+                'texto_edicao': 'nome',
                 'tamanho_txt': 6,
                 'justificativa_txt': 1,
                 'rotular_carta_mini': 1
@@ -184,7 +176,6 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 'justificativa_txt': 1
             },
             'infra_pista_pouso_a': {
-                'texto_edicao': 'nome', # aqui é outro padr"ao Nome \n (situacaofiscia) \n revestimento \n altitude
                 'justificativa_txt': 2
             },
             'llp_area_pub_militar_a': {
