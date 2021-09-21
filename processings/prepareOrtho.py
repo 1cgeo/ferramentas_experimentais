@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import NULL, QCoreApplication
 from qgis.core import (
                         QgsProcessing,
                         QgsFeatureSink,
@@ -37,6 +37,14 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):      
         layers = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
+        layersNames = [x.dataProvider().uri().table() for x in layers]
+        layersToCalculateDefaults = [
+            'infra_obstaculo_vertical_p',
+            'infra_pista_pouso_p',
+            'infra_pista_pouso_l',
+            'infra_pista_pouso_a',
+            'elemnat_curva_nivel_l'
+        ]
 
         attrDefault = {
             'constr_extracao_mineral_p': {
@@ -198,6 +206,12 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             }  
         }
 
+        for lyrName, lyr in zip(layersNames, layers):
+            if lyrName in attrDefault:
+                valeusToCommit = attrDefault.get(lyrName)
+                self.setDefaultAttr(lyr, valeusToCommit)
+                if lyrName in layersToCalculateDefaults:
+                    self.setDefaultAttrCalc(lyrName, lyr)
 
         for layer in layers:
             tableName = layer.dataProvider().uri().table()
@@ -299,6 +313,99 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         layer.startEditing()
         layer.updateFeature(feature)
 
+    @staticmethod
+    def setDefaultAttr(lyr, mapping):
+        provider = lyr.dataProvider()
+        changeAttrMap = {}
+        for feat in lyr.getFeatures():
+            featAttrMap = {}
+            for key, value in mapping.items():
+                if value == 'name':
+                    featAttrMap.update({provider.fieldNameIndex(key):feat.attribute('name')})
+                else:
+                    featAttrMap.update({provider.fieldNameIndex(key):value})
+            changeAttrMap.update({feat.id():featAttrMap})
+        provider.changeAttributeValues(changeAttrMap)
+
+    def setDefaultAttrCalc(self,lyrName, lyr):
+        provider = lyr.dataProvider()
+        fieldIdx = provider.fieldNameIndex('texto_edicao')
+        if lyrName in ('infra_pista_pouso_p', 'infra_pista_pouso_l', 'infra_pista_pouso_a'):
+            lyr.startEditing()
+            for feat in lyr.getFeatures():
+                text = self.coalesceAttributeV1(
+                    ('name', lyr.attribute('name')),
+                    ('altitude', lyr.attribute('altitude')),
+                    ('altura', lyr.attrubute('altura'))
+                )
+                feat.setAttribute(fieldIdx, text)
+        elif lyrName == 'infra_obstaculo_vertical_p':
+            lyr.startEditing()
+            for feat in lyr.getFeatures():
+                text = self.coalesceAttributeV2(lyr, 'nome', 'situacaofisica', 'revestimento', 'altitude')
+                feat.setAttribute(fieldIdx, text)
+        elif lyrName == 'elemnat_curva_nivel_l':
+            pass
+
+    @staticmethod
+    def coalesceAttributeV1(lyr, *fields):
+        expression = ''
+        for i, field in enumerate(fields):
+            if lyr.attibute(field):
+                if i == 0:
+                    if field == 'altura':
+                        expression = f'\'(\' || "{field}" || \')\''
+                    else:
+                        expression = f'"{field}"'
+                else:
+                    if field == 'altura':
+                        expression = f'{expression} || \'\\n\' || \'(\' || "{field}" || \')\''
+                    else:
+                        expression = f'"{expression}" || \'\\n\' || "{field}"'
+        return expression
+
+    @staticmethod
+    def coalesceAttributeV2(lyr, *fields):
+        for i, field in enumerate(fields):
+            if lyr.attribute(field):
+                if i == 0:
+                    if field == 'situacaofisica':
+                        expression = f'\'(\' || "{field}" || \')\''
+                    else:
+                        expression = f'"{field}"'
+                else:
+                    if field == 'situacaofisica':
+                        expression = f'{expression} || \'\\n\' || \'(\' || "{field}" || \')\''
+                    else:
+                        expression = f'{expression} || \'\\n\' || "{field}"'
+        return expression          
+
+    @staticmethod
+    def coalesceAttributeV3(lyr, field):
+        expression = ''
+        if elevation:=lyr.attribute(field) is not None:
+            if elevation == 0:
+                expression = 'ZERO'
+            else:
+                expression = f'{elevation}'
+        return expression
+
+    @staticmethod
+    def checkIntersectionAndSetAttr(lyrsRef, *lyrs):
+        feats = []
+        ids = []
+        for lyrRef in lyrsRef:
+            feats.extend(x for x in lyrRef.getFeatures())
+        for lyr in lyrs:
+            lyr.startEditing()
+            provider = lyr.dataProvider()
+            for feat1 in lyr.getFeatures():
+                for feat2 in feats:
+                    if feat1.geom().within(feat2.geom()):
+                        lyr.changeAttributeValue(feat1.id(), provider.fieldNameIndex('sobreposto'), True)
+                        break
+            # lyr.commitChanges()
+        
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
