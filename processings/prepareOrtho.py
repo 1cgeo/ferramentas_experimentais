@@ -1,29 +1,21 @@
-# -*- coding: utf-8 -*-
-
-from qgis.PyQt.QtCore import NULL, QCoreApplication
-from qgis.core import (
-                        QgsProcessing,
-                        QgsFeatureSink,
-                        QgsProcessingAlgorithm,
-                        QgsProcessingParameterFeatureSink,
-                        QgsCoordinateReferenceSystem,
-                        QgsProcessingParameterMultipleLayers,
-                        QgsFeature,
-                        QgsProcessingParameterVectorLayer,
-                        QgsFields,
-                        QgsFeatureRequest,
-                        QgsProcessingParameterNumber,
-                        QgsGeometry,
-                        QgsPointXY
-                    )
-from qgis import processing
-from qgis import core, gui
-from qgis.utils import iface
 import math
+
+from qgis import processing
+from qgis.core import (QgsCoordinateReferenceSystem, QgsDistanceArea,
+                       QgsFeature, QgsFeatureRequest, QgsFeatureSink,
+                       QgsFields, QgsGeometry, QgsProcessing,
+                       QgsProcessingAlgorithm, QgsCoordinateTransformContext,
+                       QgsProcessingParameterFeatureSink,
+                       QgsProcessingParameterMultipleLayers,
+                       QgsProcessingParameterNumber,
+                       QgsProcessingParameterVectorLayer, QgsUnitTypes)
+from qgis.PyQt.QtCore import QCoreApplication
+
 
 class PrepareOrtho(QgsProcessingAlgorithm): 
 
     INPUT_LAYERS = 'INPUT_LAYERS'
+    SCALE = 'SCALE'
     OUTPUT = 'OUTPUT'
 
     def initAlgorithm(self, config=None):
@@ -34,10 +26,19 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 QgsProcessing.TypeVectorAnyGeometry
             )
         )
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.SCALE,
+                self.tr('Inserir escala:'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=50000
+            )
+        )
 
     def processAlgorithm(self, parameters, context, feedback):      
         layers = self.parameterAsLayerList(parameters, self.INPUT_LAYERS, context)
         layersNames = [x.dataProvider().uri().table() for x in layers]
+        chopSize = self.parameterAsInt(parameters, self.SCALE, context) * 0.02 # 20mm in map scale
         layersToCalculateDefaults = [
             'infra_obstaculo_vertical_p',
             'infra_pista_pouso_p',
@@ -45,7 +46,25 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             'infra_pista_pouso_a',
             'elemnat_curva_nivel_l'
         ]
+        layersToCalculateSobreposition = [
+            'llp_area_pub_militar_l',
+            'llp_limite_legal_l',
+            'llp_terra_indigena_l',
+            'llp_unidade_conservacao_l'
+        ]
+        _refLayersNamesSobreposition = [
+            'elemnat_trecho_drenagem_l',
+            'infra_via_deslocamento_l',
+            'infra_ferrovia_l'
+        ]
+        layersToCreateSpacedSymbols = {
+            'infra_elemento_energia_l':'edicao_simb_torre_energia_p'
+        }
+        # TODO: filter()
+        refLayersSobreposition = [x for x in layers if x.dataProvider().uri().table() in _refLayersNamesSobreposition]
+        destLayersToCreateSpacedSymbols = filter(lambda x: x.dataProvider().uri().table() in layersToCreateSpacedSymbols.values(), layers)
 
+        # mergedRefLayersSobreposition = self.mergeVectorLayers(refLayersSobreposition)
         attrDefault = {
             'constr_extracao_mineral_p': {
                 'texto_edicao': 'nome',
@@ -207,103 +226,110 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         }
 
         for lyrName, lyr in zip(layersNames, layers):
-            if lyrName in attrDefault:
-                valeusToCommit = attrDefault.get(lyrName)
-                self.setDefaultAttr(lyr, valeusToCommit)
-                if lyrName in layersToCalculateDefaults:
-                    self.setDefaultAttrCalc(lyrName, lyr)
+            # if lyrName in attrDefault:
+            #     valeusToCommit = attrDefault.get(lyrName)
+                # self.setDefaultAttr(lyr, valeusToCommit)
+            # if lyrName in layersToCalculateDefaults:
+                # self.setDefaultAttrCalc(lyrName, lyr)
+            # if lyrName in layersToCalculateSobreposition:
+            #     self.checkIntersectionAndSetAttr(lyr, refLayersSobreposition)
+            if lyrName in layersToCreateSpacedSymbols:
+                distance = self.getChopDistance(lyr, chopSize)
+                pointsAndAngles = self.chopLineLayer(lyr, distance)
+                self.populateEnergyTowerSymbolLayer(next(destLayersToCreateSpacedSymbols),pointsAndAngles)
+                    
 
-        for layer in layers:
-            tableName = layer.dataProvider().uri().table()
+        # for layer in layers:
+        #     tableName = layer.dataProvider().uri().table()
             
-            if tableName in [
-                    "elemnat_elemento_hidrografico_a",
-                    "infra_elemento_energia_a",
-                    "infra_alteracao_fisiografica_antropica_a",
-                    "constr_ocupacao_solo_a",
-                    "elemnat_elemento_hidrografico_l",
-                    "constr_ocupacao_solo_l",
-                    "elemnat_elemento_hidrografico_p",
-                    "constr_deposito_a",
-                    "constr_deposito_p",
-                    "infra_elemento_infraestrutura_p",
-                    "infra_elemento_energia_p",
-                    "constr_ocupacao_solo_p  ",
-                    "llp_limite_especial_a",
-                    "elemnat_ilha_a",
-                    "elemnat_toponimo_fisiografico_natural_l",
-                    "elemnat_toponimo_fisiografico_natural_p",
-                    "llp_localidade_p"
-                ]:
-                for feature in layer.getFeatures():
-                    feature[ 'texto_edicao' ] = feature[ 'nome' ]
-                    self.updateLayerFeature( layer, feature)
+        #     if tableName in [
+        #             "elemnat_elemento_hidrografico_a",
+        #             "infra_elemento_energia_a",
+        #             "infra_alteracao_fisiografica_antropica_a",
+        #             "constr_ocupacao_solo_a",
+        #             "elemnat_elemento_hidrografico_l",
+        #             "constr_ocupacao_solo_l",
+        #             "elemnat_elemento_hidrografico_p",
+        #             "constr_deposito_a",
+        #             "constr_deposito_p",
+        #             "infra_elemento_infraestrutura_p",
+        #             "infra_elemento_energia_p",
+        #             "constr_ocupacao_solo_p  ",
+        #             "llp_limite_especial_a",
+        #             "elemnat_ilha_a",
+        #             "elemnat_toponimo_fisiografico_natural_l",
+        #             "elemnat_toponimo_fisiografico_natural_p",
+        #             "llp_localidade_p"
+        #         ]:
+        #         for feature in layer.getFeatures():
+        #             feature[ 'texto_edicao' ] = feature[ 'nome' ]
+        #             self.updateLayerFeature( layer, feature)
             
-            elif tableName in [ 'infra_vala_l' ]:
-                for feature in layer.getFeatures():
-                    feature[ 'texto_edicao' ] = 'Vala'
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'infra_vala_l' ]:
+        #         for feature in layer.getFeatures():
+        #             feature[ 'texto_edicao' ] = 'Vala'
+        #             self.updateLayerFeature( layer, feature)
             
-            elif tableName in [ 'infra_trecho_duto_l' ]:
-                for feature in layer.getFeatures():
-                    if not( feature['tipo'] == 301 ):
-                        continue
-                    feature[ 'texto_edicao' ] = 'Água'
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'infra_trecho_duto_l' ]:
+        #         for feature in layer.getFeatures():
+        #             if not( feature['tipo'] == 301 ):
+        #                 continue
+        #             feature[ 'texto_edicao' ] = 'Água'
+        #             self.updateLayerFeature( layer, feature)
 
-            elif tableName in [ 'infra_trecho_hidroviario_l' ]:
-                for feature in layer.getFeatures():
-                    if not( feature['tipo'] == 1 ):
-                        continue
-                    feature[ 'texto_edicao' ] = 'Balsa'
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'infra_trecho_hidroviario_l' ]:
+        #         for feature in layer.getFeatures():
+        #             if not( feature['tipo'] == 1 ):
+        #                 continue
+        #             feature[ 'texto_edicao' ] = 'Balsa'
+        #             self.updateLayerFeature( layer, feature)
 
-            elif tableName in [ 'llp_limite_especial_l' ]:
-                for feature in layer.getFeatures():
-                    feature[ 'texto_edicao' ] = 'Aproximado'
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'llp_limite_especial_l' ]:
+        #         for feature in layer.getFeatures():
+        #             feature[ 'texto_edicao' ] = 'Aproximado'
+        #             self.updateLayerFeature( layer, feature)
                 
-            elif tableName in [ 'infra_pista_pouso_p' ]:
-                for feature in layer.getFeatures():
-                    feature[ 'texto_edicao' ] = feature[ 'nome' ]
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'infra_pista_pouso_p' ]:
+        #         for feature in layer.getFeatures():
+        #             feature[ 'texto_edicao' ] = feature[ 'nome' ]
+        #             self.updateLayerFeature( layer, feature)
 
-            elif tableName in [ 
-                    'infra_pista_pouso_a',
-                    'infra_pista_pouso_l'
-                ]:
-                for feature in layer.getFeatures():
-                    if not( feature['tipo'] == 9 ):
-                        continue
-                    text = feature[ 'nome' ]
-                    if feature[ 'revestimento' ] in [1,2,3]:
-                        valueMap = {
-                            1: 'Leito natural',
-                            2: 'Revestimento primário',
-                            3: 'Pavimentado'
-                        }
-                        value = valueMap[ feature[ 'revestimento' ] ]
-                        if not text:
-                            text = value
-                        else:
-                            text = '{0} | {1}'.format(text, value)
-                    feature[ 'texto_edicao' ] = text
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 
+        #             'infra_pista_pouso_a',
+        #             'infra_pista_pouso_l'
+        #         ]:
+        #         for feature in layer.getFeatures():
+        #             if not( feature['tipo'] == 9 ):
+        #                 continue
+        #             text = feature[ 'nome' ]
+        #             if feature[ 'revestimento' ] in [1,2,3]:
+        #                 valueMap = {
+        #                     1: 'Leito natural',
+        #                     2: 'Revestimento primário',
+        #                     3: 'Pavimentado'
+        #                 }
+        #                 value = valueMap[ feature[ 'revestimento' ] ]
+        #                 if not text:
+        #                     text = value
+        #                 else:
+        #                     text = '{0} | {1}'.format(text, value)
+        #             feature[ 'texto_edicao' ] = text
+        #             self.updateLayerFeature( layer, feature)
 
-            elif tableName in [ 'constr_edificacao_a', 'constr_edificacao_p' ]:
-                for feature in layer.getFeatures():
-                    if feature['tipo'] == 1218:
-                        feature[ 'texto_edicao' ] = 'Curral'
-                    else:
-                        feature[ 'texto_edicao' ] = feature[ 'nome' ]
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'constr_edificacao_a', 'constr_edificacao_p' ]:
+        #         for feature in layer.getFeatures():
+        #             if feature['tipo'] == 1218:
+        #                 feature[ 'texto_edicao' ] = 'Curral'
+        #             else:
+        #                 feature[ 'texto_edicao' ] = feature[ 'nome' ]
+        #             self.updateLayerFeature( layer, feature)
 
-            elif tableName in [ 'infra_elemento_viario_p', 'infra_elemento_viario_l' ]:
-                for feature in layer.getFeatures():
-                    if not( feature['tipo'] in [401,402] ):
-                        continue
-                    feature[ 'texto_edicao' ] = 'Vau'
-                    self.updateLayerFeature( layer, feature)
+        #     elif tableName in [ 'infra_elemento_viario_p', 'infra_elemento_viario_l' ]:
+        #         for feature in layer.getFeatures():
+        #             if not( feature['tipo'] in [401,402] ):
+        #                 continue
+        #             feature[ 'texto_edicao' ] = 'Vau'
+        #             self.updateLayerFeature( layer, feature)
 
 
 
@@ -330,29 +356,27 @@ class PrepareOrtho(QgsProcessingAlgorithm):
     def setDefaultAttrCalc(self,lyrName, lyr):
         provider = lyr.dataProvider()
         fieldIdx = provider.fieldNameIndex('texto_edicao')
-        if lyrName in ('infra_pista_pouso_p', 'infra_pista_pouso_l', 'infra_pista_pouso_a'):
+        if lyrName == 'infra_obstaculo_vertical_p':
             lyr.startEditing()
             for feat in lyr.getFeatures():
-                text = self.coalesceAttributeV1(
-                    ('name', lyr.attribute('name')),
-                    ('altitude', lyr.attribute('altitude')),
-                    ('altura', lyr.attrubute('altura'))
-                )
-                feat.setAttribute(fieldIdx, text)
-        elif lyrName == 'infra_obstaculo_vertical_p':
+                text = self.coalesceAttributeV1(feat, 'nome', 'altitude', 'altura')
+                lyr.changeAttributeValue(feat.id(), fieldIdx, text)
+        elif lyrName in ('infra_pista_pouso_p', 'infra_pista_pouso_l', 'infra_pista_pouso_a'):
             lyr.startEditing()
             for feat in lyr.getFeatures():
-                text = self.coalesceAttributeV2(lyr, 'nome', 'situacaofisica', 'revestimento', 'altitude')
-                feat.setAttribute(fieldIdx, text)
+                text = self.coalesceAttributeV2(feat, 'nome', 'situacao_fisica', 'revestimento', 'altitude')
+                lyr.changeAttributeValue(feat.id(), fieldIdx, text)
         elif lyrName == 'elemnat_curva_nivel_l':
             pass
+        # lyr.commitChanges()
 
     @staticmethod
-    def coalesceAttributeV1(lyr, *fields):
-        expression = ''
-        for i, field in enumerate(fields):
-            if lyr.attibute(field):
-                if i == 0:
+    def coalesceAttributeV1(feat, *fields):
+        _first = True
+        for field in fields:
+            if feat.attibute(field):
+                if _first:
+                    _first = False
                     if field == 'altura':
                         expression = f'\'(\' || "{field}" || \')\''
                     else:
@@ -365,10 +389,12 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         return expression
 
     @staticmethod
-    def coalesceAttributeV2(lyr, *fields):
-        for i, field in enumerate(fields):
-            if lyr.attribute(field):
-                if i == 0:
+    def coalesceAttributeV2(feat, *fields):
+        _first = True
+        for field in fields:
+            if feat.attribute(field):
+                if _first:
+                    _first = False
                     if field == 'situacaofisica':
                         expression = f'\'(\' || "{field}" || \')\''
                     else:
@@ -391,21 +417,73 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         return expression
 
     @staticmethod
-    def checkIntersectionAndSetAttr(lyrsRef, *lyrs):
-        feats = []
-        ids = []
-        for lyrRef in lyrsRef:
-            feats.extend(x for x in lyrRef.getFeatures())
-        for lyr in lyrs:
-            lyr.startEditing()
-            provider = lyr.dataProvider()
-            for feat1 in lyr.getFeatures():
-                for feat2 in feats:
-                    if feat1.geom().within(feat2.geom()):
-                        lyr.changeAttributeValue(feat1.id(), provider.fieldNameIndex('sobreposto'), True)
+    def checkIntersectionAndSetAttr(lyr, lyrsRef):
+        _updated = False
+        provider = lyr.dataProvider()
+        lyr.startEditing()
+        for feat1 in lyr.getFeatures():
+            request = QgsFeatureRequest().setFilterRect(feat1.geometry().boundingBox())
+            geomEngine = QgsGeometry.createGeometryEngine(feat1.geometry().constGet())
+            geomEngine.prepareGeometry()
+            for lyrRef in lyrsRef:
+                for feat2 in lyrRef.getFeatures(request):
+                    intersection = geomEngine.intersection(feat2.geometry().constGet())
+                    if intersection.geometryType() in ('LineString','MultiLineString'):
+                        _updated = True
+                        lyr.changeAttributeValue(feat1.id(), provider.fieldNameIndex('sobreposto'), 3)
                         break
+                if _updated is True:
+                    _updated = False
+                    break
             # lyr.commitChanges()
-        
+
+    @staticmethod
+    def getChopDistance(layer, distance):
+        if layer.crs().isGeographic():
+            d = QgsDistanceArea()
+            d.setSourceCrs(QgsCoordinateReferenceSystem('EPSG:3857'), QgsCoordinateTransformContext())
+            return d.convertLengthMeasurement(distance, QgsUnitTypes.DistanceDegrees)
+        else:
+            return distance
+
+    def chopLineLayer(self, layer, cutDistance):
+        pointsAndAngles = []
+        output = processing.run(
+            'native:splitlinesbylength', {
+                'INPUT': layer,
+                'LENGTH': cutDistance,
+                'OUTPUT' : 'TEMPORARY_OUTPUT'
+            })['OUTPUT']
+        output = processing.run(
+            'native:mergelines', {
+                'INPUT': output,
+                'OUTPUT' : 'TEMPORARY_OUTPUT'
+            })['OUTPUT']
+        for feat in output.getFeatures():
+            geom = feat.geometry()
+            point = geom.vertexAt(0)
+            angle = (geom.angleAtVertex(0) + (math.pi/2))*180/math.pi
+            pointsAndAngles.append((point, angle))
+        return pointsAndAngles
+
+    def populateEnergyTowerSymbolLayer(self, layer, pointsAndAngles):
+        fields = layer.fields()
+        layer.startEditing()
+        for point, angle in pointsAndAngles:
+            feat = QgsFeature(fields)
+            geom = QgsGeometry.fromWkt(point.asWkt())
+            feat.setGeometry(geom)
+            feat.setAttribute('simb_rot', angle)
+            layer.addFeature(feat)
+        # layer.commitChanges()
+
+    @staticmethod
+    def mergeVectorLayers(layers):
+        return processing.run(
+            'native:mergevectorlayers', {
+                'LAYERS': layers
+            }
+        )['OUTPUT']
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
