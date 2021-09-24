@@ -339,11 +339,16 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     @staticmethod
     def updateLayerFeature(layer, feature):
+        '''Helper function to update layer feature
+        '''
         layer.startEditing()
         layer.updateFeature(feature)
 
     @staticmethod
     def setDefaultAttr(lyr, mapping):
+        '''Updates features according to the mapping. If any item from the mapping has a "nome" value, 
+        the feature is updated with feature's attribute "nome" 
+        '''
         provider = lyr.dataProvider()
         changeAttrMap = {}
         for feat in lyr.getFeatures():
@@ -356,7 +361,10 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             changeAttrMap.update({feat.id():featAttrMap})
         provider.changeAttributeValues(changeAttrMap)
 
-    def setDefaultAttrCalc(self,lyrName, lyr):
+    def setDefaultAttrCalc(self, lyrName, lyr):
+        '''Updates "texto_edicao" attribute by joining attribute values. The joining process
+        is coordinated by the functions coalesceAttributeV[1,2,3]
+        '''
         provider = lyr.dataProvider()
         fieldIdx = provider.fieldNameIndex('texto_edicao')
         if lyrName == 'infra_obstaculo_vertical_p':
@@ -370,11 +378,16 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 text = self.coalesceAttributeV2(feat, 'nome', 'situacao_fisica', 'revestimento', 'altitude')
                 lyr.changeAttributeValue(feat.id(), fieldIdx, text)
         elif lyrName == 'elemnat_curva_nivel_l':
-            pass
+            lyr.startEditing()
+            for feat in lyr.getFeatures():
+                text = self.coalesceAttributeV3(feat, 'cota')
+                lyr.changeAttributeValue(feat.id(), fieldIdx, text)
         # lyr.commitChanges()
 
     @staticmethod
     def coalesceAttributeV1(feat, *fields):
+        '''Join attribute values for the layer 'infra_obstaculo_vertical_p'
+        '''
         _first = True
         for field in fields:
             if feat.attibute(field):
@@ -393,6 +406,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     @staticmethod
     def coalesceAttributeV2(feat, *fields):
+        '''Join attribute values for the layers 'infra_pista_pouso_p', 'infra_pista_pouso_l' and 'infra_pista_pouso_a'
+        '''
         _first = True
         for field in fields:
             if feat.attribute(field):
@@ -411,6 +426,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     @staticmethod
     def coalesceAttributeV3(lyr, field):
+        '''Join attribute values for the layer 'elemnat_curva_nivel_l'
+        '''
         expression = ''
         if elevation:=lyr.attribute(field) is not None:
             if elevation == 0:
@@ -421,6 +438,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     @staticmethod
     def checkIntersectionAndSetAttr(lyr, lyrsRef):
+        '''Updates the attribute 'sobreposto' if lyr limits are within lrysRef 
+        '''
         _updated = False
         provider = lyr.dataProvider()
         lyr.startEditing()
@@ -442,6 +461,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
 
     @staticmethod
     def getChopDistance(layer, distance):
+        '''Helper function to get distances in decimal degrees
+        '''
         if layer.crs().isGeographic():
             d = QgsDistanceArea()
             d.setSourceCrs(QgsCoordinateReferenceSystem('EPSG:3857'), QgsCoordinateTransformContext())
@@ -450,6 +471,10 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             return distance
 
     def chopLineLayer(self, layer, cutDistance, requiredAttrs=None):
+        '''Chops layer using cutDistance, returning initial points of chopped features and its angles.
+        If the point touches the initial/final point of any original feature the point is discarded.
+        If requiredAttrs is provided, the mapping {attr:feat[attr] for attr in requiredAttrs} is also returned
+        '''
         attributeMapping = {}
         pointsAndAngles = []
         output = processing.run(
@@ -484,6 +509,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         return pointsAndAngles
 
     def populateEnergyTowerSymbolLayer(self, layer, pointsAndAngles):
+        '''Populates the layer edicao_simb_torre_energia_p
+        '''
         fields = layer.fields()
         layer.startEditing()
         for point, angle, _ in pointsAndAngles:
@@ -495,6 +522,8 @@ class PrepareOrtho(QgsProcessingAlgorithm):
         # layer.commitChanges()
 
     def populateRoadIndentificationSymbolLayer(self, layer, pointsAndAngles):
+        '''Populates the layer edicao_identificador_trecho_rod_p
+        '''
         fields = layer.fields()
         layer.startEditing()
         for point, angle, mapping in pointsAndAngles:
