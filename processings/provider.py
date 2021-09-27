@@ -67,6 +67,7 @@ from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersecti
 from .mergeHighway import MergeHighway
 from .identifyCloseFeatures import IdentifyCloseFeatures
 from .elevationPointGeneralization import ElevationPointsGeneralization
+from .mergeLinesBySize import MergeLinesBySize
 class Provider(QgsProcessingProvider):
 
     def __init__(self):
@@ -134,6 +135,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(MergeHighway())
         self.addAlgorithm(IdentifyCloseFeatures())
         self.addAlgorithm(ElevationPointsGeneralization())
+        self.addAlgorithm(MergeLinesBySize())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
