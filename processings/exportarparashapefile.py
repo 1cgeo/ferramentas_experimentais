@@ -32,7 +32,7 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT_FOLDER,
-                self.tr('Pasta contendo os modelos'),
+                self.tr('Pasta contendo os shapefile padrão do MGCP'),
                 behavior=QgsProcessingParameterFile.Folder,
                 
             )
@@ -41,7 +41,7 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFolderDestination(
                 self.OUTPUT_FOLDER,
-                self.tr('Salvar em:'),
+                self.tr('Pasta para salvar os arquivos exportados'),
                 
             )
         )
@@ -135,7 +135,7 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
         return 'exportar_para_shapefile'
 
     def displayName(self):
-        return self.tr('Exportar para Shapefile')
+        return self.tr('Exportar para Shapefile MGCP')
 
     def group(self):
         return self.tr('Missoes')
@@ -144,7 +144,7 @@ class ExportarParaShapefile (QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo exporta camadas de um projeto para o formato shapefile ")
+        return self.tr("O algoritmo exporta camadas de um projeto para o formato shapefile para o MGCP")
 
         
     
