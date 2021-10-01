@@ -61,10 +61,10 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             'infra_via_deslocamento_l':'edicao_identificador_trecho_rod_p'
         }
         refLayersSobreposition = [x for x in layers if x.dataProvider().uri().table() in _refLayersNamesSobreposition]
-        destLayersToCreateSpacedSymbolsCase1 = filter(
-            lambda x: x.dataProvider().uri().table() in layerToCreateSpacedSymbolsCase1.values(), layers)
-        destLayersToCreateSpacedSymbolsCase2 = filter(
-            lambda x: x.dataProvider().uri().table() in layerToCreateSpacedSymbolsCase2.values(), layers)
+        destLayersToCreateSpacedSymbolsCase1 = next(filter(
+            lambda x: x.dataProvider().uri().table() in layerToCreateSpacedSymbolsCase1.values(), layers))
+        destLayersToCreateSpacedSymbolsCase2 = next(filter(
+            lambda x: x.dataProvider().uri().table() in layerToCreateSpacedSymbolsCase2.values(), layers))
 
         attrDefault = {
             'constr_extracao_mineral_p': {
@@ -239,11 +239,11 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             if lyrName in layerToCreateSpacedSymbolsCase1:
                 distance = self.getChopDistance(lyr, scale * 0.02)
                 pointsAndAngles = self.chopLineLayer(lyr, distance)
-                self.populateEnergyTowerSymbolLayer(next(destLayersToCreateSpacedSymbolsCase1),pointsAndAngles)
+                self.populateEnergyTowerSymbolLayer(destLayersToCreateSpacedSymbolsCase1,pointsAndAngles)
             if lyrName in layerToCreateSpacedSymbolsCase2:
                 distance = self.getChopDistance(lyr, scale * 0.2)
                 pointsAndAngles = self.chopLineLayer(lyr, distance, ['sigla'])
-                self.populateRoadIndentificationSymbolLayer(next(destLayersToCreateSpacedSymbolsCase2),pointsAndAngles)
+                self.populateRoadIndentificationSymbolLayer(destLayersToCreateSpacedSymbolsCase2,pointsAndAngles)
                     
         return {self.OUTPUT: ''}
 
