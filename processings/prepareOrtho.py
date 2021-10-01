@@ -231,7 +231,7 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             # self.updateLayer(lyr, lyrName)
             if lyrName in attrDefault:
                 valeusToCommit = attrDefault.get(lyrName)
-                self.setDefaultAttr(lyr, valeusToCommit)
+                self.setDefaultAttrV2(lyr, valeusToCommit)
             if lyrName in layersToCalculateDefaults:
                 self.setDefaultAttrCalc(lyrName, lyr)
             if lyrName in layersToCalculateSobreposition:
@@ -360,6 +360,21 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                     featAttrMap.update({provider.fieldNameIndex(key):value})
             changeAttrMap.update({feat.id():featAttrMap})
         provider.changeAttributeValues(changeAttrMap)
+
+    @staticmethod
+    def setDefaultAttrV2(lyr, mapping):
+        '''Updates features according to the mapping. If any item from the mapping has a "nome" value, 
+        the feature is updated with feature's attribute "nome". V2 uses changeAttributeValue on lyr, making
+        it possible to roolback changes
+        '''
+        provider = lyr.dataProvider()
+        lyr.startEditing()
+        for feat in lyr.getFeatures():
+            for key, value in mapping.items():
+                if value == 'nome':
+                    lyr.changeAttributeValue(feat.id(), provider.fieldNameIndex(key), feat.attribute('nome'))
+                else:
+                    lyr.changeAttributeValue(feat.id(), provider.fieldNameIndex(key), value)
 
     def setDefaultAttrCalc(self, lyrName, lyr):
         '''Updates "texto_edicao" attribute by joining attribute values. The joining process
