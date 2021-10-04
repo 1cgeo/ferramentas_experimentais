@@ -241,15 +241,6 @@ Parâmetros:
 - Tolerância (inteiro)
 - Iterações (inteiro)
 
-### 45 - Prepara carta ortoimagem
-
-Este processing realiza as seguintes ações de modo a automatizar o processo de edição de carta ortoimagem:
-
-- Preenche atributos default de edição, como _texto_edicao_, _tamanho_txt_, _justificativa_txt_, _espacamento_, _rotular_carta_mini_, _simbolizar_carta_mini_, _visivel_, _exibir_rotulo_aproximado_
-- Preenchimento do atributo _sobreposto_ em llp_area_pub_militar_l, llp_limite_legal_l, llp_terra_indigena_l, llp_unidade_conservacao_l
-- Criação do edicao_simb_torre_energia_p
-- Criação do edicao_identificador_trecho_rod_p
-
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
@@ -355,6 +346,16 @@ Parâmetros:
 - edicao_texto_generico_p (ponto)
 - edicao_texto_generico_l (linha)
 - llp_limite_especial_a (polígono)
+
+
+### 15 - Prepara carta ortoimagem
+
+Este processing realiza as seguintes ações de modo a automatizar o processo de edição de carta ortoimagem:
+
+- Preenche atributos default de edição, como _texto_edicao_, _tamanho_txt_, _justificativa_txt_, _espacamento_, _rotular_carta_mini_, _simbolizar_carta_mini_, _visivel_, _exibir_rotulo_aproximado_
+- Preenchimento do atributo _sobreposto_ em llp_area_pub_militar_l, llp_limite_legal_l, llp_terra_indigena_l, llp_unidade_conservacao_l
+- Criação do edicao_simb_torre_energia_p
+- Criação do edicao_identificador_trecho_rod_p
 
 ## Ferramentas de edição
 
