@@ -242,7 +242,7 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                 self.populateEnergyTowerSymbolLayer(destLayersToCreateSpacedSymbolsCase1,pointsAndAngles)
             if lyrName in layerToCreateSpacedSymbolsCase2:
                 distance = self.getChopDistance(lyr, scale * 0.2)
-                pointsAndAngles = self.chopLineLayer(lyr, distance, ['sigla'])
+                pointsAndAngles = self.chopLineLayer(lyr, distance, ['sigla', 'jurisdicao'])
                 self.populateRoadIndentificationSymbolLayer(destLayersToCreateSpacedSymbolsCase2,pointsAndAngles)
                     
         return {self.OUTPUT: ''}
@@ -467,7 +467,7 @@ class PrepareOrtho(QgsProcessingAlgorithm):
                     intersection = geomEngine.intersection(feat2.geometry().constGet())
                     if intersection.geometryType() in ('LineString','MultiLineString'):
                         _updated = True
-                        lyr.changeAttributeValue(feat1.id(), provider.fieldNameIndex('sobreposto'), 3)
+                        lyr.changeAttributeValue(feat1.id(), provider.fieldNameIndex('sobreposto'), 1)
                         break
                 if _updated is True:
                     _updated = False
@@ -546,8 +546,11 @@ class PrepareOrtho(QgsProcessingAlgorithm):
             geom = QgsGeometry.fromWkt(point.asWkt())
             feat.setGeometry(geom)
             if sigla:=mapping.get('sigla'):
-                name = sigla.split(';')[0].split('-')[0]
+                name = sigla.split(';')[0].split('-')[1]
                 feat.setAttribute('sigla', name)
+            if jurisdicao:=mapping.get('jurisdicao'):
+                feat.setAttribute('jurisdicao', jurisdicao)
+            feat.setAttribute('carta_simbolizacao', 1)
             layer.addFeature(feat)
         # layer.commitChanges()
 
