@@ -82,14 +82,14 @@ class HighestSpotOnTheFrame(QgsProcessingAlgorithm):
                 if not( frameGeometry.intersects( spotFeature.geometry() ) ):
                     continue
                 if maxSpotFeature and maxSpotFeature[ spotField ] > spotFeature[ spotField ]:
-                    spotFeature[ higuestSpotField ] = False
+                    spotFeature[ higuestSpotField ] = 2
                     self.updateLayerFeature( spotLayer, spotFeature)
                     continue
                 if maxSpotFeature:
-                    maxSpotFeature[ higuestSpotField ] = False
+                    maxSpotFeature[ higuestSpotField ] = 2
                     self.updateLayerFeature( spotLayer, maxSpotFeature)
                 maxSpotFeature = spotFeature
-                maxSpotFeature[ higuestSpotField ] = True
+                maxSpotFeature[ higuestSpotField ] = 1
                 self.updateLayerFeature( spotLayer, maxSpotFeature)
                 
         
