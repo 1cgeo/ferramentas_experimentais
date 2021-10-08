@@ -59,7 +59,7 @@ class MergeHighway(QgsProcessingAlgorithm):
             parameters,
             self.OUTPUT_LAYER_L,
             context,
-            drainageLayer.fields(),
+            highwayLayer.fields(),
             core.QgsWkbTypes.MultiLineString,
             QgsCoordinateReferenceSystem( iface.mapCanvas().mapSettings().destinationCrs().authid() )
         )

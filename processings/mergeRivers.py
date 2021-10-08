@@ -70,8 +70,6 @@ class MergeRivers(QgsProcessingAlgorithm):
         for drainageFeature in clippedDrainageLayer.getFeatures():
             if not drainageFeature['nome']:
                 continue
-            if not( drainageFeature['tipo'] in [1,2] ):
-                continue
             mergeKey = '{0}_{1}'.format( drainageFeature['nome'].lower(), drainageFeature['tipo'])
             if not( mergeKey in merge):
                 merge[ mergeKey ] = []
