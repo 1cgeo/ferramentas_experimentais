@@ -312,7 +312,7 @@ Salva mascaras de simbologia em um arquivo JSON
 ### 2- Carrega máscaras
 Aplica mascaras de simbologia a partir de um arquivo JSON
 
-### 3- Definir cota mais alta por moldura
+### 3- Definir cota mais alta por moldura (passado para o plugin de edição)
 
 ### 4- Definir largura ponte e bueiro
 
@@ -326,9 +326,9 @@ Aplica mascaras de simbologia a partir de um arquivo JSON
 
 ### 9 - Generaliza edificações
 
-### 10 - Mescla rios
+### 10 - Mescla rios (passado para o plugin de edição)
 
-### 11 - Ordenar camadas de edição
+### 11 - Ordenar camadas de edição (passado para o plugin de edição)
 
 ### 12 - Exporta estilos para arquivo QML
 
@@ -347,17 +347,4 @@ Parâmetros:
 - edicao_texto_generico_l (linha)
 - llp_limite_especial_a (polígono)
 
-
-### 15 - Prepara carta ortoimagem
-
-Este processing realiza as seguintes ações de modo a automatizar o processo de edição de carta ortoimagem:
-
-- Preenche atributos default de edição, como _texto_edicao_, _tamanho_txt_, _justificativa_txt_, _espacamento_, _rotular_carta_mini_, _simbolizar_carta_mini_, _visivel_, _exibir_rotulo_aproximado_
-- Preenchimento do atributo _sobreposto_ em llp_area_pub_militar_l, llp_limite_legal_l, llp_terra_indigena_l, llp_unidade_conservacao_l
-- Criação do edicao_simb_torre_energia_p
-- Criação do edicao_identificador_trecho_rod_p
-
-## Ferramentas de edição
-
-### 1- Ferramentas de rótulo
-Permite a criação rápida de rótulos de rio, lagos e identificador trecho rodoviário.
+### 15 - Prepara carta ortoimagem (passado para o plugin de edição)

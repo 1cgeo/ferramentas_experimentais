@@ -45,7 +45,6 @@ from .verifyHydro import VerifyHydrography
 from .rotation import Rotation
 from .verifyCountourStacking import VerifyCountourStacking
 from .damWidth import DamWidth
-from .orderEditLayers import OrderEditLayers
 from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
 from .snapPointsInLines import SnapPointsInLines
 from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
@@ -57,14 +56,10 @@ from .bridgeAndManholeWidth import BridgeAndManholeWidth
 from .bridgeAndManholeRotation import BridgeAndManholeRotation
 from .verifyTransports import VerifyTransports
 from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
-from .mergeRivers import MergeRivers
-from .highestSpotOnTheFrame import HighestSpotOnTheFrame
 from .generalizeBuildings import GeneralizeBuildings
 from .defineEditTextField import DefineEditTextField
 from .prepareMiniMap import PrepareMiniMap
-from .prepareOrtho import PrepareOrtho
 from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
-from .mergeHighway import MergeHighway
 from .identifyCloseFeatures import IdentifyCloseFeatures
 from .elevationPointGeneralization import ElevationPointsGeneralization
 from .mergeLinesBySize import MergeLinesBySize
@@ -106,14 +101,12 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(RemovePoints())
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
         self.addAlgorithm(SnapPolygonsInFrame())
-        #self.addAlgorithm(CheckRelationships())
         self.addAlgorithm(Line2Multiline())
         self.addAlgorithm(SaveLayerStylesToFile())
         self.addAlgorithm(VerifyHydrography())
         self.addAlgorithm(Rotation())
         self.addAlgorithm(VerifyCountourStacking())
         self.addAlgorithm(DamWidth())
-        self.addAlgorithm(OrderEditLayers())
         self.addAlgorithm(StreamPolygonCountourConsistency())
         self.addAlgorithm(SnapPointsInLines())
         self.addAlgorithm(SnapPointsInLinesIntersection())
@@ -125,14 +118,10 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(BridgeAndManholeRotation())
         self.addAlgorithm(RapidsAndWaterfallRotation())
         self.addAlgorithm(VerifyTransports())
-        self.addAlgorithm(MergeRivers())
-        self.addAlgorithm(HighestSpotOnTheFrame())
         self.addAlgorithm(GeneralizeBuildings())
         self.addAlgorithm(DefineEditTextField())
         self.addAlgorithm(PrepareMiniMap())
-        self.addAlgorithm(PrepareOrtho())
         self.addAlgorithm(IdentifyCountourStreamIntersection())
-        self.addAlgorithm(MergeHighway())
         self.addAlgorithm(IdentifyCloseFeatures())
         self.addAlgorithm(ElevationPointsGeneralization())
         self.addAlgorithm(MergeLinesBySize())
