@@ -98,7 +98,7 @@ class SnapPolygons(QgsProcessingAlgorithm):
                             if not self.closestSegment(currentPoint, otherFeature, snapDistance):
                                 continue
                             #snap segment
-                            linestring = core.QgsLineString( otherGeometry.vertices() )
+                            linestring = core.QgsLineString( list(otherGeometry.vertices()) )
                             projectedPoint = core.QgsGeometryUtils.closestPoint( linestring, core.QgsPoint(currentPoint.x(), currentPoint.y()) )
                             distance, p, after, orient = otherGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             otherGeometry.insertVertex( currentPoint, after )
@@ -130,7 +130,7 @@ class SnapPolygons(QgsProcessingAlgorithm):
                                 continue
                             #snap segment
                             lineGeometry = lineFeature.geometry() 
-                            linestring = core.QgsLineString( lineGeometry.vertices() )
+                            linestring = core.QgsLineString( list(lineGeometry.vertices()) )
                             projectedPoint = core.QgsGeometryUtils.closestPoint( linestring, core.QgsPoint(polygonPoint.x(), polygonPoint.y()) )
                             distance, p, after, orient = lineGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             lineGeometry.insertVertex( projectedPoint, after )
@@ -162,14 +162,14 @@ class SnapPolygons(QgsProcessingAlgorithm):
                                 continue
                             #snap segment
                             polygonGeometry = polygonFeature.geometry() 
-                            linestring = core.QgsLineString( polygonGeometry.vertices() )
+                            linestring = core.QgsLineString( list(polygonGeometry.vertices()) )
                             projectedPoint = core.QgsGeometryUtils.closestPoint( linestring, core.QgsPoint(linePoint.x(), linePoint.y()) )
                             distance, p, after, orient = polygonGeometry.closestSegmentWithContext( QgsPointXY( projectedPoint ) )
                             polygonGeometry.insertVertex( linePoint, after )
                             self.updateLayerFeature(polygonLayer, polygonFeature, polygonGeometry)
 
     def closestVertex(self, point, otherFeature, snapDistance):
-        otherLinestring = core.QgsLineString( otherFeature.geometry().vertices() )
+        otherLinestring = core.QgsLineString( list(otherFeature.geometry().vertices()) )
         vertex, vertexId = core.QgsGeometryUtils.closestVertex(otherLinestring, core.QgsPoint(point.x(), point.y()))
         if vertex.isEmpty():
             return None, None

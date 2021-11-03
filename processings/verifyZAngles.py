@@ -66,12 +66,11 @@ class VerifyZAngles(QgsProcessingAlgorithm):
         sink, _ = self.parameterAsSink(parameters, self.OUTPUT, context, self.fields,
             QgsWkbTypes.LineString, crs)
 
-        caseBetweenLines = self.caseBetweenLines(lines, angle)
+        #caseBetweenLines = self.caseBetweenLines(lines, angle)
 
         featsToAnalyse = [
             *self.caseInternLine(lines, angle),
-            *self.caseInternArea(areas, angle),
-            *caseBetweenLines
+            *self.caseInternArea(areas, angle)
             ]
         sink.addFeatures(featsToAnalyse)
 
