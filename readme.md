@@ -240,6 +240,13 @@ Parâmetros:
 - Tolerância (inteiro)
 - Iterações (inteiro)
 
+### 45 - Verificar Geometria da Rede
+Retorna inconsistências na geometria da rede. Os campos selecionados são analisados para verificar linhas que deveriam estar mergeadas por possuir atributos iguais.
+
+Parâmetros:
+- Camada de linhas (rede)
+- Campos
+
 
 ## Modelos
 ### 1 - Gera centroide de área edificada
