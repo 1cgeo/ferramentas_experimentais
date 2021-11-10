@@ -40,7 +40,6 @@ from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighb
 from .snapPolygonsInFrame import SnapPolygonsInFrame
 #from .checkNeighboringGeometries import CheckNeighboringGeometries
 from .line2Multiline import Line2Multiline
-from .saveLayerStylesToFile import SaveLayerStylesToFile
 from .verifyHydro import VerifyHydrography
 from .rotation import Rotation
 from .verifyCountourStacking import VerifyCountourStacking
@@ -48,8 +47,6 @@ from .damWidth import DamWidth
 from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
 from .snapPointsInLines import SnapPointsInLines
 from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
-from .loadMasks import LoadMasks
-from .saveMasks import SaveMasks
 from .snapLineInAnchor import SnapLineInAnchor
 from .removeDuplicatePoints import RemoveDuplicatePoints
 from .bridgeAndManholeWidth import BridgeAndManholeWidth
@@ -64,6 +61,7 @@ from .identifyCloseFeatures import IdentifyCloseFeatures
 from .elevationPointGeneralization import ElevationPointsGeneralization
 from .mergeLinesBySize import MergeLinesBySize
 from .createLandCover import CreateLandCover
+from .verifyStreamGeometry import VerifyStreamGeometry
 
 class Provider(QgsProcessingProvider):
 
@@ -104,7 +102,6 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
         self.addAlgorithm(SnapPolygonsInFrame())
         self.addAlgorithm(Line2Multiline())
-        self.addAlgorithm(SaveLayerStylesToFile())
         self.addAlgorithm(VerifyHydrography())
         self.addAlgorithm(Rotation())
         self.addAlgorithm(VerifyCountourStacking())
@@ -112,8 +109,6 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(StreamPolygonCountourConsistency())
         self.addAlgorithm(SnapPointsInLines())
         self.addAlgorithm(SnapPointsInLinesIntersection())
-        self.addAlgorithm(LoadMasks())
-        self.addAlgorithm(SaveMasks())
         self.addAlgorithm(SnapLineInAnchor())
         self.addAlgorithm(RemoveDuplicatePoints())
         self.addAlgorithm(BridgeAndManholeWidth())
@@ -128,6 +123,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(ElevationPointsGeneralization())
         self.addAlgorithm(MergeLinesBySize())
         self.addAlgorithm(CreateLandCover())
+        self.addAlgorithm(VerifyStreamGeometry())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 

@@ -306,11 +306,9 @@ Cria nova camada temporaria 'camada_nome_temp' com as feições selecionadas de 
 
 ## Processings de edição
 
-### 1- Salvar máscaras
-Salva mascaras de simbologia em um arquivo JSON
+### 1- Salvar máscaras (passado para o plugin de edição)
 
-### 2- Carrega máscaras
-Aplica mascaras de simbologia a partir de um arquivo JSON
+### 2- Carrega máscaras (passado para o plugin de edição)
 
 ### 3- Definir cota mais alta por moldura (passado para o plugin de edição)
 
@@ -330,7 +328,7 @@ Aplica mascaras de simbologia a partir de um arquivo JSON
 
 ### 11 - Ordenar camadas de edição (passado para o plugin de edição)
 
-### 12 - Exporta estilos para arquivo QML
+### 12 - Exporta estilos para arquivo QML (passado para o plugin de edição)
 
 ### 13 - Definir campo texto_edicao
 
