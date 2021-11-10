@@ -6,7 +6,6 @@ from processing.core.ProcessingConfig import ProcessingConfig, Setting
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtXml import QDomDocument
 from .atribuirsrc import AtribuirSRC
-from .exportarparashapefile import ExportarParaShapefile
 from .removercamadavazia import RemoveEmptyLayers
 from .streamOrder import StreamOrder
 from .streamCountourConsistency import StreamCountourConsistency
@@ -70,7 +69,6 @@ class Provider(QgsProcessingProvider):
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(AtribuirSRC())
-        self.addAlgorithm(ExportarParaShapefile())
         self.addAlgorithm(RemoveEmptyLayers())
         self.addAlgorithm(StreamOrder())
         self.addAlgorithm(StreamCountourConsistency())

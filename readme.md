@@ -13,8 +13,7 @@ Remove as camadas sem feições no QGIS.
 ### 2- Atribuir SRC
 Permite que o usuário atribua um SRC a camadas. Também é possivel atribuir o SRC para somente camadas com o sistema inválido.
 
-### 3- Exportar para *Shapefile* no padrão MGCP
-Exporta camadas de um projeto para o formato *shapefile* seguindo as especificações de um shapefile modelo. Utilizado para exportação do MGCP.
+### 3- Exportar para *Shapefile* no padrão MGCP (passado para o ferramentas MGCP)
 
 ### 4- Ordenar Trecho de Drenagem
 Tem como parâmetro de entrada uma camada vetorial com geometria do tipo linha, com linhas já direcionadas e retorna uma cópia da camada com o campo "ordem" na tabela de atributos. A ordem é calculada da seguinte maneira: atribui-se 1 às linhas com conexão a apenas uma outra linha e para as outras linhas desconhecidas atribui-se a maior "ordem + 1" de outra linha conectada ao primeiro ponto dessa.
