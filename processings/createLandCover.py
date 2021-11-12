@@ -160,61 +160,55 @@ class CreateLandCover(QgsProcessingAlgorithm):
         multiStepFeedback.setCurrentStep( 2 )
         
         multiStepFeedback.pushInfo( 'Mergeando linhas...' )
-        allLineLayers = [ boundaryAreas2LineLayer, boundaryLineLayer, delimitersLayer ]
-        allMergedLinesLayer = self.mergeVectorLayers( 
+        allLineLayers = [ frame2LineLayer, boundaryAreas2LineLayer, boundaryLineLayer, delimitersLayer ]
+        mergedLinesWithFrame = self.mergeVectorLayers( 
             allLineLayers, 
             frameLayer.sourceCrs(), 
             feedback=multiStepFeedback 
         )
         multiStepFeedback.setCurrentStep( 3 )
 
-        multiStepFeedback.pushInfo( 'Mergeando linhas com moldura...' )
-        mergedLinesWithFrame = self.mergeVectorLayers( 
-            [ allMergedLinesLayer , frame2LineLayer ], 
-            frameLayer.sourceCrs(), 
-            feedback=multiStepFeedback 
+        multiStepFeedback.pushInfo( 'Seccionando linhas...' )
+        sectionedLinesLayer = self.lineOnLineOverlayer( mergedLinesWithFrame, feedback )
+        self.createSpatialIndex(
+            sectionedLinesLayer, 
+            feedback=multiStepFeedback
         )
         multiStepFeedback.setCurrentStep( 4 )
 
-        multiStepFeedback.pushInfo( 'Seccionando linhas...' )
-        sectionedLinesLayer = self.lineOnLineOverlayer( mergedLinesWithFrame, feedback )
-        multiStepFeedback.setCurrentStep( 5 )
-
         multiStepFeedback.pushInfo( 'Gerando áreas...' )
         polygonLayer = self.polygonize(sectionedLinesLayer, feedback)
-        multiStepFeedback.setCurrentStep( 6 )
-
-        multiStepFeedback.pushInfo( 'Clipando polígonos na moldura...' )
         self.createSpatialIndex(
             polygonLayer, 
             feedback=multiStepFeedback
         )
-        allClippedPolygonsLayer = self.clipLayer( 
+        multiStepFeedback.setCurrentStep( 5 )
+
+        multiStepFeedback.pushInfo( 'Clipando polígonos na moldura...' )
+        landCoverLayer = self.clipLayer( 
             polygonLayer, 
             frameLayer, 
             feedback=multiStepFeedback
         )
-        multiStepFeedback.setCurrentStep( 7 )
+        self.createSpatialIndex(landCoverLayer, feedback=multiStepFeedback)
+        multiStepFeedback.setCurrentStep( 6 )
 
         multiStepFeedback.pushInfo( 'Removendo áreas de limite...' )
-        landCoverLayer = allClippedPolygonsLayer
-        self.createSpatialIndex(landCoverLayer, feedback=multiStepFeedback)
         self.removeIntersectionFeatures(landCoverLayer, boundaryAreasLayer)
-        multiStepFeedback.setCurrentStep( 8 )
+        multiStepFeedback.setCurrentStep( 7 )
 
         multiStepFeedback.pushInfo( 'Verficando delimitadores não utilizados...' )
         boundaryLandCoverLayer = self.convertPolygonToLines( 
             landCoverLayer, 
             feedback=multiStepFeedback 
         )
-        boundaryLandCoverLayer = self.addAutoIncrementalField( boundaryLandCoverLayer, feedback )
         self.createSpatialIndex( boundaryLandCoverLayer, feedback )
         unusedFeatures = self.checkUnusedDelimiters( boundaryLandCoverLayer, delimitersLayer, feedback=multiStepFeedback )
-        multiStepFeedback.setCurrentStep( 9 )
+        multiStepFeedback.setCurrentStep( 8 )
 
         multiStepFeedback.pushInfo( 'Verficando áreas sem centroides...' )
         featuresWithoutCentroid = self.checkLandCoverWithoutCentroids( landCoverLayer, centroidLayer )
-        multiStepFeedback.setCurrentStep( 10 )
+        multiStepFeedback.setCurrentStep( 9 )
 
         multiStepFeedback.pushInfo( 'Verficando áreas com centroides conflitantes...' )
         featuresDifferentCentroid = self.checkLandCoverDifferentCentroids( landCoverLayer, centroidLayer, centroidFieldNames )
@@ -255,11 +249,11 @@ class CreateLandCover(QgsProcessingAlgorithm):
                 self.OUTPUT3: featuresWithoutCentroidLayer, 
                 self.OUTPUT4: featuresDifferentCentroidLayer
             }
-        multiStepFeedback.setCurrentStep( 11 )
+        multiStepFeedback.setCurrentStep( 10 )
 
         multiStepFeedback.pushInfo( 'Atributando cobertura terrestre...' )
         attributedLandCoverLayer = self.joinAttributesByLocation( landCoverLayer, centroidLayer, centroidFieldNames, feedback )
-        multiStepFeedback.setCurrentStep( 12 )
+        multiStepFeedback.setCurrentStep( 11 )
         
         newLayer = self.outLayer( 
             self.OUTPUT1,
@@ -292,39 +286,6 @@ class CreateLandCover(QgsProcessingAlgorithm):
         output = processing.run(
             "native:polygonstolines",
             {
-                'INPUT': inputLayer,
-                'OUTPUT': 'TEMPORARY_OUTPUT'
-            },
-            feedback=feedback
-        )
-        return output['OUTPUT']
-
-    def difference(self, inputLayer, overlayLayer, feedback):
-        output = processing.run(
-            "native:difference",
-            {
-                'INPUT': inputLayer,
-                'OVERLAY': overlayLayer,
-                'OUTPUT': 'TEMPORARY_OUTPUT'
-            },
-            feedback=feedback
-        )
-        return output['OUTPUT']
-
-    def aggregate(self, inputLayer, primaryKeyName, feedback):
-        output = processing.run(
-            "native:aggregate",
-            {
-                'AGGREGATES': [{
-                    'aggregate': 'sum',
-                    'delimiter': ',',
-                    'input': '"{0}"'.format(primaryKeyName),
-                    'length': 0,
-                    'name': primaryKeyName,
-                    'precision': 0,
-                    'type': 4
-                }],
-                'GROUP_BY': 'NULL',
                 'INPUT': inputLayer,
                 'OUTPUT': 'TEMPORARY_OUTPUT'
             },
@@ -401,10 +362,16 @@ class CreateLandCover(QgsProcessingAlgorithm):
         inputLayer.deleteFeatures( idsToDelete )
 
     def checkUnusedDelimiters(self, boundaryLandCoverLayer, delimiterLayer, feedback):
-        aggregatedBoundaryLandCoverLayer = self.aggregate( boundaryLandCoverLayer, primaryKeyName='AUTO', feedback=feedback )
-        unusedFeatures = []
-        diffLayer = self.difference( delimiterLayer, aggregatedBoundaryLandCoverLayer, feedback=feedback )
-        return list(diffLayer.getFeatures())
+        output = processing.run(
+            'native:difference',
+            {
+                'INPUT': delimiterLayer,
+                'OVERLAY': boundaryLandCoverLayer,
+                'OUTPUT': 'TEMPORARY_OUTPUT' 
+            },
+            feedback=feedback
+        )
+        return list(output['OUTPUT'].getFeatures())
 
     def checkLandCoverWithoutCentroids(self, landCoverLayer, centroidLayer):
         featuresWithoutCentroid = []
