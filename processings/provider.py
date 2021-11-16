@@ -32,7 +32,7 @@ from .verifyAngles import VerifyAngles
 from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
 from .identifySplittedLines import IdentifySplittedLines 
 from .snapBetweenLines import SnapBetweenLines
-from .verifyZAngles import VerifyZAngles
+# from .verifyZAngles import VerifyZAngles
 from .snapPolygons import SnapPolygons
 from .removePoints import RemovePoints
 from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
@@ -94,7 +94,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(SnapBetweenLines())
         self.addAlgorithm(FixMissingVertexOnIntersection())
         self.addAlgorithm(IdentifyOverlaps())
-        self.addAlgorithm(VerifyZAngles())
+        # self.addAlgorithm(VerifyZAngles())
         self.addAlgorithm(SnapPolygons())
         self.addAlgorithm(RemovePoints())
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())

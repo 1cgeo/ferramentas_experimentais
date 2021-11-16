@@ -140,14 +140,7 @@ Parâmetros:
 - Camada(s) do tipo área
 - Ângulo mínimo: segmentos que geram ângulos menores que o ângulo mínimo serão reportadas
 
-### 28 - Identifica feições no formato Z
-Verifica a existência de feições no formato "Z". É capaz de analisar camadas de maneira individual (tipo linha ou área) ou entre camadas (tipo linha).
-Parâmetros:
-- Camada do tipo linha
-- Camada do tipo área
-- Ângulo: Define para quais formatos de "Z" a ferramenta irá gerar flags. Este parâmetro é um ângulo obtuso, definido entre 270 e 360. Maiores valores deste parâmentro implicam na busca de geometrias "Z" mais deformadas.
-
-### 29 - Identifica Poligonos Vizinhos Pequenos sem Mudança de Atributos
+### 28 - Identifica Poligonos Vizinhos Pequenos sem Mudança de Atributos
 Retorna uma camada com polígonos, menores que a área definida pelo usuário em uma tabela CSV (Colunas: nome da camada, tamanho), que tem o mesmo valor que polígonos vizinhos em todos atributos exceto os especificados como entrada. Leva-se em consideração uma moldura (dissolvida, ou seja, considera-se apenas os limites exteriores da moldura).
 Parâmetros:
 - Camada de polígono
@@ -155,22 +148,22 @@ Parâmetros:
 - Camada de moldura
 - Texto: atributos que **não** serão verificados
 
-### 30 - Snap de poligonos na moldura
+### 29 - Snap de poligonos na moldura
 Realiza o snap na moldura de múltiplas camadas de poligono. Também cria vértices na moldura no ponto de interseção.
 
-### 31 - Converte linhas conectadas para multilinha
+### 30 - Converte linhas conectadas para multilinha
 
-### 32 - Conectar pontas soltas entre linhas
+### 31 - Conectar pontas soltas entre linhas
 
-### 33 - Conectar áreas e linhas
+### 32 - Conectar áreas e linhas
 
-### 34 - Remover pontos
+### 33 - Remover pontos
 
-### 35 - Verificar geometrias próximas
+### 34 - Verificar geometrias próximas
 
-### 36 - Remove vértices duplicados
+### 35 - Remove vértices duplicados
 
-### 37 - Verifica Hidrografia
+### 36 - Verifica Hidrografia
 Verifica condições lógico espaciais envolvendo elementos de camadas de hidrografia (parâmetros).
 Parâmetros:
 - Camada de drenagem (linha)
@@ -183,7 +176,7 @@ Parâmetros:
 - Camada de elemento hidrográfico (polígono)
 - Camada de moldura (polígono)
 
-### 38 - Verifica Empilhamento de Curvas de Nível
+### 37 - Verifica Empilhamento de Curvas de Nível
 Compara valores de cota entre curvas de nível fechadas interna a outra, de acordo com o valor de equidistância e tipo (normal ou depressão)
 Parâmetros:
 - Camada de curva de nível (linha)
@@ -191,7 +184,7 @@ Parâmetros:
 - Campo correspondente a tipo
 - Valor da equidistância entre as cotas
 
-### 39 - Consistência entre Massa d'água(Polígono) e Curva de Nível
+### 38 - Consistência entre Massa d'água(Polígono) e Curva de Nível
 Detecta inconsistências lógicas entre  massas d'água e curvas de nível. Também verifica se, uma vez que a curva cruza a massa d'água, toca em algum trecho de drenagem do tipo *Dentro de polígono*.
 Parâmetros:
 - Camada de massa d'água (polígono)
@@ -199,7 +192,7 @@ Parâmetros:
 - Camada de curvas de nível (linha)
 - Campo contendo as cotas das curvas de nível
 
-### 40 - Verifica Transporte
+### 39 - Verifica Transporte
 Verifica inconsistências lógicas em elementos viários (bueiro, ponte, vau) e barragem, quando comparados a camadas de vias de deslocamento e drenagem.
 Parâmetros:
 - Camada de drenagem (linha)
@@ -208,19 +201,19 @@ Parâmetros:
 - Camada de vias de deslocamento (linha)
 - Camada de barragens (linha)
 
-### 41 - Identifica Múltiplas Interseções Entre Curva de Nível e Drenagem
+### 40 - Identifica Múltiplas Interseções Entre Curva de Nível e Drenagem
 Retorna as interseções entre uma drenagem e uma curva de nível que se intersectam mais de uma vez (qualquer interseção não vazia diferente de apenas 1 ponto).
 Parâmetros:
 - Camada de drenagem (linha)
 - Camada de curva de nível (linha)
 
-### 42 - Identifica Feições Próximas
+### 41 - Identifica Feições Próximas
 Retorna feições cuja distância entre si é menor que o definido na tabela CSV para cada camada, no caso de 2 camadas de linha, também é definda a tolerância, que é o tamanho total de uma linha que está contida no *buffer* de outra linha.
 Parâmetros:
 - Tabela CSV
 - Tolerância
 
-### 43 - Generalização de Ponto Cotado
+### 42 - Generalização de Ponto Cotado
 Retorna apenas os pontos cotados mantidos de acordo com o critério.
 Critério:
 - Em cada quadricula serão mantidos os pontos cotados nas curvas de nivel mais internas. Se há mais de um ponto na mesma curva de nivel mais interna, usa-se o ponto de maior altitude nas curvas normais e os pontos de menores altitudes nas curvas de depressão. 
@@ -232,7 +225,7 @@ Parâmetros:
 - Camada das curvas de nível
 - Campo indicando se a curva é depressão ou normal
 
-### 44 - Mescla Linhas pelo Tamanho
+### 43 - Mescla Linhas pelo Tamanho
 Retorna camada com as linhas mescladas com base no tamanho. Em caso de bifurcação, percorre-se o caminho de maior tamanho para mesclar. Considera-se o sentido das linhas para conectar, ou seja, o início de uma linha só pode conectar-se ao final de outra, assim como o final de uma linha só pode ser conectado ao início de outra linha, nunca ao final de alguma. Linhas menores que a tolerância não serão mescladas.
 
 Parâmetros:
@@ -240,7 +233,7 @@ Parâmetros:
 - Tolerância (inteiro)
 - Iterações (inteiro)
 
-### 45 - Verificar Geometria da Rede
+### 44 - Verificar Geometria da Rede
 Retorna inconsistências na geometria da rede. Os campos selecionados são analisados para verificar linhas que deveriam estar mergeadas por possuir atributos iguais.
 
 Parâmetros:
