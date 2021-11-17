@@ -1,66 +1,73 @@
+import os
+import xml.etree.ElementTree as ET
 from os import listdir
-import xml.etree.ElementTree as ET 
-from os.path import isfile, join, dirname
-from qgis.core import QgsProcessingProvider, QgsProcessingModelAlgorithm, QgsXmlUtils
+from os.path import dirname, isfile, join
+
 from processing.core.ProcessingConfig import ProcessingConfig, Setting
+from qgis.core import (QgsProcessingModelAlgorithm, QgsProcessingProvider,
+                       QgsXmlUtils)
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtXml import QDomDocument
+
 from .atribuirsrc import AtribuirSRC
-from .removercamadavazia import RemoveEmptyLayers
-from .streamOrder import StreamOrder
-from .streamCountourConsistency import StreamCountourConsistency
-from .verifyValleyBottom import VerifyValleyBottom
+from .attributeValleyBottom import AttributeValleyBottom
+from .bridgeAndManholeRotation import BridgeAndManholeRotation
+from .bridgeAndManholeWidth import BridgeAndManholeWidth
+from .clipLayerInFrame import ClipLayerInFrame
+from .createLandCover import CreateLandCover
+from .damWidth import DamWidth
+from .defineEditTextField import DefineEditTextField
+from .elevationPointGeneralization import ElevationPointsGeneralization
+from .fixMissingVertexOnIntersection import FixMissingVertexOnIntersection
+from .generalizeBuildings import GeneralizeBuildings
+from .identifyCloseFeatures import IdentifyCloseFeatures
+from .identifyDiscontinuitiesInLines import IdentifyDiscontinuitiesInLines
 from .identifyInvalidGeometry import IdentifyInvalidGeometry
 from .identifyMultipleParts import IdentifyMultipleParts
-from .verifyLayersConnection import VerifyLayersConnection
-from .identifySmallHoles import identifySmallHoles
+from .identifyOverlaps import IdentifyOverlaps
+from .identifySameAttributesInNeighbouringPolygons import \
+    IdentifySameAttributesInNeighbouringPolygons
 from .identifySmallFeatures import IdentifySmallFeatures
 from .identifySmallLines import IdentifySmallLines
+from .identifySmallNeighbouringSameAttributesPolygons import \
+    IdentifySmallNeighbouringSameAttributesPolygons
+from .identifySplittedLines import IdentifySplittedLines
 from .identifyUndershootLines import IdentifyUndershootLines
-from .identifyDiscontinuitiesInLines import IdentifyDiscontinuitiesInLines
-from .removeHoles import RemoveHoles
-from .attributeValleyBottom import AttributeValleyBottom
-from .loadShapefilesAlg import LoadShapefilesAlg
-from .spellCheckerAlg import SpellCheckerAlg
-from .uuidCheckerAlg import UuidCheckerAlg
-from .snapLinesInFrame import SnapLinesInFrame
-from .clipLayerInFrame import ClipLayerInFrame
-from .fixMissingVertexOnIntersection import FixMissingVertexOnIntersection
-from .identifyOverlaps import IdentifyOverlaps
-import os
-from .verifyAngles import VerifyAngles
-from .identifySameAttributesInNeighbouringPolygons import IdentifySameAttributesInNeighbouringPolygons
-from .identifySplittedLines import IdentifySplittedLines 
-from .snapBetweenLines import SnapBetweenLines
-# from .verifyZAngles import VerifyZAngles
-from .snapPolygons import SnapPolygons
-from .removePoints import RemovePoints
-from .identifySmallNeighbouringSameAttributesPolygons import IdentifySmallNeighbouringSameAttributesPolygons
-from .snapPolygonsInFrame import SnapPolygonsInFrame
-#from .checkNeighboringGeometries import CheckNeighboringGeometries
 from .line2Multiline import Line2Multiline
-from .verifyHydro import VerifyHydrography
+from .mergeLinesBySize import MergeLinesBySize
+from .prepareMiniMap import PrepareMiniMap
+from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
+from .removeDuplicatePoints import RemoveDuplicatePoints
+from .removeHoles import RemoveHoles
+from .removePoints import RemovePoints
+from .removercamadavazia import RemoveEmptyLayers
 from .rotation import Rotation
-from .verifyCountourStacking import VerifyCountourStacking
-from .damWidth import DamWidth
-from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
+from .snapBetweenLines import SnapBetweenLines
+from .snapLineInAnchor import SnapLineInAnchor
+from .snapLinesInFrame import SnapLinesInFrame
 from .snapPointsInLines import SnapPointsInLines
 from .snapPointsInLinesIntersection import SnapPointsInLinesIntersection
-from .snapLineInAnchor import SnapLineInAnchor
-from .removeDuplicatePoints import RemoveDuplicatePoints
-from .bridgeAndManholeWidth import BridgeAndManholeWidth
-from .bridgeAndManholeRotation import BridgeAndManholeRotation
-from .verifyTransports import VerifyTransports
-from .rapidsAndWaterfallRotation import RapidsAndWaterfallRotation
-from .generalizeBuildings import GeneralizeBuildings
-from .defineEditTextField import DefineEditTextField
-from .prepareMiniMap import PrepareMiniMap
-from .identifyCountourStreamIntersection import IdentifyCountourStreamIntersection
-from .identifyCloseFeatures import IdentifyCloseFeatures
-from .elevationPointGeneralization import ElevationPointsGeneralization
-from .mergeLinesBySize import MergeLinesBySize
-from .createLandCover import CreateLandCover
+from .snapPolygons import SnapPolygons
+from .snapPolygonsInFrame import SnapPolygonsInFrame
+from .streamCountourConsistency import StreamCountourConsistency
+from .streamOrder import StreamOrder
+from .streamPolygonCountourConsistency import StreamPolygonCountourConsistency
+from .verifyAngles import VerifyAngles
+from .verifyHydro import VerifyHydrography
+from .verifyLayersConnection import VerifyLayersConnection
 from .verifyStreamGeometry import VerifyStreamGeometry
+from .verifyTransports import VerifyTransports
+from .verifyValleyBottom import VerifyValleyBottom
+#from .checkNeighboringGeometries import CheckNeighboringGeometries
+# from .verifyCountourStacking import VerifyCountourStacking
+# from .uuidCheckerAlg import UuidCheckerAlg
+# from .spellCheckerAlg import SpellCheckerAlg
+# from .verifyZAngles import VerifyZAngles
+# from .loadShapefilesAlg import LoadShapefilesAlg
+# from .identifySmallHoles import identifySmallHoles
+# from .identifyCountourStreamIntersection import \
+#     IdentifyCountourStreamIntersection
+
 
 class Provider(QgsProcessingProvider):
 
@@ -76,16 +83,16 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(IdentifyInvalidGeometry())
         self.addAlgorithm(IdentifyMultipleParts())
         self.addAlgorithm(VerifyLayersConnection())
-        self.addAlgorithm(identifySmallHoles())
+        # self.addAlgorithm(identifySmallHoles()) # DSGTools
         self.addAlgorithm(IdentifySmallFeatures())
         self.addAlgorithm(IdentifySmallLines())
         self.addAlgorithm(IdentifyUndershootLines())
         self.addAlgorithm(IdentifyDiscontinuitiesInLines())
         self.addAlgorithm(RemoveHoles())
         self.addAlgorithm(AttributeValleyBottom())
-        self.addAlgorithm(LoadShapefilesAlg())
-        self.addAlgorithm(SpellCheckerAlg())
-        self.addAlgorithm(UuidCheckerAlg())
+        # self.addAlgorithm(LoadShapefilesAlg()) # DSGTools
+        # self.addAlgorithm(SpellCheckerAlg()) # DSGTools
+        # self.addAlgorithm(UuidCheckerAlg()) # DSGTools
         self.addAlgorithm(SnapLinesInFrame())
         self.addAlgorithm(ClipLayerInFrame())
         self.addAlgorithm(VerifyAngles())
@@ -94,7 +101,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(SnapBetweenLines())
         self.addAlgorithm(FixMissingVertexOnIntersection())
         self.addAlgorithm(IdentifyOverlaps())
-        # self.addAlgorithm(VerifyZAngles())
+        # self.addAlgorithm(VerifyZAngles()) # DSGTools
         self.addAlgorithm(SnapPolygons())
         self.addAlgorithm(RemovePoints())
         self.addAlgorithm(IdentifySmallNeighbouringSameAttributesPolygons())
@@ -102,7 +109,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(Line2Multiline())
         self.addAlgorithm(VerifyHydrography())
         self.addAlgorithm(Rotation())
-        self.addAlgorithm(VerifyCountourStacking())
+        # self.addAlgorithm(VerifyCountourStacking()) # DSGTools
         self.addAlgorithm(DamWidth())
         self.addAlgorithm(StreamPolygonCountourConsistency())
         self.addAlgorithm(SnapPointsInLines())
@@ -116,7 +123,7 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(GeneralizeBuildings())
         self.addAlgorithm(DefineEditTextField())
         self.addAlgorithm(PrepareMiniMap())
-        self.addAlgorithm(IdentifyCountourStreamIntersection())
+        # self.addAlgorithm(IdentifyCountourStreamIntersection()) # DSGTools
         self.addAlgorithm(IdentifyCloseFeatures())
         self.addAlgorithm(ElevationPointsGeneralization())
         self.addAlgorithm(MergeLinesBySize())
