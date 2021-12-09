@@ -213,17 +213,7 @@ Parâmetros:
 - Tabela CSV
 - Tolerância
 
-### 42 - Generalização de Ponto Cotado
-Retorna apenas os pontos cotados mantidos de acordo com o critério.
-Critério:
-- Em cada quadricula serão mantidos os pontos cotados nas curvas de nivel mais internas. Se há mais de um ponto na mesma curva de nivel mais interna, usa-se o ponto de maior altitude nas curvas normais e os pontos de menores altitudes nas curvas de depressão. 
-- Se não há ponto cotado nas curvas de nível mais internas, mantém-se apenas o ponto de menor cota da quadricula.
-
-Parâmetros:
-- Escala
-- Camada dos pontos cotados
-- Camada das curvas de nível
-- Campo indicando se a curva é depressão ou normal
+### 42 - Generalização de Ponto Cotado (passado para o plugin de edição)
 
 ### 43 - Mescla Linhas pelo Tamanho
 Retorna camada com as linhas mescladas com base no tamanho. Em caso de bifurcação, percorre-se o caminho de maior tamanho para mesclar. Considera-se o sentido das linhas para conectar, ou seja, o início de uma linha só pode conectar-se ao final de outra, assim como o final de uma linha só pode ser conectado ao início de outra linha, nunca ao final de alguma. Linhas menores que a tolerância não serão mescladas.

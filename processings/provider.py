@@ -17,7 +17,6 @@ from .clipLayerInFrame import ClipLayerInFrame
 from .createLandCover import CreateLandCover
 from .damWidth import DamWidth
 from .defineEditTextField import DefineEditTextField
-from .elevationPointGeneralization import ElevationPointsGeneralization
 from .fixMissingVertexOnIntersection import FixMissingVertexOnIntersection
 from .generalizeBuildings import GeneralizeBuildings
 from .identifyCloseFeatures import IdentifyCloseFeatures
@@ -125,7 +124,6 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(PrepareMiniMap())
         # self.addAlgorithm(IdentifyCountourStreamIntersection()) # DSGTools
         self.addAlgorithm(IdentifyCloseFeatures())
-        self.addAlgorithm(ElevationPointsGeneralization())
         self.addAlgorithm(MergeLinesBySize())
         self.addAlgorithm(CreateLandCover())
         self.addAlgorithm(VerifyStreamGeometry())
