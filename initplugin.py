@@ -13,7 +13,6 @@ from .corta_fundo_vale.widgets.corta_tool import CortaTool
 from .spatialFilter import SpatialFilter
 from .defaultFields import setDefaultFields, restoreFields
 from .filters import filterSelections, cleanAllFilters, filterBySelectedGeometries
-from .labelTool import HydroLabelTool, HighwayLabelTool
 from .copy_to_temp_layer.copyToTempLayer import copyToTempLayer
 from .processings.provider import Provider
 from .expressionFunctions import loadExpressionFunctions
@@ -31,15 +30,11 @@ class InitPlugin:
         iface.mainWindow().menuBar().insertMenu( iface.firstRightStandardMenu().menuAction(), self.menuActions )
 
 
-        self.hydroLabelTool = HydroLabelTool( self.menuActions )
-        self.highwayLabelTool = HighwayLabelTool( self.menuActions )
         self.provider = None
         self.toolBar = None
-        self.toolBar2 = None
 
     def initGui(self):
         self.toolBar = self.iface.addToolBar('Ferramentas_Experimentais')
-        self.toolBar2 = self.iface.addToolBar('Ferramentas_Experimentais_2')
 
         self.toolBar.addWidget(self.cortaWidget)
 
@@ -142,9 +137,7 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.removeSpatialFilter)
 
-        self.toolBar2.addWidget( self.hydroLabelTool )
 
-        self.toolBar2.addWidget( self.highwayLabelTool )
         # Addprovider
         PluginAlg.initProcessing(self)
 
@@ -153,7 +146,6 @@ class InitPlugin:
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
         self.iface.mainWindow().removeToolBar(self.toolBar)
-        self.iface.mainWindow().removeToolBar(self.toolBar2)
         self.menuActions.deleteLater()
 
     def createAction(self, text, icon, callback, whatisthis, tip):
