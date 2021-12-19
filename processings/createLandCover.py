@@ -30,6 +30,7 @@ class CreateLandCover(QgsProcessingAlgorithm):
     INPUT_BOUNDARY_AREAS = 'INPUT_BOUNDARY_AREAS'
     INPUT_DELIMITERS = 'INPUT_DELIMITERS'
     CHECK_DELIMITERS = 'CHECK_DELIMITERS'
+    CHECK_NO_CENTROID = 'CHECK_NO_CENTROID'
     OUTPUT1 = 'OUTPUT1'
     OUTPUT2 = 'OUTPUT2'
     OUTPUT3 = 'OUTPUT3'
@@ -39,7 +40,7 @@ class CreateLandCover(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 self.INPUT_FRAME,
-                self.tr('Selecione a moldura'),
+                self.tr('Selecione a camada de moldura'),
                 types=[QgsProcessing.TypeVectorPolygon]
             )
         )
@@ -47,7 +48,7 @@ class CreateLandCover(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 self.INPUT_CENTROID,
-                self.tr('Selecione o centroide'),
+                self.tr('Selecione a camada de centroide'),
                 types=[QgsProcessing.TypeVectorPoint]
             )
         )
@@ -91,6 +92,14 @@ class CreateLandCover(QgsProcessingAlgorithm):
             QgsProcessingParameterBoolean(
                 self.CHECK_DELIMITERS,
                 self.tr('Testar delimitadores não utilizados'),
+                defaultValue=True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.CHECK_NO_CENTROID,
+                self.tr('Testar áreas sem centroide'),
                 defaultValue=True
             )
         )
@@ -162,6 +171,7 @@ class CreateLandCover(QgsProcessingAlgorithm):
         self.createSpatialIndex( delimitersLayer, feedback )
 
         checkDelimiters = self.parameterAsBool(parameters, self.CHECK_DELIMITERS, context)
+        checkNoCentroid = self.parameterAsBool(parameters, self.CHECK_NO_CENTROID, context)
 
         feedback.setProgressText( 'Iniciando construção da cobertura terrestre...' ) 
         multiStepFeedback = QgsProcessingMultiStepFeedback( 13, feedback )
@@ -253,26 +263,27 @@ class CreateLandCover(QgsProcessingAlgorithm):
         attributedFeatureIds = [ str(f['AUTO']) for f in attributedLandCoverFeatures ]  
         multiStepFeedback.setCurrentStep( 9 )
 
-        multiStepFeedback.pushInfo( 'Verficando áreas sem centroides...' )
-        featuresWithoutCentroid = None
-        featuresWithoutCentroidIds = list(set(allFeatureIds) - set(attributedFeatureIds))
-        featuresWithoutCentroid = list(
-            landCoverLayer.getFeatures( 
-                QgsFeatureRequest( 
-                    QgsExpression(
-                        "array_contains(array({0}), \"AUTO\")".join(','.join(featuresWithoutCentroidIds))
+        if checkNoCentroid:
+            multiStepFeedback.pushInfo( 'Verficando áreas sem centroides...' )
+            featuresWithoutCentroid = None
+            featuresWithoutCentroidIds = list(set(allFeatureIds) - set(attributedFeatureIds))
+            featuresWithoutCentroid = list(
+                landCoverLayer.getFeatures( 
+                    QgsFeatureRequest( 
+                        QgsExpression(
+                            "array_contains(array({0}), \"AUTO\")".join(','.join(featuresWithoutCentroidIds))
+                        ) 
                     ) 
-                ) 
+                )
             )
-        )
-        featuresWithoutCentroidLayer = self.outFeatures( 
-            self.OUTPUT3,
-            parameters, 
-            context, 
-            featuresWithoutCentroid if featuresWithoutCentroid else [], 
-            frameLayer.sourceCrs(), 
-            geometryType=QgsWkbTypes.Polygon
-        )
+            featuresWithoutCentroidLayer = self.outFeatures( 
+                self.OUTPUT3,
+                parameters, 
+                context, 
+                featuresWithoutCentroid if featuresWithoutCentroid else [], 
+                frameLayer.sourceCrs(), 
+                geometryType=QgsWkbTypes.Polygon
+            )
         multiStepFeedback.setCurrentStep( 10 )      
 
         
