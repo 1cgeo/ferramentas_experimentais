@@ -57,6 +57,8 @@ from .verifyLayersConnection import VerifyLayersConnection
 from .verifyStreamGeometry import VerifyStreamGeometry
 from .verifyTransports import VerifyTransports
 from .verifyValleyBottom import VerifyValleyBottom
+from .quadtreeDivision import QuadtreeDivision
+from .quadtreeDivisionVec import QuadtreeDivisionVec
 #from .checkNeighboringGeometries import CheckNeighboringGeometries
 # from .verifyCountourStacking import VerifyCountourStacking
 # from .uuidCheckerAlg import UuidCheckerAlg
@@ -127,6 +129,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(MergeLinesBySize())
         self.addAlgorithm(CreateLandCover())
         self.addAlgorithm(VerifyStreamGeometry())
+        self.addAlgorithm(QuadtreeDivision())
+        self.addAlgorithm(QuadtreeDivisionVec())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
