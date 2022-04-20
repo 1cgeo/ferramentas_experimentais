@@ -230,7 +230,13 @@ Parâmetros:
 - Camada de linhas (rede)
 - Campos
 
+### 45 - Inserir MASACODE
+Insere o código MASACODE nas camadas de entrada (ponto, linha e polígono) de acordo com o preconizado no documento do MASAGroup.
 
+Parâmetros:
+- Camadas de pontos
+- Camadas de linhas
+- Camadas de polígonos
 ## Modelos
 ### 1 - Gera centroide de área edificada
 
