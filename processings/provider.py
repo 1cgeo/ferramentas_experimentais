@@ -68,6 +68,8 @@ from .quadtreeDivisionVec import QuadtreeDivisionVec
 # from .identifySmallHoles import identifySmallHoles
 # from .identifyCountourStreamIntersection import \
 #     IdentifyCountourStreamIntersection
+from .insertMASACODE import InsertMASACODE
+from .insertMASACODE2 import InsertMASACODE2
 
 
 class Provider(QgsProcessingProvider):
@@ -131,6 +133,8 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(VerifyStreamGeometry())
         self.addAlgorithm(QuadtreeDivision())
         self.addAlgorithm(QuadtreeDivisionVec())
+        self.addAlgorithm(InsertMASACODE())
+        self.addAlgorithm(InsertMASACODE2())
         for model in self.modelsAlg():
             self.addAlgorithm(model)
 
