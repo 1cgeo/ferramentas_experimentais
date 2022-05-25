@@ -94,16 +94,16 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
             feedback=feedback
         )
 
-    def findOverlaps(self, feedback, output, inputLyr, idDict, i, j, geomType):
+    def findOverlaps(self, feedback, output, inputLyr, idDict, geomType):
         total = 100.0 / inputLyr.featureCount() if inputLyr.featureCount() else 0
         def buildOutputs(feat1, feedback):
             if feedback.isCanceled():
                 return
-            feat1Geom = feat1.geometry()
+            feat1geom = feat1.geometry()
             if feat1['AUTO_2'] not in idDict:
                 return
-            feat2Geom = idDict[feat1['AUTO_2']].geometry()
-            if (i!=j or (i==j and feat1['AUTO_2'] > feat1['AUTO'])) and feat1geom.intersects(feat2geom):
+            feat2geom = idDict[feat1['AUTO_2']].geometry()
+            if feat1['AUTO_2'] > feat1['AUTO'] and feat1geom.intersects(feat2geom):
                 intersections = feat1geom.intersection(feat2geom)
                 if intersections.type() == geomType:
                     if intersections.isMultipart():
@@ -122,7 +122,7 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
                 break
             futures.add(pool.submit(buildOutputsLambda, feat))
         
-        for x in concurrent.futures.as_completed(futures):
+        for _ in concurrent.futures.as_completed(futures):
             if feedback is not None and feedback.isCanceled():
                 break
             feedback.setProgress(current_idx * total)
@@ -140,9 +140,8 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
             idDictList.append(idDict)
 
         for i in range(0, len(auxLayerList)):
-            for j in range(i, len(auxLayerList)):
-                spatialJoinOutput = self.runSpatialJoin(auxLayerList[i], auxLayerList[j], feedback=feedback)
-                self.findOverlaps(feedback, overlaps, spatialJoinOutput, idDictList[j], i , j, geomType)
+            spatialJoinOutput = self.runSpatialJoin(auxLayerList[i], auxLayerList[i], feedback=feedback)
+            self.findOverlaps(feedback, overlaps, spatialJoinOutput, idDictList[i], geomType)
 
 
 
@@ -153,34 +152,32 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
         CRSstr = iface.mapCanvas().mapSettings().destinationCrs().authid()
         CRS = QgsCoordinateReferenceSystem(CRSstr)
 
-        fields = QgsFields()
-        fields.append(QgsField('erro', QVariant.String))
-
-
-        (sink_l, sinkId_l) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT_L,
-            context,
-            fields,
-            5,
-            CRS
-        )
-
-        (sink_a, sinkId_a) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT_A,
-            context,
-            fields,
-            6,
-            CRS
-        )
         multiStepFeedback = QgsProcessingMultiStepFeedback(2, feedback)
         multiStepFeedback.setCurrentStep(0)
         multiStepFeedback.pushInfo("Verificando linhas.")
+
+        fields = QgsFields()
+        fields.append(QgsField('erro', QVariant.String))
+        returnMessageL = 'Nenhum erro encontrado'
+        returnMessageA = 'Nenhum erro encontrado'
+
+        
+
+        
         if len(layerListlinha) > 0:
             overlaps_l = []
             self.pairLayersForVerification(multiStepFeedback, layerListlinha, overlaps_l, QgsWkbTypes.LineGeometry)
-            self.addSink(overlaps_l, sink_l, fields)
+            if overlaps_l:
+                (sink_l, sinkId_l) = self.parameterAsSink(
+                parameters,
+                self.OUTPUT_L,
+                context,
+                fields,
+                5,
+                CRS
+                )
+                self.addSink(overlaps_l, sink_l, fields)
+                returnMessageL = f"{len(overlaps_l)} inconsistencias nas camadas linhas"
 
 
         multiStepFeedback.setCurrentStep(1)
@@ -189,9 +186,19 @@ class IdentifyOverlaps(QgsProcessingAlgorithm):
         if len(layerListpol) > 0:
             overlaps_a = []
             self.pairLayersForVerification(multiStepFeedback, layerListpol, overlaps_a, QgsWkbTypes.PolygonGeometry)
-            self.addSink(overlaps_a, sink_a, fields)
+            if overlaps_a:
+                (sink_a, sinkId_a) = self.parameterAsSink(
+                parameters,
+                self.OUTPUT_A,
+                context,
+                fields,
+                6,
+                CRS
+                )
+                self.addSink(overlaps_a, sink_a, fields)
+                returnMessageA = f"{len(overlaps_l)} inconsistencias nas camadas polígonos"
 
-        return {self.OUTPUT_L: sinkId_l, self.OUTPUT_A: sinkId_a}
+        return {self.OUTPUT_L: returnMessageL, self.OUTPUT_A: returnMessageA}
 
 
     def addSink(self, geometries, sink, fields):
