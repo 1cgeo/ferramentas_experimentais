@@ -30,7 +30,7 @@ def filterBySelectedGeometries():
     for feature in selectedFeatures:
         for geometry in feature.geometry().asGeometryCollection():
             multiPolygon.addGeometry( geometry.constGet().clone() )
-    textFilter = "st_relate(geom, st_geomfromewkt('SRID={0};{1}'), 'T********')".format( 
+    textFilter = "geom && st_geomfromewkt('SRID={0};{1}') and st_relate(geom, st_geomfromewkt('SRID={0};{1}'), 'T********')".format( 
         layer.crs().authid().split(':')[-1], 
         multiPolygon.asWkt()
     )
