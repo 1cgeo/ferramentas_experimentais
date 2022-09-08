@@ -1,14 +1,9 @@
-from qgis.core import (QgsField,
-                       QgsAuxiliaryStorage,
-                       QgsPropertyDefinition,
-                       QgsFeature,
-                       Qgis,
-                       QgsWkbTypes
-                       )
-from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtCore import QSettings
-from qgis.utils import iface
 import json
+
+from PyQt5.QtCore import QSettings
+from PyQt5.QtWidgets import QMessageBox
+from qgis.PyQt.Qt import QVariant
+from qgis.utils import iface
 
 CONFIG_KEY = 'defaultFieldsBackupV1'
 
@@ -60,7 +55,8 @@ def setDefaultFields():
         for fieldIndex in layer.attributeList():
             if fieldIndex in ignore:
                 continue
-            if feature.attribute(fieldIndex) is None:
+            if feature.attribute(fieldIndex) is None or \
+                (isinstance(feature.attribute(fieldIndex), QVariant) and QVariant.isNull(feature.attribute(fieldIndex)) ):
                 continue
             configField = layer.defaultValueDefinition( fieldIndex )
             configField.setExpression("'{0}'".format( feature.attribute(fieldIndex) ) )
