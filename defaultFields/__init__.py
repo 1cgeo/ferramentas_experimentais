@@ -60,6 +60,8 @@ def setDefaultFields():
         for fieldIndex in layer.attributeList():
             if fieldIndex in ignore:
                 continue
+            if feature.attribute(fieldIndex) is None:
+                continue
             configField = layer.defaultValueDefinition( fieldIndex )
             configField.setExpression("'{0}'".format( feature.attribute(fieldIndex) ) )
             layer.setDefaultValueDefinition(fieldIndex, configField)
