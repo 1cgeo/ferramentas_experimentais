@@ -38,7 +38,7 @@ def getBackup(layerId):
     return json.loads(data)[layerId]
 
 def getAttributeBacklist():
-    return [ 'data_modificacao', 'controle_uuid', 'usuario_criacao', 'usuario_atualizacao']
+    return [ 'data_modificacao', 'controle_uuid', 'usuario_criacao', 'usuario_atualizacao', 'data_criacao', 'data_atualizacao']
 
 def setDefaultFields():
     try:
