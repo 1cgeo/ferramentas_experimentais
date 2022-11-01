@@ -47,14 +47,14 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.actionazm)
 
-        self.actionwkt = self.createAction(
-            "Copia WKT", 
-            "copywkt.png", 
-            copywkt, 
-            "Copia as coordenadas das feições selecionadas em WKT",
-            "Copiar em WKT"
-        )
-        self.toolBar.addAction(self.actionwkt)
+        # self.actionwkt = self.createAction(
+        #     "Copia WKT", 
+        #     "copywkt.png", 
+        #     copywkt, 
+        #     "Copia as coordenadas das feições selecionadas em WKT",
+        #     "Copiar em WKT"
+        # )
+        # self.toolBar.addAction(self.actionwkt)
 
         self.actioncolageom = self.createAction(
             "Copiar Geometria", 
@@ -83,14 +83,14 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.actioncopyToTempLayer)
 
-        self.actionaSpatialFilter = self.createAction(
-            "Filtro espacial", 
-            "spatialFilter.png", 
-            self.spatialFilterTool.start, 
-            "Filtra o espaco de aquisição",
-            "Filtro espacial"
-        )
-        self.toolBar.addAction(self.actionaSpatialFilter)
+        # self.actionaSpatialFilter = self.createAction(
+        #     "Filtro espacial", 
+        #     "spatialFilter.png", 
+        #     self.spatialFilterTool.start, 
+        #     "Filtra o espaco de aquisição",
+        #     "Filtro espacial"
+        # )
+        # self.toolBar.addAction(self.actionaSpatialFilter)
 
         self.setDefaultFields = self.createAction(
             "Criar mais como esse", 
@@ -110,32 +110,32 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.restoreFields)
 
-        self.filterSelections = self.createAction(
-            "Filtra selecionados", 
-            "filter.svg", 
-            filterSelections, 
-            "Filtra selecionados",
-            "Filtra selecionados"
-        )
-        self.toolBar.addAction(self.filterSelections)
+        # self.filterSelections = self.createAction(
+        #     "Filtra selecionados", 
+        #     "filter.svg", 
+        #     filterSelections, 
+        #     "Filtra selecionados",
+        #     "Filtra selecionados"
+        # )
+        # self.toolBar.addAction(self.filterSelections)
 
-        self.filterBySelectedGeometries = self.createAction(
-            "Filtra Todos por geometria de selecionadas", 
-            "filterByGeomtries.png", 
-            filterBySelectedGeometries, 
-            "",
-            ""
-        )
-        self.toolBar.addAction(self.filterBySelectedGeometries)
+        # self.filterBySelectedGeometries = self.createAction(
+        #     "Filtra Todos por geometria de selecionadas", 
+        #     "filterByGeomtries.png", 
+        #     filterBySelectedGeometries, 
+        #     "",
+        #     ""
+        # )
+        # self.toolBar.addAction(self.filterBySelectedGeometries)
 
-        self.removeSpatialFilter = self.createAction(
-            "Remove filtros", 
-            "removeSpatialFilter.png", 
-            cleanAllFilters, 
-            "",
-            ""
-        )
-        self.toolBar.addAction(self.removeSpatialFilter)
+        # self.removeSpatialFilter = self.createAction(
+        #     "Remove filtros", 
+        #     "removeSpatialFilter.png", 
+        #     cleanAllFilters, 
+        #     "",
+        #     ""
+        # )
+        # self.toolBar.addAction(self.removeSpatialFilter)
 
 
         # Addprovider
