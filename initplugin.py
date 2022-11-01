@@ -74,14 +74,14 @@ class InitPlugin:
         )
         self.toolBar.addAction(self.actioncopiageom)
 
-        self.actioncopyToTempLayer = self.createAction(
-            "Copia Feições Para Camada Temporária", 
-            "tempLayer.png", 
-            copyToTempLayer, 
-            "Copia Feições Selecionadas Para Camada Temporária",
-            "Copia Feições Selecionadas Para Camada Temporária"
-        )
-        self.toolBar.addAction(self.actioncopyToTempLayer)
+        # self.actioncopyToTempLayer = self.createAction(
+        #     "Copia Feições Para Camada Temporária", 
+        #     "tempLayer.png", 
+        #     copyToTempLayer, 
+        #     "Copia Feições Selecionadas Para Camada Temporária",
+        #     "Copia Feições Selecionadas Para Camada Temporária"
+        # )
+        # self.toolBar.addAction(self.actioncopyToTempLayer)
 
         # self.actionaSpatialFilter = self.createAction(
         #     "Filtro espacial", 
