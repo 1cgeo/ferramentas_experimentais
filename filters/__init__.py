@@ -30,14 +30,17 @@ def filterBySelectedGeometries():
     for feature in selectedFeatures:
         for geometry in feature.geometry().asGeometryCollection():
             multiPolygon.addGeometry( geometry.constGet().clone() )
-    textFilter = "geom && st_geomfromewkt('SRID={0};{1}') and st_relate(geom, st_geomfromewkt('SRID={0};{1}'), 'T********')".format( 
+    multiPolygon = core.QgsGeometry(multiPolygon).makeValid()
+    textFilter = "(geom && st_geomfromewkt('SRID={0};{1}') ) AND st_relate(geom, st_geomfromewkt('SRID={0};{1}'), 'T********')".format( 
         layer.crs().authid().split(':')[-1], 
         multiPolygon.asWkt()
     )
     layersBacklist = [ 'aux_moldura_a' ]
     loadedLayers = core.QgsProject.instance().mapLayers().values()    
     for loadedLayer in loadedLayers:
-        if loadedLayer.dataProvider().uri().table() in layersBacklist:
+        if not isinstance(loadedLayer, core.QgsVectorLayer) or \
+            loadedLayer.dataProvider().name() != 'postgres' or \
+            loadedLayer.dataProvider().uri().table() in layersBacklist:
             continue
         loadedLayer.setSubsetString( textFilter )
     iface.mapCanvas().refresh()
