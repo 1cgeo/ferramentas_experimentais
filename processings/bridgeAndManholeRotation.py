@@ -51,8 +51,7 @@ class BridgeAndManholeRotation(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.INPUT_MIN_DIST,
                 self.tr('Tolerância da distância'), 
-                type=QgsProcessingParameterNumber.Double, 
-                minValue=0.3
+                type=QgsProcessingParameterNumber.Double
             )
         )
 
