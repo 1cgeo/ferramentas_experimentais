@@ -174,5 +174,5 @@ class Line2Multiline(QgsProcessingAlgorithm):
         return 'missoes'
 
     def shortHelpString(self):
-        return self.tr("O algoritmo ...")
+        return self.tr("O algoritmo converte linhas que se tocam para multilinha")
     
