@@ -11,7 +11,8 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterNumber,
                        QgsFeature,
                        QgsField,
-                       QgsFields
+                       QgsFields,
+                       QgsWkbTypes
                        )
 from qgis import processing
 
@@ -88,7 +89,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
         levelsField = self.parameterAsFields( parameters,'INPUT_LEVES_FIELD', context )[0]
         levelGap = self.parameterAsDouble (parameters,'INPUT_LEVEL_GAP', context) 
 
-        ordemIndex = streamLayerOrdered.fields().indexFromName('ordem')
+        ordemIndex = streamLayerOrdered.fields().indexFromName('stream_order')
         maxOrder = streamLayerOrdered.maximumValue(ordemIndex)
 
         streamLayerFeatures = self.createFeaturesArray(streamLayerOrdered)
@@ -105,9 +106,9 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
 
 
     def orderAndAddFieldToLayer(self, context, feedback, streamLayer):
-        streamLayerOrdered = context.takeResultLayer(processing.run('FerramentasExperimentaisProvider:ordenafluxo', 
+        streamLayerOrdered = context.takeResultLayer(processing.run('dsgtools:streamorder', 
                 {
-                    'INPUT_STREAM': streamLayer,
+                    'INPUT': streamLayer,
                     'OUTPUT': 'memory:'
                 },
                 is_child_algorithm=True,
@@ -174,7 +175,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
         linesSelected = []
         lineIdList = []
         for line in streamLayerFeatures:
-            if line['ordem'] == order:
+            if line['stream_order'] == order:
                 linesSelected.append(line)
                 lineIdList.append(line[streamIdField])
         return linesSelected, lineIdList
@@ -228,7 +229,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
 
     def lastPointToFirstPoint(self, point, streamLayerFeatures, intersectionPoints, streamIdField, outputPoints):
         for line in streamLayerFeatures:
-            if line['ordem']<point['ordem']:
+            if line['stream_order']<point['stream_order']:
                 continue
             for geom in line.geometry().constGet():
                 if QgsPointXY(geom[0]) == point.geometry().asPoint():
@@ -238,7 +239,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
                     newIntersection.setGeometry(geom[0])
                     newIntersection[streamIdField] = line[streamIdField]
                     newIntersection['dist'] = 0
-                    newIntersection['ordem'] = line['ordem']
+                    newIntersection['stream_order'] = line['stream_order']
                     intersectionPoints.append(newIntersection)
                     break
         return False
@@ -253,7 +254,7 @@ class StreamCountourConsistency(QgsProcessingAlgorithm):
             self.OUTPUT,
             context,
             newFields,
-            1, #point
+            QgsWkbTypes.Point, #point
             streamLayer.sourceCrs()
         )
         idcounter = 1
